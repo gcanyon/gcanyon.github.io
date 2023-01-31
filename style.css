@@ -1,0 +1,45 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 36px;
+  margin: 20px 0;
+}
+
+.about-me {
+  margin: 20px 0;
+}
+
+.about-me a {
+  color: blue;
+  text-decoration: none;
+}
+
+.about-me a:hover {
+  text-decoration: underline;
+}
+
+.section-title {
+  text-align: left;
+  font-size: 24px;
+  margin-top: 40px;
+}
+
+.note {
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: #f1f1f1;
+  margin: 20px 0;
+  font-size: 18px;
+}
+
+.note a {
+  color: blue;
+  text-decoration: none;
+}
+
+.note a:hover {
+  text-decoration: underline;
+}
