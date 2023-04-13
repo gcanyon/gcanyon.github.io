@@ -6,13 +6,15 @@ body {
 }
 
 .container {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-gap: 20px;
 }
 
 .main {
-  flex: 1;
-  flex-basis: calc(100% - 340px); /* 300px width for right-column + 40px total padding */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
   padding: 20px;
 }
 
@@ -22,6 +24,7 @@ body {
   margin-bottom: 20px;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  flex: 1 0 100%;
 }
 
 .card img {
@@ -51,8 +54,6 @@ body {
 }
 
 .right-column {
-  flex-shrink: 0;
-  flex-basis: 300px;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -71,15 +72,13 @@ body {
 
 @media (max-width: 767px) {
   .container {
-    flex-direction: column;
-  }
-  
-  .main {
-    flex-basis: auto;
+    grid-template-columns: 1fr;
+    grid-auto-flow: row dense;
   }
 
   .right-column {
-    width: 100%;
+    grid-column: 1;
+    grid-row: 1;
     margin-bottom: 20px;
   }
 }
