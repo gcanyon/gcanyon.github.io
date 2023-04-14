@@ -25,7 +25,7 @@ body {
 }
 
 .card img {
-  width: 100%;
+  max-width: 100%;
   max-height: 300px;
   border-radius: 5px;
 }
