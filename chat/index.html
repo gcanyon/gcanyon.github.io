@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .header {
+            position: fixed;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 15px 0;
+            z-index: 1;
+        }
+        .chat-container {
+            margin-top: 150px;
+            margin-bottom: 100px;
+            overflow-y: auto;
+            height: calc(100vh - 250px);
+        }
+        .chat-left {
+            background-color: #dfe4ea;
+            width: 80%;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .chat-right {
+            background-color: #a4b0be;
+            width: 80%;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            margin-left: 20%;
+        }
+        .footer {
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            background-color: #f8f9fa;
+            padding: 15px 0;
+        }
+    </style>
+
+    <script>
+        function showMenu() {
+            var menu = document.getElementById("menu");
+            menu.style.display = menu.style.display === "none" ? "block" : "none";
+        }
+        
+        function updateTitle() {
+            var chatTitle = document.getElementById("chat-title").value;
+            // Your code to update the chat title here
+        }
+        
+        function refreshChat() {
+            // Your code to refresh the chat here
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="container d-flex justify-content-between">
+            <div>
+                <a href="https://www.raitherapy.com"><img src="logo_url_here" alt="Logo" width="50"></a>
+                <img src="bot_profile_url_here" alt="Bot Profile Picture" width="50">
+                <span>Chat Bot Name</span>
+            </div>
+            <div>
+                <img src="menu_icon_url_here" alt="Menu Icon" width="50" onclick="showMenu()">
+                <ul id="menu" style="display: none;">
+                    <li><a href="url_thing_one">Thing One</a></li>
+                    <li><a href="url_thing_two">Thing Two</a></li>
+                </ul>
+                <img src="refresh_icon_url_here" alt="Refresh Icon" width="50" onclick="refreshChat()">
+            </div>
+        </div>
+        <div class="container">
+            <input id="chat-title" type="text" class="form-control" onblur="updateTitle()" placeholder="Chat Title">
+        </div>
+    </div>
+
+    <div class="chat-container container">
+        <div class="chat-left">Hello, how can I help you?</div>
+        <div class="chat-right">I have a question.</div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <input type="text" class="form-control" placeholder="Type your message...">
+        </div>
+    </div>
+
+</body>
+</html>
