@@ -75,7 +75,7 @@ aside.right{border-right:none;border-left:1px solid var(--line);}
 main{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;
   background:
     radial-gradient(circle at 50% 0%, #0e1018 0%, #08090d 70%);}
-#gridCanvas{border-radius:12px;background:#0d0f16;box-shadow:0 0 0 1px var(--line), 0 20px 60px -20px #000;}
+#gridCanvas{border-radius:12px;background:#0d0f16;box-shadow:0 0 0 1px #626979, 0 20px 60px -20px #000;}
 .mobile-tabs{display:none;}
 
 h2.side-title{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);
@@ -122,6 +122,14 @@ label.field{display:block;font-size:11px;color:var(--dimmer);margin-bottom:4px;f
 .prism-slot:hover:not(:disabled){border-color:var(--accent);}
 .prism-slot:disabled{cursor:default;opacity:0.65;}
 .prism-slot.off svg rect{transition:stroke .15s;}
+.orientation-program{display:grid;gap:7px;margin-bottom:10px;}
+.orientation-choice-row{display:grid;grid-template-columns:24px repeat(5,minmax(42px,1fr));gap:6px;align-items:center;}
+.orientation-step{color:var(--dimmer);font-size:12px;font-weight:700;text-align:center;}
+.orientation-choice{min-width:0;min-height:42px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.orientation-choice:hover:not(:disabled){border-color:var(--accent);}
+.orientation-choice.selected{border-color:var(--accent);background:#132229;box-shadow:inset 0 0 0 1px #6ee7ff44;}
+.orientation-choice:disabled{cursor:default;opacity:.62;}
+.orientation-choice.blank{font-size:18px;color:var(--dimmer);}
 .swatch:hover{border-color:#fff;}
 .chipline{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:28px;
   background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:5px;}
@@ -241,6 +249,8 @@ label.field{display:block;font-size:11px;color:var(--dimmer);margin-bottom:4px;f
   .swatch{width:36px;height:36px;}
   .chip{width:32px;height:32px;}
   .prism-slot{min-height:48px;}
+  .orientation-choice-row{grid-template-columns:20px repeat(5,minmax(0,1fr));gap:4px;}
+  .orientation-choice{min-height:46px;}
   .radiorow button{min-height:44px;}
   .checkline{min-height:40px;}
   .statusbar{margin:6px 8px 0;padding:7px 13px;}
@@ -271,24 +281,26 @@ label.field{display:block;font-size:11px;color:var(--dimmer);margin-bottom:4px;f
   background:var(--bg);overflow-y:auto;
 }
 #rightPanel{
-  display:block;position:fixed;z-index:60;left:50%;right:auto;bottom:0;
-  width:min(720px,100%);max-height:min(72vh,720px);padding:0;
-  border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;
+  display:block;position:fixed;z-index:60;left:50%;right:auto;top:var(--inspector-top,96px);bottom:auto;
+  width:min(720px,100%);max-height:min(64vh,680px);padding:0;
+  border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;
   background:var(--panel);overflow:hidden;
-  transform:translate(-50%,calc(100% + 20px));transition:transform .22s ease;
-  box-shadow:0 -24px 70px -30px #000;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,-14px);
+  transition:transform .18s ease,opacity .18s ease,visibility 0s linear .18s;
+  box-shadow:0 24px 70px -30px #000;
 }
-#rightPanel.sheet-open{transform:translate(-50%,0);}
+#rightPanel.sheet-open{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);transition-delay:0s;}
 .sheet-backdrop{display:none;position:fixed;inset:0;background:#0008;z-index:55;}
 .sheet-backdrop.show{display:block;}
 .sheet-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);}
 .sheet-head h2{font-size:14px;margin:0;flex:1;}
-.sheet-body{padding:14px;max-height:calc(min(72vh,720px) - 60px);overflow-y:auto;}
+.sheet-body{padding:14px;max-height:calc(min(64vh,680px) - 60px);overflow-y:auto;}
 
 main#boardPanel{
   position:absolute;z-index:20;inset:0;min-width:0;width:100%;height:100%;
   display:flex;flex-direction:column;align-items:stretch;justify-content:stretch;
   transform:translateX(102%);transition:transform .24s ease;background:var(--bg);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
 }
 main#boardPanel.board-open{transform:translateX(0);}
 .board-chrome{flex:none;background:var(--panel);border-bottom:1px solid var(--line);padding:9px 12px;}
@@ -297,16 +309,20 @@ main#boardPanel.board-open{transform:translateX(0);}
 .board-title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
 .board-title.editable{cursor:pointer;border:0;background:transparent;color:var(--text);text-align:left;padding:7px 4px;border-radius:7px;}
 .board-title.editable:hover{background:var(--panel2);}
-.board-select{min-width:150px;max-width:230px;height:40px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:0 10px;font-weight:600;}
-.mobile-tool-strip{display:none;position:relative;gap:4px;min-width:0;}
+.board-select{display:none;}
+.mobile-tool-strip{display:flex;position:relative;gap:6px;min-width:0;width:100%;}
+.mobile-tool-strip-scroll{display:flex;gap:6px;min-width:0;flex:1;}
 .mobile-tool-button,.mobile-more-button{
   border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:8px;
   min-height:46px;padding:5px 4px;font-size:10.5px;font-weight:650;line-height:1.1;cursor:pointer;
 }
+.mobile-tool-button{flex:0 1 104px;min-width:70px;}
 .mobile-tool-button.active{border-color:var(--accent);background:#132229;color:var(--accent);box-shadow:inset 0 0 0 1px #6ee7ff33;}
 .mobile-tool-button:disabled{opacity:.35;cursor:default;}
 .mobile-tool-glyph{display:block;font-size:16px;line-height:17px;margin-bottom:2px;color:var(--text);}
-.mobile-more-wrap{position:relative;display:flex;flex:1;min-width:56px;}
+.mobile-more-wrap{position:relative;display:flex;flex:0 0 76px;min-width:60px;}
+.mobile-tool-strip.puzzle-tools .mobile-more-wrap{flex-basis:56px;min-width:48px;}
+.mobile-tool-strip.puzzle-tools .mobile-more-button{padding-left:2px;padding-right:2px;}
 .mobile-more-button{width:100%;color:var(--text);}
 .mobile-more-menu{display:none;position:absolute;z-index:35;right:0;top:calc(100% + 5px);min-width:170px;padding:5px;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 35px #000b;}
@@ -315,19 +331,13 @@ main#boardPanel.board-open{transform:translateX(0);}
 .mobile-more-menu button:hover{background:var(--panel2);}
 .mobile-more-menu button.danger{color:#ff8080;}
 .board-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;}
-.board-stage #gridCanvas{flex:none;}
-.placement-configure{position:absolute;z-index:12;transform:translate(-50%,-100%);border:1px solid var(--accent);
-  background:#132229;color:var(--accent);border-radius:18px;padding:7px 12px;font-size:12px;font-weight:700;
-  box-shadow:0 5px 18px #000b;white-space:nowrap;cursor:pointer;animation:configureIn .14s ease-out;}
-@keyframes configureIn{from{opacity:0;transform:translate(-50%,calc(-100% + 5px));}to{opacity:1;transform:translate(-50%,-100%);}}
-.placement-configure.below{transform:translate(-50%,0);animation-name:configureInBelow;}
-@keyframes configureInBelow{from{opacity:0;transform:translate(-50%,-5px);}to{opacity:1;transform:translate(-50%,0);}}
+.board-stage #gridCanvas{flex:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 .library-actions,.scope-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .library-actions{margin-bottom:12px;}
 .scope-actions{margin:8px 0;}
 .scope-actions .scope-label{font-size:12px;font-weight:700;color:var(--dim);margin-right:2px;}
 .library-actions .btn,.scope-actions .btn{width:auto;margin:0;}
-.tree-set{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:9px;overflow:hidden;}
+.tree-set{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:9px;overflow:hidden;}
 .tree-head,.tree-puzzle-head,.tree-solution{display:flex;align-items:center;gap:9px;width:100%;border:0;color:var(--text);text-align:left;cursor:pointer;}
 .tree-head{padding:12px;background:var(--panel2);}
 .tree-head:hover,.tree-puzzle-head:hover,.tree-solution:hover{background:#182029;}
@@ -338,32 +348,44 @@ main#boardPanel.board-open{transform:translateX(0);}
 .tree-stars{display:block;font-size:16px;letter-spacing:2px;line-height:1;color:#4b5060;margin-top:5px;}
 .tree-stars .solved{color:#ffd94d;}
 .tree-body{padding:4px 10px 10px 28px;border-top:1px solid var(--line);}
-.tree-puzzle{border-left:1px solid var(--line);margin-top:7px;}
+.tree-puzzle{position:relative;border-left:1px solid var(--line);margin-top:7px;}
 .tree-puzzle-head{padding:9px 10px;background:transparent;}
 .tree-puzzle-body{padding:0 8px 8px 24px;}
 .tree-solution{padding:9px 10px;background:var(--panel2);border-radius:8px;margin-top:6px;}
 .tree-star{font-size:18px;color:#4b5060;flex:none;}
 .tree-star.solved{color:#ffd94d;}
 .tree-empty{font-size:12px;color:var(--dimmer);padding:10px;}
+.list-drag-handle{position:absolute;z-index:2;right:7px;top:7px;width:34px;height:34px;border:0;border-radius:7px;
+  background:transparent;color:var(--dimmer);font-size:18px;line-height:1;cursor:grab;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.list-drag-handle:hover{background:#ffffff0b;color:var(--text);}
+.list-drag-handle:active{cursor:grabbing;}
+.tree-set > .list-drag-handle + .tree-head,.tree-puzzle > .list-drag-handle + .tree-puzzle-head{padding-right:48px;}
+.list-drag-ghost{position:fixed;z-index:100;max-width:min(320px,70vw);padding:8px 12px;border:1px solid var(--accent);
+  border-radius:8px;background:var(--panel2);color:var(--text);font-size:13px;font-weight:700;pointer-events:none;
+  box-shadow:0 10px 28px #000a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.94;}
+.list-dragging{opacity:.45;}
+.tree-set.list-drop-before,.tree-puzzle.list-drop-before{box-shadow:inset 0 3px 0 var(--accent);}
+.tree-set.list-drop-after,.tree-puzzle.list-drop-after{box-shadow:inset 0 -3px 0 var(--accent);}
+.tree-set.list-drop-inside{outline:2px solid var(--accent);outline-offset:-3px;}
 @media (max-width:800px){
   #body,#body.editing{padding-bottom:0;}
   #body > #leftPanel,#body:not(.editing) > aside.left,#body.editing > aside.left{
     display:block;position:static;width:100%;height:100%;padding:12px 10px calc(14px + env(safe-area-inset-bottom));
   }
   #body > main#boardPanel,#body.editing > main#boardPanel{display:flex;position:absolute;inset:0;width:100%;height:100%;padding:0;overflow:hidden;}
-  #rightPanel,#body.editing > #rightPanel{display:block;position:fixed;inset:auto auto 0 50%;width:100%;}
+  #rightPanel,#body.editing > #rightPanel{display:block;position:fixed;left:50%;right:auto;bottom:auto;width:100%;}
   .board-chrome{padding:7px 8px;}
   .board-stage{padding:10px;}
   .board-row{gap:5px;}
   .board-title{font-size:14px;}
-  .board-select.desktop-tools{display:none;}
-  .mobile-tool-strip{display:flex;width:100%;overflow:visible;}
+  .mobile-tool-strip{width:100%;overflow:visible;gap:4px;}
   .mobile-tool-button,.mobile-more-wrap{flex:1 0 56px;min-width:56px;}
+  .mobile-tool-strip.puzzle-tools .mobile-more-wrap{flex:0 0 44px;min-width:44px;}
   .mobile-tool-strip-scroll{display:flex;gap:4px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:none;}
   .mobile-tool-strip-scroll::-webkit-scrollbar{display:none;}
   #rightPanel,#body.editing > #rightPanel{max-height:min(58dvh,520px);}
-  .sheet-head{position:relative;padding-top:21px;touch-action:none;}
-  .sheet-head::before{content:'';position:absolute;top:7px;left:50%;width:40px;height:4px;border-radius:3px;background:#555b6b;transform:translateX(-50%);}
+  .sheet-head{position:relative;}
   .sheet-body{max-height:calc(min(58dvh,520px) - 66px);}
   .board-row .btn.small{padding:8px 9px;white-space:nowrap;}
   .board-row .iconbtn{width:40px;height:40px;}
@@ -397,8 +419,8 @@ main#boardPanel.board-open{transform:translateX(0);}
       <div class="ticks">tick <b id="tickCount">0</b></div>
       <div class="speedwrap">
         <span>speed</span>
-        <input type="range" id="speedSlider" min="0" max="100" value="48">
-        <span id="speedVal" style="width:22px;">48</span>
+        <input type="range" id="speedSlider" min="0" max="100" value="39">
+        <span id="speedVal" style="width:22px;">39</span>
       </div>
       <button class="iconbtn" id="stepBtn" title="Step one tick">⏭</button>
       <button class="iconbtn primary" id="playBtn" title="Play / Pause">▶</button>
@@ -444,7 +466,7 @@ main#boardPanel.board-open{transform:translateX(0);}
 // Captured before the app renders anything dynamic. Save as Web App uses this
 // clean source—not the mutated live DOM—as the shell for a standalone copy.
 const SOURCE_APP_HTML='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-const BUILT_IN_APP_DATA = /*__LIGHTYARD_EMBED_START__*/ {"storageNamespace":"app-mu0m04av-bza92c","sets":[{"id":"id1_mttey4cj","name":"Acai Berry","createdAt":1788916923523},{"id":"id2_mttf1xyb","name":"Blueberry","createdAt":1788917101859},{"id":"id1_mtykmo6m","name":"Cranberry","createdAt":1789228797934}],"puzzles":[{"id":"id1_mtq7j6pp","name":"First Light","rows":7,"cols":7,"createdAt":1788723070909,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]}],"setId":"id1_mttey4cj"},{"id":"id2_mtq9djgn","name":"Excess Baggage","rows":13,"cols":9,"createdAt":1788726166727,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[1,4],"r":10,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":6}],"setId":"id1_mttey4cj"},{"id":"id1_mtqoxu54","name":"borehole","rows":7,"cols":7,"createdAt":1788752307928,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":6}],"setId":"id1_mttey4cj"},{"id":"id1_mtr99o6w","name":"Merge","rows":7,"cols":7,"createdAt":1788786452408,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":3,"c":5},{"type":"receiver","dirs":["E"],"colors":[5],"r":2,"c":0},{"type":"emitter","dirs":["W"],"colors":[3],"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":3}],"setId":"id1_mttey4cj"},{"id":"id1_mtraj10s","name":"color swap","rows":7,"cols":7,"createdAt":1788788568556,"elements":[{"type":"emitter","dirs":["S"],"colors":[3],"r":0,"c":1},{"type":"emitter","dirs":["S"],"colors":[5],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":5}],"setId":"id1_mttey4cj"},{"id":"id2_mtrbxlkq","name":"Order","rows":7,"cols":7,"createdAt":1788790927994,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,4],"r":1,"c":1},{"type":"receiver","dirs":["W"],"colors":[4,1],"r":1,"c":5}],"strict":false,"setId":"id1_mttey4cj"},{"id":"id1_mtroll9v","name":"Don't Pass","rows":7,"cols":7,"createdAt":1788812202739,"elements":[{"type":"crystal","filterColor":1,"r":2,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":4,"c":0,"maxHits":"inf"},{"type":"emitter","dirs":["E","W"],"colors":[1,4],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":6,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":false,"setId":"id1_mttey4cj"},{"id":"id1_mts70a09","name":"Whip Around","rows":13,"cols":9,"createdAt":1788843121065,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[4,1,1,1],"r":10,"c":4}],"strict":true,"setId":"id1_mttey4cj","mirrorsOnly":false},{"id":"id3_mttf3msx","setId":"id2_mttf1xyb","name":"Slip Through","rows":7,"cols":7,"createdAt":1788917180721,"elements":[{"type":"emitter","dirs":["E","S"],"colors":[1,2,4,1],"r":0,"c":0},{"type":"crystal","filterColor":5,"r":5,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":1,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["W"],"colors":[1,2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":5,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":0,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":0}],"strict":false},{"id":"id6_mttkxigv","setId":"id2_mttf1xyb","name":"Threeway","rows":7,"cols":7,"createdAt":1788926972863,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4,3,5,6],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[1,1,1],"r":6,"c":0},{"type":"receiver","dirs":["N"],"colors":[2,2,2],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,4,4],"r":6,"c":6}],"strict":false},{"id":"id1_mtts8pe8","setId":"id2_mttf1xyb","name":"Swappy Swappy","rows":7,"cols":7,"createdAt":1788939252368,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,1,4,4],"r":0,"c":6},{"type":"crystal","filterColor":1,"r":0,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":1,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":1,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":0,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":2,"maxHits":"inf"},{"type":"receiver","dirs":["E"],"colors":[4,4,1,1],"r":6,"c":0},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0}],"strict":false},{"id":"id2_mtwbyfuj","setId":"id2_mttf1xyb","name":"Filters","rows":7,"cols":7,"createdAt":1789093298107,"elements":[{"type":"emitter","dirs":["W"],"colors":[7,7,7],"r":6,"c":6},{"type":"crystal","filterColor":3,"r":3,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":3,"c":3,"maxHits":"inf"},{"type":"crystal","filterColor":6,"r":3,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":5},{"type":"crystal","r":6,"c":3,"maxHits":"inf"}],"strict":false,"mirrorsOnly":false},{"id":"id2_mtwg6ncx","setId":"id2_mttf1xyb","name":"Not So Fast","rows":7,"cols":7,"createdAt":1789100399553,"elements":[{"type":"crystal","filterColor":3,"r":4,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":2,"c":0,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[7,7],"r":0,"c":3},{"type":"emitter","dirs":["E","W"],"colors":[5,3],"r":6,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":true},{"id":"id1_mtwxeho2","setId":"id2_mttf1xyb","name":"Step Right Up","rows":5,"cols":5,"createdAt":1789129318898,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":0,"c":4},{"type":"transformer","direction":"up","r":2,"c":2},{"type":"receiver","dirs":["E"],"colors":[5],"r":4,"c":0}],"strict":false},{"id":"id1_mtxp9y5q","setId":"id2_mttf1xyb","name":"Waiting","rows":7,"cols":7,"createdAt":1789176136238,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1],"r":0,"c":0},{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"crystal","filterColor":4,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":null,"r":3,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3}],"strict":false},{"id":"id2_mtylowjs","setId":"id1_mtykmo6m","name":"Careful!","rows":7,"cols":7,"createdAt":1789230581704,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":6},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5,2,4,1],"r":6,"c":6}],"strict":false,"mirrorsOnly":true},{"id":"id4_mtyn4duc","setId":"id1_mtykmo6m","name":"Shifty","rows":7,"cols":7,"createdAt":1789232983572,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,5,1],"r":0,"c":0},{"type":"receiver","dirs":["W"],"colors":[1,1,4],"r":6,"c":6}],"strict":true}]} /*__LIGHTYARD_EMBED_END__*/;
+const BUILT_IN_APP_DATA = /*__LIGHTYARD_EMBED_START__*/ {"storageNamespace":"app-mu27g0k4-91sg4e","sets":[{"id":"id1_mttey4cj","name":"Acai Berry","createdAt":1788916923523},{"id":"id2_mttf1xyb","name":"Blueberry","createdAt":1788917101859},{"id":"id1_mtykmo6m","name":"Cranberry","createdAt":1789228797934},{"id":"id5_mu23cpzv","name":"Dewberry","createdAt":1789441644955},{"id":"id4_mu252gzu","name":"Elderberry","createdAt":1789444525962}],"puzzles":[{"id":"id1_mtq7j6pp","name":"First Light","rows":7,"cols":7,"createdAt":1788723070909,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]}],"setId":"id1_mttey4cj"},{"id":"id1_mtr99o6w","name":"Merge","rows":7,"cols":7,"createdAt":1788786452408,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":3,"c":5},{"type":"receiver","dirs":["E"],"colors":[5],"r":2,"c":0},{"type":"emitter","dirs":["W"],"colors":[3],"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":3}],"setId":"id1_mttey4cj"},{"id":"id2_mtrbxlkq","name":"Order","rows":7,"cols":7,"createdAt":1788790927994,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,4],"r":1,"c":1},{"type":"receiver","dirs":["W"],"colors":[4,1],"r":1,"c":5}],"strict":false,"setId":"id1_mttey4cj"},{"id":"id1_mu249mt3","setId":"id1_mttey4cj","name":"Move Over!","rows":7,"cols":7,"createdAt":1789443180471,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":1},{"type":"emitter","dirs":["E"],"colors":[2],"r":3,"c":1},{"type":"emitter","dirs":["E"],"colors":[4],"r":5,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":2,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":4,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":6,"c":5}],"strict":false,"mirrorsOnly":false},{"id":"id2_mu24c8se","setId":"id1_mttey4cj","name":"Decisions","rows":7,"cols":7,"createdAt":1789443302270,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":3,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":5,"c":5}],"strict":false,"mirrorsOnly":false},{"id":"id5_mu255g5s","setId":"id1_mttey4cj","name":"Two Step","rows":7,"cols":7,"createdAt":1789444664848,"elements":[{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["W"],"colors":[2,6,4],"r":5,"c":6},{"type":"emitter","dirs":["E"],"colors":[1,3,2],"r":1,"c":0}],"strict":false,"mirrorsOnly":false},{"id":"id2_mtq9djgn","name":"Excess Baggage","rows":13,"cols":9,"createdAt":1788726166727,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[1,4],"r":10,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":6}],"setId":"id2_mttf1xyb"},{"id":"id2_mtwg6ncx","setId":"id2_mttf1xyb","name":"Not So Fast","rows":7,"cols":7,"createdAt":1789100399553,"elements":[{"type":"crystal","filterColor":3,"r":4,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":2,"c":0,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[7,7],"r":0,"c":3},{"type":"emitter","dirs":["E","W"],"colors":[5,3],"r":6,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":true},{"id":"id1_mts70a09","name":"Whip Around","rows":13,"cols":9,"createdAt":1788843121065,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[4,1,1,1],"r":10,"c":4}],"strict":true,"setId":"id2_mttf1xyb","mirrorsOnly":false},{"id":"id3_mu26fwm9","setId":"id2_mttf1xyb","name":"The Narrows","rows":11,"cols":5,"createdAt":1789446832353,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":8,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":0},{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[4,2,1],"r":10,"c":0}],"strict":true,"mirrorsOnly":true},{"id":"id3_mu24dhjk","setId":"id2_mttf1xyb","name":"Out of Order","rows":7,"cols":7,"createdAt":1789443360272,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["E"],"colors":[2],"r":1,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":2,"c":0},{"type":"emitter","dirs":["E"],"colors":[3],"r":3,"c":0},{"type":"emitter","dirs":["E"],"colors":[5],"r":4,"c":0},{"type":"emitter","dirs":["E"],"colors":[6],"r":5,"c":0},{"type":"emitter","dirs":["E"],"colors":[7],"r":6,"c":0},{"type":"receiver","dirs":["W"],"colors":[7],"r":0,"c":6},{"type":"receiver","dirs":["W"],"colors":[6],"r":1,"c":6},{"type":"receiver","dirs":["W"],"colors":[5],"r":2,"c":6},{"type":"receiver","dirs":["W"],"colors":[3],"r":3,"c":6},{"type":"receiver","dirs":["W"],"colors":[4],"r":4,"c":6},{"type":"receiver","dirs":["W"],"colors":[2],"r":5,"c":6},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6}],"strict":false,"mirrorsOnly":false},{"id":"id4_mtyn4duc","setId":"id1_mtykmo6m","name":"Shifty","rows":7,"cols":7,"createdAt":1789232983572,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,5,1],"r":0,"c":0},{"type":"receiver","dirs":["W"],"colors":[1,1,4],"r":6,"c":6}],"strict":true},{"id":"id2_mtylowjs","setId":"id1_mtykmo6m","name":"Careful!","rows":7,"cols":7,"createdAt":1789230581704,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":6},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5,2,4,1],"r":6,"c":6}],"strict":false,"mirrorsOnly":true},{"id":"id3_mu22oi8s","setId":"id1_mtykmo6m","name":"Winding","rows":9,"cols":8,"createdAt":1789440515164,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["W"],"colors":[2],"r":0,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":4},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":8,"c":0}],"strict":false,"mirrorsOnly":false},{"id":"id2_mtwbyfuj","setId":"id1_mtykmo6m","name":"Filters","rows":7,"cols":7,"createdAt":1789093298107,"elements":[{"type":"emitter","dirs":["W"],"colors":[7,7,7],"r":6,"c":6},{"type":"crystal","filterColor":3,"r":3,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":3,"c":3,"maxHits":"inf"},{"type":"crystal","filterColor":6,"r":3,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":5},{"type":"crystal","r":6,"c":3,"maxHits":"inf"}],"strict":false,"mirrorsOnly":false},{"id":"id1_mtts8pe8","setId":"id1_mtykmo6m","name":"Swappy Swappy","rows":7,"cols":7,"createdAt":1788939252368,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,1,4,4],"r":0,"c":6},{"type":"crystal","filterColor":1,"r":0,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":1,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":1,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":0,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":2,"maxHits":"inf"},{"type":"receiver","dirs":["E"],"colors":[4,4,1,1],"r":6,"c":0},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0}],"strict":false},{"id":"id3_mttf3msx","setId":"id5_mu23cpzv","name":"Slip Through","rows":7,"cols":7,"createdAt":1788917180721,"elements":[{"type":"emitter","dirs":["E","S"],"colors":[1,2,4,1],"r":0,"c":0},{"type":"crystal","filterColor":5,"r":5,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":1,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["W"],"colors":[1,2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":5,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":0,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":0}],"strict":false},{"id":"id1_mu21b4bf","setId":"id5_mu23cpzv","name":"Roundabout","rows":7,"cols":7,"createdAt":1789438210971,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3},{"type":"receiver","dirs":["N","W"],"colors":[3,5,6],"r":6,"c":6}],"strict":false,"mirrorsOnly":false},{"id":"id1_mtwxeho2","setId":"id5_mu23cpzv","name":"Step Right Up","rows":5,"cols":5,"createdAt":1789129318898,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":0,"c":4},{"type":"transformer","direction":"up","r":2,"c":2},{"type":"receiver","dirs":["E"],"colors":[5],"r":4,"c":0}],"strict":false},{"id":"id1_mtroll9v","name":"Don't Pass","rows":7,"cols":7,"createdAt":1788812202739,"elements":[{"type":"crystal","filterColor":1,"r":2,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":4,"c":0,"maxHits":"inf"},{"type":"emitter","dirs":["E","W"],"colors":[1,4],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":6,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":false,"setId":"id5_mu23cpzv"},{"id":"id1_mtraj10s","name":"Color Swap","rows":7,"cols":7,"createdAt":1788788568556,"elements":[{"type":"emitter","dirs":["S"],"colors":[3],"r":0,"c":1},{"type":"emitter","dirs":["S"],"colors":[5],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":5}],"setId":"id5_mu23cpzv","strict":false,"mirrorsOnly":false},{"id":"id1_mtqoxu54","name":"Borehole","rows":7,"cols":7,"createdAt":1788752307928,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":6}],"setId":"id4_mu252gzu","strict":false,"mirrorsOnly":false},{"id":"id1_mtxp9y5q","setId":"id4_mu252gzu","name":"Waiting","rows":7,"cols":7,"createdAt":1789176136238,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1],"r":0,"c":0},{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"crystal","filterColor":4,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":null,"r":3,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3}],"strict":false},{"id":"id6_mttkxigv","setId":"id4_mu252gzu","name":"Threeway","rows":7,"cols":7,"createdAt":1788926972863,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4,3,5,6],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[1,1,1],"r":6,"c":0},{"type":"receiver","dirs":["N"],"colors":[2,2,2],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,4,4],"r":6,"c":6}],"strict":false},{"id":"id1_mu25k8be","setId":"id4_mu252gzu","name":"Conductor","rows":7,"cols":7,"createdAt":1789445354522,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,4],"r":0,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":4},{"type":"crystal","filterColor":4,"maxHits":5,"lastFiniteHits":5,"r":3,"c":4},{"type":"receiver","dirs":["N","W"],"colors":[1,4],"r":6,"c":6}],"strict":false,"mirrorsOnly":true}]} /*__LIGHTYARD_EMBED_END__*/;
 
 /* ============================== CONSTANTS ============================== */
 const DIRS = ['N','E','S','W'];
@@ -1081,9 +1103,14 @@ const State = {
   screen:'setList', // setList | puzzleList | puzzleEdit | solutionEdit
   selectedTool:null,   // element type currently armed for placement
   selectedCell:null,   // {r,c} currently inspected
+  cloneSource:null,    // copied element configuration while the Clone tool is active
+  cloneSourceCell:null,// {r,c} source highlighted on the board
+  previewArmedCell:null,// first-tapped piece; tapping it again opens configuration
+  previewConfigUntil:0,// second tap opens configuration only through 500 ms after preview
+  piecePreview:null,   // transient visual state while previewing a piece's routine
   running:false,
   runStarted:false,    // true from the moment play/step is first pressed until an explicit restart — separate from tick/running so a pause before the first tick still counts as "started"
-  speed:48,
+  speed:39,
   tick:0,
   packets:[],
   grid:null,           // working grid (2D array of element-or-null) for current screen
@@ -2086,8 +2113,7 @@ function resizeCanvas(){
   canvas.height = size*State.gridRows;
   canvas._cell = size;
   render();
-  const configure=document.querySelector('.placement-configure');
-  if(configure)positionPlacementConfigure(configure,parseInt(configure.dataset.r),parseInt(configure.dataset.c));
+  if(State.sheetOpen)positionInspectorSheet();
 }
 window.addEventListener('resize', resizeCanvas);
 
@@ -2102,7 +2128,7 @@ function render(frac){
   const rows=State.gridRows, cols=State.gridCols;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   // grid lines
-  ctx.strokeStyle='#1c1f2a';
+  ctx.strokeStyle='#444957';
   ctx.lineWidth=1;
   for(let r=0;r<=rows;r++){ ctx.beginPath(); ctx.moveTo(0,r*cell+.5); ctx.lineTo(cols*cell,r*cell+.5); ctx.stroke(); }
   for(let c=0;c<=cols;c++){ ctx.beginPath(); ctx.moveTo(c*cell+.5,0); ctx.lineTo(c*cell+.5,rows*cell); ctx.stroke(); }
@@ -2113,6 +2139,10 @@ function render(frac){
     if(State.selectedCell && State.selectedCell.r===r && State.selectedCell.c===c){
       ctx.strokeStyle='#6ee7ff'; ctx.lineWidth=2;
       ctx.strokeRect(c*cell+2,r*cell+2,cell-4,cell-4);
+    }
+    if(State.selectedTool==='cloneElement' && State.cloneSourceCell && State.cloneSourceCell.r===r && State.cloneSourceCell.c===c){
+      ctx.strokeStyle='#ffd94d';ctx.lineWidth=3;ctx.setLineDash([5,3]);
+      ctx.strokeRect(c*cell+3,r*cell+3,cell-6,cell-6);ctx.setLineDash([]);
     }
     if(State.dragOver && State.dragOver.r===r && State.dragOver.c===c){
       ctx.strokeStyle = State.dragOver.ok!==false ? '#3ddc72' : '#ff6b6b';
@@ -2201,28 +2231,32 @@ function drawElement(el,r,c,cell,frac){
   if(frac==null) frac=1;
   const x=c*cell, y=r*cell;
   const cx=x+cell/2, cy=y+cell/2;
+  const preview=State.piecePreview&&State.piecePreview.r===r&&State.piecePreview.c===c?State.piecePreview:null;
   const beforeFlipBoundary = el.flipFrom!=null && frac < 0.5;
   ctx.save();
   ctx.translate(0,0);
   if(el.type==='emitter'){
     ctx.fillStyle='#1a2230'; ctx.strokeStyle='#3a4560'; ctx.lineWidth=1.5;
     roundRect(x+4,y+4,cell-8,cell-8,6); ctx.fill(); ctx.stroke();
-    const nextColor = el.colors[el.emitIndex!=null?el.emitIndex:0];
+    const nextColor = preview&&preview.kind==='color'?preview.value:el.colors[el.emitIndex!=null?el.emitIndex:0];
     if(nextColor!=null){
       ctx.fillStyle=COLHEX[nextColor];
       ctx.beginPath(); ctx.arc(cx,cy,cell*0.14,0,Math.PI*2); ctx.fill();
     }
     (el.dirs||[]).forEach(d=>drawArrow(cx,cy,d,cell,'#6ee7ff', true));
-    drawQueueDots(x,y,cell,el.colors,el.emitIndex||0);
+    drawQueueDots(x,y,cell,el.colors,preview&&preview.kind==='color'?preview.index:(el.emitIndex||0));
   } else if(el.type==='receiver'){
     ctx.fillStyle='#241a2e'; ctx.strokeStyle='#523a68'; ctx.lineWidth=1.5;
     roundRect(x+4,y+4,cell-8,cell-8,6); ctx.fill(); ctx.stroke();
     ctx.strokeStyle='#e0a6ff'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.rect(cx-cell*0.14,cy-cell*0.14,cell*0.28,cell*0.28); ctx.stroke();
+    if(preview&&preview.kind==='color'){
+      ctx.fillStyle=COLHEX[preview.value];ctx.beginPath();ctx.arc(cx,cy,cell*.085,0,Math.PI*2);ctx.fill();
+    }
     (el.dirs||[]).forEach(d=>drawArrow(cx,cy,d,cell,'#e0a6ff', false));
-    drawQueueDots(x,y,cell,el.colors,el.pointer||0, el.marks);
+    drawQueueDots(x,y,cell,el.colors,preview&&preview.kind==='color'?preview.index:(el.pointer||0), el.marks);
   } else if(el.type==='mirrorDiag'){
-    const orient = beforeFlipBoundary ? el.flipFrom : el.curOrient;
+    const orient = preview&&preview.kind==='orientation'?preview.value:(beforeFlipBoundary ? el.flipFrom : el.curOrient);
     ctx.strokeStyle='#dcefff'; ctx.lineWidth=3; ctx.lineCap='round';
     ctx.beginPath();
     if(orient==='NE_SW'){ ctx.moveTo(x+cell*0.15,y+cell*0.85); ctx.lineTo(x+cell*0.85,y+cell*0.15); }
@@ -2230,7 +2264,7 @@ function drawElement(el,r,c,cell,frac){
     ctx.stroke();
     if(el.switching) drawSwitchMark(cx,cy,cell);
   } else if(el.type==='mirrorHalf'){
-    const facing=beforeFlipBoundary?el.flipFrom:halfMirrorFacing(el);
+    const facing=preview&&preview.kind==='facing'?preview.value:(beforeFlipBoundary?el.flipFrom:halfMirrorFacing(el));
     drawHalfMirrorLines(ctx,cx,cy,cell,facing);
     if(halfMirrorEffectiveSequence(el).length>1) drawSwitchMark(cx,cy,cell);
   } else if(el.type==='crystal'){
@@ -2262,13 +2296,20 @@ function drawElement(el,r,c,cell,frac){
     const stripY = cy - cell*0.05, stripH = cell*0.1, stripX = x+cell*0.22, stripW = cell*0.56;
     const shownSpectrum=el.direction==='up'?SPECTRUM:SPECTRUM.slice().reverse(), n=shownSpectrum.length;
     for(let i=0;i<n;i++){ctx.fillStyle=COLHEX[shownSpectrum[i]];ctx.fillRect(stripX+stripW*i/n,stripY,stripW/n+0.5,stripH);}
+    if(preview&&preview.kind==='spectrum'){
+      const i=preview.index%n;ctx.strokeStyle='#fff';ctx.lineWidth=2;
+      ctx.strokeRect(stripX+stripW*i/n-1,stripY-3,stripW/n+2,stripH+6);
+    }
   } else if(el.type==='prism'){
     ctx.fillStyle='#2a2436'; ctx.strokeStyle='#8a6fff'; ctx.lineWidth=2;
-    const D = beforeFlipBoundary ? el.flipFrom : el.curBase;
+    const D = preview&&preview.kind==='base'?preview.value:(beforeFlipBoundary ? el.flipFrom : el.curBase);
     const pts = trianglePts(cx,cy,cell*0.36,D);
     ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); ctx.lineTo(pts[1].x,pts[1].y); ctx.lineTo(pts[2].x,pts[2].y); ctx.closePath();
     ctx.fill(); ctx.stroke();
     if(prismEffectiveSequence(el).length>1) drawSwitchMark(cx,cy,cell);
+  }
+  if(preview&&preview.dim){
+    ctx.fillStyle='rgba(10,11,16,.5)';ctx.fillRect(x+1,y+1,cell-2,cell-2);
   }
   ctx.restore();
 }
@@ -2434,30 +2475,53 @@ function isReadOnlyEl(el){ return !!(el && el.fixed && State.screen==='solutionE
 let pointerDown = null; // {r,c,pointerId}
 let dragState = null;   // {r0,c0,moved,cfg}
 let lastHandledBoardGesture = null; // suppresses the click following a handled pointer gesture
-let placementConfigureTimer = null;
+let piecePreviewTimers=[];
+let piecePreviewToken=0;
 
-function clearPlacementConfigure(){
-  if(placementConfigureTimer){clearTimeout(placementConfigureTimer);placementConfigureTimer=null;}
-  const old=document.querySelector('.placement-configure');if(old)old.remove();
+function cancelPiecePreview(clearArmed){
+  piecePreviewToken++;
+  for(const timer of piecePreviewTimers)clearTimeout(timer);
+  piecePreviewTimers=[];State.piecePreview=null;
+  if(clearArmed){State.previewArmedCell=null;State.previewConfigUntil=0;}
 }
-function positionPlacementConfigure(button,r,c){
-  if(!button||!button.isConnected||!canvas._cell)return;
-  const cell=canvas._cell;
-  let left=canvas.offsetLeft+(c+.5)*cell;
-  const half=button.offsetWidth/2;
-  left=Math.max(half+6,Math.min(boardStage.scrollWidth-half-6,left));
-  button.style.left=left+'px';
-  if(r===0){button.classList.add('below');button.style.top=(canvas.offsetTop+cell+5)+'px';}
-  else {button.classList.remove('below');button.style.top=(canvas.offsetTop+r*cell-5)+'px';}
+function previewFramesFor(el){
+  if(el.type==='emitter'||el.type==='receiver')return {kind:'color',values:(el.colors||[]).slice(0,8)};
+  if(el.type==='mirrorDiag')return {kind:'orientation',values:el.switching?[el.orientation,el.orientation==='NE_SW'?'NW_SE':'NE_SW']:[el.orientation]};
+  if(el.type==='mirrorHalf')return {kind:'facing',values:halfMirrorEffectiveSequence(el)};
+  if(el.type==='prism')return {kind:'base',values:prismEffectiveSequence(el)};
+  if(el.type==='transformer')return {kind:'spectrum',values:(el.direction==='up'?SPECTRUM:SPECTRUM.slice().reverse())};
+  return {kind:'pulse',values:[null]};
 }
-function showPlacementConfigure(r,c){
-  clearPlacementConfigure();
-  if(!isNarrowLayout())return;
-  const button=document.createElement('button');button.type='button';button.className='placement-configure';button.textContent='Configure';button.dataset.r=r;button.dataset.c=c;
-  button.addEventListener('pointerdown',e=>e.stopPropagation());
-  button.addEventListener('click',e=>{e.stopPropagation();clearPlacementConfigure();selectCell(r,c);});
-  boardStage.appendChild(button);positionPlacementConfigure(button,r,c);
-  placementConfigureTimer=setTimeout(clearPlacementConfigure,3200);
+function startPieceRoutinePreview(r,c,el){
+  cancelPiecePreview(false);State.previewArmedCell={r,c};
+  const sequence=previewFramesFor(el);if(!sequence.values.length)sequence.values=[null];
+  const dwell=sequence.values.length===1?1200:720;
+  const token=piecePreviewToken;let at=0;
+  const show=(value,index,delay,dim)=>piecePreviewTimers.push(setTimeout(()=>{
+    if(token!==piecePreviewToken)return;
+    State.piecePreview={r,c,kind:sequence.kind,value,index,dim:!!dim};render();
+  },delay));
+  for(let cycle=0;cycle<2;cycle++){
+    sequence.values.forEach((value,index)=>{
+      show(value,index,at,false);show(value,index,at+dwell-160,true);at+=dwell;
+    });
+    piecePreviewTimers.push(setTimeout(()=>{if(token===piecePreviewToken){State.piecePreview=null;render();}},at));
+    if(cycle===0)at+=1000;
+  }
+  State.previewConfigUntil=Date.now()+at+500;
+  piecePreviewTimers.push(setTimeout(()=>{
+    if(token!==piecePreviewToken)return;
+    State.piecePreview=null;piecePreviewTimers=[];render();
+  },at+20));
+  piecePreviewTimers.push(setTimeout(()=>{
+    if(token!==piecePreviewToken)return;
+    State.previewArmedCell=null;State.previewConfigUntil=0;
+  },at+500));
+}
+function handlePieceTap(r,c,el){
+  const armed=State.previewArmedCell;
+  if(armed&&armed.r===r&&armed.c===c&&Date.now()<=State.previewConfigUntil){cancelPiecePreview(true);selectCell(r,c);return;}
+  startPieceRoutinePreview(r,c,el);
 }
 
 function syncPlacementToolFromMenu(){
@@ -2465,10 +2529,10 @@ function syncPlacementToolFromMenu(){
   if(!select)return;
   if(!select.value){State.selectedTool=null;return;}
   let allowed;
-  if(State.screen==='puzzleEdit') allowed=['emitter','receiver','crystal','transformer','eraser'];
+  if(State.screen==='puzzleEdit') allowed=['emitter','receiver','crystal','transformer','cloneElement','eraser'];
   else {
     const puzzle=getCurrentPuzzle();
-    allowed=['mirrorDiag','mirrorHalf','eraser'];
+    allowed=['mirrorDiag','mirrorHalf','cloneElement','eraser'];
     if(!puzzle || !puzzle.mirrorsOnly)allowed.splice(2,0,'prism');
   }
   if(allowed.includes(select.value))State.selectedTool=select.value;
@@ -2497,7 +2561,7 @@ canvas.addEventListener('pointerdown', (e)=>{
   }
   if(canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
   pointerDown = {r,c,pointerId:e.pointerId};
-  if(canEditNow() && el && !isReadOnlyEl(el) && State.selectedTool!=='eraser'){
+  if(canEditNow() && el && !isReadOnlyEl(el) && !['eraser','cloneElement'].includes(State.selectedTool)){
     const arr = currentElementsArray();
     const cfg = arr.find(x=>x.r===r&&x.c===c);
     if(cfg) dragState = {r0:r,c0:c,moved:false,cfg};
@@ -2508,6 +2572,7 @@ window.addEventListener('pointermove', (e)=>{
   e.preventDefault();
   const {r,c} = cellFromEvent(e);
   if(r!==dragState.r0 || c!==dragState.c0) dragState.moved = true;
+  if(dragState.moved)cancelPiecePreview(true);
   if(dragState.moved && inBounds(r,c,State.gridRows,State.gridCols)){
     const occupied = State.grid[r][c] && !(r===dragState.r0 && c===dragState.c0);
     State.dragOver = {r,c, ok: !occupied};
@@ -2579,6 +2644,19 @@ function onCellClick(r,c){
     if(canEditNow() && el && !isReadOnlyEl(el)) removeElementAt(r,c);
     return;
   }
+  if(State.selectedTool==='cloneElement'){
+    if(!canEditNow())return;
+    if(el){
+      if(isReadOnlyEl(el))return;
+      const cfg=currentElementsArray().find(item=>item.r===r&&item.c===c);
+      if(!cfg)return;
+      State.cloneSource=JSON.parse(JSON.stringify(cfg));delete State.cloneSource.fixed;
+      State.cloneSourceCell={r,c};State.selectedCell=null;closeInspectorSheet();render();
+    } else if(State.cloneSource){
+      cloneElementTo(r,c);
+    }
+    return;
+  }
   if(!canEditNow()){
     if(el) selectCell(r,c);
     return;
@@ -2587,9 +2665,17 @@ function onCellClick(r,c){
     if(el){ selectCell(r,c); }
     else if(State.selectedTool){ placeElement(r,c,State.selectedTool, true); }
   } else if(State.screen==='solutionEdit'){
-    if(el){ selectCell(r,c); }
+    if(el){ handlePieceTap(r,c,el); }
     else if(State.selectedTool){ placeElement(r,c,State.selectedTool, false); }
   }
+}
+
+function cloneElementTo(r,c){
+  if(!State.cloneSource||State.grid[r][c])return;
+  const copy=JSON.parse(JSON.stringify(State.cloneSource));copy.r=r;copy.c=c;delete copy.fixed;
+  currentElementsArray().push(copy);saveCurrentDoc();State.selectedCell=null;
+  if(State.screen==='solutionEdit')renderScreen();
+  else {buildWorkingGrid();closeInspectorSheet();render();}
 }
 
 function removeElementAt(r,c){
@@ -2635,13 +2721,17 @@ function placeElement(r,c,type,fixed){
   arr.push(cfg);
   saveCurrentDoc();
   State.selectedCell = null;
-  if(State.screen==='solutionEdit'){ renderScreen(); }
+  if(State.screen==='solutionEdit'){
+    cancelPiecePreview(true);
+    State.previewArmedCell={r,c};
+    State.previewConfigUntil=Date.now()+1000;
+    renderScreen();
+  }
   else { buildWorkingGrid(); closeInspectorSheet(); render(); }
-  showPlacementConfigure(r,c);
 }
 
 function selectCell(r,c){
-  clearPlacementConfigure();
+  cancelPiecePreview(true);
   State.selectedCell = {r,c};
   renderInspector();
   openInspectorSheet();
@@ -2744,7 +2834,6 @@ function setMobilePane(pane){
 }
 
 function renderScreen(){
-  clearPlacementConfigure();
   if(State.screen==='puzzleList') State.screen='setList';
   applyMobileLayout();
   runbar.style.display='none';
@@ -3155,6 +3244,7 @@ function starRow(puzzles){
 }
 function openPuzzleBoard(p,solutionId){
   if(solutionId!=null)warnIfStrictPacketTotalsMismatch(p);
+  cancelPiecePreview(true);
   State.currentSetId=p.setId; State.currentPuzzleId=p.id; State.currentSolutionId=solutionId||null;
   State.selectedCell=null; State.selectedTool=null; State.sheetOpen=false;
   State.screen=solutionId!=null?'solutionEdit':'puzzleEdit';
@@ -3164,6 +3254,84 @@ function newPuzzleInSet(set){
   const p={id:uid(),setId:set.id,name:'Untitled Puzzle',rows:7,cols:7,createdAt:Date.now(),elements:[],strict:false,mirrorsOnly:false};
   State.puzzles.push(p); persistPuzzles(); State.expandedSetIds.add(set.id); openPuzzleBoard(p,null);
 }
+let listDrag=null;
+function clearListDropMarks(){
+  document.querySelectorAll('.list-drop-before,.list-drop-after,.list-drop-inside').forEach(el=>el.classList.remove('list-drop-before','list-drop-after','list-drop-inside'));
+}
+function makeListDragHandle(kind,id,label){
+  const handle=document.createElement('button');handle.type='button';handle.className='list-drag-handle';handle.textContent='⠿';
+  handle.title=kind==='set'?'Drag to reorder set':'Drag to reorder or move puzzle';handle.setAttribute('aria-label',handle.title);
+  handle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});
+  handle.addEventListener('pointerdown',e=>{
+    if(e.button!=null&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();
+    const source=handle.closest(kind==='set'?'.tree-set':'.tree-puzzle');
+    listDrag={kind,id,label,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,source,started:false,target:null,ghost:null};
+    if(handle.setPointerCapture)handle.setPointerCapture(e.pointerId);
+  });
+  return handle;
+}
+function updateListDragTarget(e){
+  if(!listDrag||e.pointerId!==listDrag.pointerId)return;
+  listDrag.x=e.clientX;listDrag.y=e.clientY;
+  if(!listDrag.started&&Math.hypot(e.clientX-listDrag.startX,e.clientY-listDrag.startY)<6)return;
+  e.preventDefault();
+  if(!listDrag.started){
+    listDrag.started=true;listDrag.source.classList.add('list-dragging');
+    const ghost=document.createElement('div');ghost.className='list-drag-ghost';ghost.textContent=listDrag.label;document.body.appendChild(ghost);listDrag.ghost=ghost;
+  }
+  listDrag.ghost.style.left=Math.min(window.innerWidth-listDrag.ghost.offsetWidth-8,e.clientX+12)+'px';
+  listDrag.ghost.style.top=Math.min(window.innerHeight-listDrag.ghost.offsetHeight-8,e.clientY+12)+'px';
+  clearListDropMarks();listDrag.target=null;
+  const under=document.elementFromPoint(e.clientX,e.clientY);if(!under)return;
+  if(listDrag.kind==='set'){
+    const setBox=under.closest&&under.closest('.tree-set');if(!setBox)return;
+    const after=e.clientY>setBox.getBoundingClientRect().top+setBox.getBoundingClientRect().height/2;
+    setBox.classList.add(after?'list-drop-after':'list-drop-before');
+    listDrag.target={setId:setBox.dataset.setId,after};
+    return;
+  }
+  const puzzleBox=under.closest&&under.closest('.tree-puzzle');
+  if(puzzleBox){
+    const rect=puzzleBox.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;
+    puzzleBox.classList.add(after?'list-drop-after':'list-drop-before');
+    listDrag.target={setId:puzzleBox.dataset.setId,puzzleId:puzzleBox.dataset.puzzleId,after};
+    return;
+  }
+  const setBox=under.closest&&under.closest('.tree-set');
+  if(setBox){setBox.classList.add('list-drop-inside');listDrag.target={setId:setBox.dataset.setId,puzzleId:null,after:true};}
+}
+function reorderSet(sourceId,targetId,after){
+  if(!targetId||sourceId===targetId)return;
+  const sourceIndex=State.sets.findIndex(s=>s.id===sourceId);if(sourceIndex<0)return;
+  const [source]=State.sets.splice(sourceIndex,1);const targetIndex=State.sets.findIndex(s=>s.id===targetId);
+  if(targetIndex<0){State.sets.splice(sourceIndex,0,source);return;}
+  State.sets.splice(targetIndex+(after?1:0),0,source);persistSets();
+}
+function movePuzzle(sourceId,target){
+  const source=State.puzzles.find(p=>p.id===sourceId);if(!source||!target||!target.setId)return;
+  if(target.puzzleId===sourceId)return;
+  const bySet=new Map(State.sets.map(set=>[set.id,State.puzzles.filter(p=>p.setId===set.id&&p.id!==sourceId)]));
+  const destination=bySet.get(target.setId);if(!destination)return;
+  let index=destination.length;
+  if(target.puzzleId){const found=destination.findIndex(p=>p.id===target.puzzleId);if(found>=0)index=found+(target.after?1:0);}
+  source.setId=target.setId;destination.splice(index,0,source);State.expandedSetIds.add(target.setId);
+  const known=new Set(State.sets.map(s=>s.id));
+  State.puzzles=State.sets.flatMap(set=>bySet.get(set.id)||[]).concat(State.puzzles.filter(p=>!known.has(p.setId)&&p.id!==sourceId));
+  persistPuzzles();
+}
+function finishListDrag(e){
+  if(!listDrag||e.pointerId!==listDrag.pointerId)return;
+  const drag=listDrag;listDrag=null;clearListDropMarks();
+  if(drag.source)drag.source.classList.remove('list-dragging');if(drag.ghost)drag.ghost.remove();
+  if(!drag.started||!drag.target)return;
+  if(drag.kind==='set')reorderSet(drag.id,drag.target.setId,drag.target.after);
+  else movePuzzle(drag.id,drag.target);
+  renderScreen();
+}
+document.addEventListener('pointermove',updateListDragTarget,{passive:false});
+document.addEventListener('pointerup',finishListDrag);
+document.addEventListener('pointercancel',finishListDrag);
 function renderSetListScreen(){
   boardChrome.innerHTML='';
   leftPanel.innerHTML='';
@@ -3188,7 +3356,7 @@ function renderSetListScreen(){
   for(const set of State.sets){
     const puzzles=State.puzzles.filter(p=>p.setId===set.id);
     const expanded=State.expandedSetIds.has(set.id);
-    const box=document.createElement('section'); box.className='tree-set';
+    const box=document.createElement('section'); box.className='tree-set';box.dataset.setId=set.id;
     const head=document.createElement('button'); head.type='button'; head.className='tree-head';
     head.innerHTML=`<span class="tree-caret">${expanded?'▾':'▸'}</span><span class="tree-copy"><span class="tree-name">${escapeHtml(set.name)}</span>${State.mode==='create'
       ? `<span class="tree-meta">${puzzles.length} puzzle${puzzles.length!==1?'s':''}</span>`
@@ -3197,6 +3365,7 @@ function renderSetListScreen(){
       if(expanded) State.expandedSetIds.delete(set.id); else State.expandedSetIds.add(set.id);
       renderScreen();
     });
+    if(State.mode==='create')box.appendChild(makeListDragHandle('set',set.id,set.name));
     box.appendChild(head);
     if(expanded){
       const body=document.createElement('div'); body.className='tree-body';
@@ -3225,7 +3394,7 @@ function renderSetListScreen(){
       if(!puzzles.length){ const e=document.createElement('div');e.className='tree-empty';e.textContent='No puzzles in this set.';body.appendChild(e); }
       for(const p of puzzles){
         const pExpanded=State.expandedPuzzleIds.has(p.id);
-        const pw=document.createElement('div'); pw.className='tree-puzzle';
+        const pw=document.createElement('div'); pw.className='tree-puzzle';pw.dataset.puzzleId=p.id;pw.dataset.setId=set.id;
         const ph=document.createElement('button'); ph.type='button'; ph.className='tree-puzzle-head';
         ph.innerHTML=(State.mode==='solve'?`<span class="tree-star ${solvedPuzzle(p)?'solved':''}">${solvedPuzzle(p)?'★':'☆'}</span>`:'')+
           `<span class="tree-copy"><span class="tree-name">${escapeHtml(p.name)}</span><span class="tree-meta">${puzzleMeta(p,State.mode==='solve')}</span></span>`+
@@ -3235,6 +3404,7 @@ function renderSetListScreen(){
           if(pExpanded) State.expandedPuzzleIds.delete(p.id); else State.expandedPuzzleIds.add(p.id);
           renderScreen();
         });
+        if(State.mode==='create')pw.appendChild(makeListDragHandle('puzzle',p.id,p.name));
         pw.appendChild(ph);
         if(State.mode==='solve' && pExpanded){
           const pb=document.createElement('div'); pb.className='tree-puzzle-body';
@@ -3263,6 +3433,7 @@ function renderSetListScreen(){
 }
 
 function closeBoardToList(){
+  cancelPiecePreview(true);
   State.running=false; State.currentPuzzleId=null; State.currentSolutionId=null; State.selectedCell=null; State.selectedTool=null;
   State.screen='setList'; closeInspectorSheet(); renderScreen();
 }
@@ -3272,7 +3443,7 @@ function makeToolSelect(options){
   if(State.selectedTool) select.value=State.selectedTool;
   return select;
 }
-const MOBILE_TOOL_GLYPHS={emitter:'●→',receiver:'→□',crystal:'◆',transformer:'≋',mirrorDiag:'╱',mirrorHalf:'◩',prism:'△',eraser:'⌫'};
+const MOBILE_TOOL_GLYPHS={emitter:'●→',receiver:'→□',crystal:'◆',transformer:'≋',mirrorDiag:'╱',mirrorHalf:'◩',prism:'△',cloneElement:'⧉',eraser:'⌫'};
 function syncBoardToolControls(){
   boardChrome.querySelectorAll('.mobile-tool-button[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===State.selectedTool));
   const select=boardChrome.querySelector('.board-select');
@@ -3281,8 +3452,8 @@ function syncBoardToolControls(){
     select.value=has&&State.selectedTool?State.selectedTool:'';
   }
 }
-function makeMobileToolStrip(primaryOptions,moreOptions){
-  const strip=document.createElement('div');strip.className='mobile-tool-strip';
+function makeMobileToolStrip(primaryOptions,moreOptions,extraClass){
+  const strip=document.createElement('div');strip.className='mobile-tool-strip'+(extraClass?' '+extraClass:'');
   const scrolling=document.createElement('div');scrolling.className='mobile-tool-strip-scroll';
   for(const [value,label] of primaryOptions){
     const b=document.createElement('button');b.type='button';b.className='mobile-tool-button';b.dataset.tool=value;
@@ -3301,7 +3472,12 @@ function makeMobileToolStrip(primaryOptions,moreOptions){
   const moreWrap=document.createElement('div');moreWrap.className='mobile-more-wrap';
   const moreButton=document.createElement('button');moreButton.type='button';moreButton.className='mobile-more-button';moreButton.innerHTML='<span class="mobile-tool-glyph">•••</span>More';
   const menu=document.createElement('div');menu.className='mobile-more-menu';
-  moreButton.addEventListener('click',(e)=>{e.stopPropagation();menu.classList.toggle('open');moreButton.setAttribute('aria-expanded',menu.classList.contains('open')?'true':'false');});
+  moreButton.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    const opening=!menu.classList.contains('open');
+    if(opening){chooseBoardTool('');syncBoardToolControls();}
+    menu.classList.toggle('open',opening);moreButton.setAttribute('aria-expanded',opening?'true':'false');
+  });
   moreButton.setAttribute('aria-haspopup','true');moreButton.setAttribute('aria-expanded','false');
   for(const [value,label] of moreOptions){
     const item=document.createElement('button');item.type='button';item.textContent=label;
@@ -3424,8 +3600,11 @@ function deleteCurrentSolution(){
 }
 function chooseBoardTool(value){
   const p=getCurrentPuzzle();
-  clearPlacementConfigure();
+  cancelPiecePreview(true);
   const actions=['setup','deletePuzzle','clonePuzzle','importPuzzle','exportPuzzle','setupSolution','deleteSolution','cloneSolution','importSolution','exportSolution','goDesign'];
+  if(value!=='cloneElement'||State.selectedTool!=='cloneElement'){
+    State.cloneSource=null;State.cloneSourceCell=null;
+  }
   if(actions.includes(value)){State.selectedTool=null;syncBoardToolControls();}
   if(value==='setup'){ State.selectedTool=null; showPuzzleSetupDialog(p); return; }
   if(value==='deletePuzzle'){State.selectedTool=null;deleteCurrentPuzzle();return;}
@@ -3448,15 +3627,14 @@ function renderPuzzleEditScreen(){
   row.appendChild(actionButton('← List','',closeBoardToList));
   const title=document.createElement('button'); title.type='button'; title.className='board-title editable'; title.textContent=p.name; title.title='Edit puzzle setup';
   title.addEventListener('click',()=>showPuzzleSetupDialog(p)); row.appendChild(title);
-  const tools=makeToolSelect([['emitter','Emitter'],['receiver','Receiver'],['crystal','Crystal'],['transformer','Transformer'],['eraser','Eraser'],['setup','Setup'],['deletePuzzle','Delete Puzzle'],['clonePuzzle','Clone'],['importPuzzle','Import Puzzle'],['exportPuzzle','Export Puzzle']]);
-  bindBoardToolSelect(tools,['setup','deletePuzzle','clonePuzzle','importPuzzle','exportPuzzle']); row.appendChild(tools);
   row.appendChild(actionButton('Try It Now','solid',()=>{
     setActiveMode('solve'); warnIfStrictPacketTotalsMismatch(p); State.currentSolutionId='BLANK';State.selectedCell=null;State.selectedTool=null;State.screen='solutionEdit';renderScreen();
   }));
   boardChrome.appendChild(row);
   boardChrome.appendChild(makeMobileToolStrip(
-    [['emitter','Emitter'],['receiver','Receiver'],['crystal','Crystal'],['transformer','Transform'],['eraser','Eraser']],
-    [['setup','Setup'],['deletePuzzle','Delete Puzzle'],['clonePuzzle','Clone'],['importPuzzle','Import Puzzle'],['exportPuzzle','Export Puzzle']]
+    [['emitter','Emitter'],['receiver','Receiver'],['crystal','Crystal'],['transformer','Transform'],['cloneElement','Clone'],['eraser','Eraser']],
+    [['setup','Setup'],['deletePuzzle','Delete Puzzle'],['clonePuzzle','Clone Puzzle'],['importPuzzle','Import Puzzle'],['exportPuzzle','Export Puzzle']],
+    'puzzle-tools'
   ));
   if(State.selectedCell){renderInspector();openInspectorSheet();} else closeInspectorSheet();
 }
@@ -3465,18 +3643,12 @@ function renderSolutionEditScreen(){
   const row=document.createElement('div');row.className='board-row';
   row.appendChild(actionButton('← List','',closeBoardToList));
   const title=document.createElement('button');title.type='button';title.className='board-title editable';title.textContent=`${p.name} — ${s.name}`;title.title='Rename solution';title.addEventListener('click',showSolutionSetupSheet);row.appendChild(title);
-  const toolOptions=[['mirrorDiag','Mirror'],['mirrorHalf','Half-Mirror']];
-  if(!p.mirrorsOnly)toolOptions.push(['prism','Prism']);
-  toolOptions.push(['eraser','Eraser'],['setupSolution','Setup'],['deleteSolution','Delete Solution'],['cloneSolution','Clone'],['importSolution','Import Solution'],['exportSolution','Export Solution'],['goDesign','Go to Design']);
-  const tools=makeToolSelect(toolOptions);
-  if(!canEditNow()) Array.from(tools.options).forEach(o=>{if(['mirrorDiag','mirrorHalf','prism','eraser'].includes(o.value))o.disabled=true;});
-  bindBoardToolSelect(tools,['setupSolution','deleteSolution','cloneSolution','importSolution','exportSolution','goDesign']);row.appendChild(tools);
   boardChrome.appendChild(row);
   const playRow=document.createElement('div');playRow.className='board-row';playRow.appendChild(runbar);boardChrome.appendChild(playRow);
   const mobilePrimary=[['mirrorDiag','Mirror'],['mirrorHalf','Half-Mirror']];
   if(!p.mirrorsOnly)mobilePrimary.push(['prism','Prism']);
-  mobilePrimary.push(['eraser','Eraser']);
-  boardChrome.appendChild(makeMobileToolStrip(mobilePrimary,[['setupSolution','Setup'],['deleteSolution','Delete Solution'],['cloneSolution','Clone'],['importSolution','Import Solution'],['exportSolution','Export Solution'],['goDesign','Go to Design']]));
+  mobilePrimary.push(['cloneElement','Clone'],['eraser','Eraser']);
+  boardChrome.appendChild(makeMobileToolStrip(mobilePrimary,[['setupSolution','Setup'],['deleteSolution','Delete Solution'],['cloneSolution','Clone Solution'],['importSolution','Import Solution'],['exportSolution','Export Solution'],['goDesign','Go to Design']]));
   runbar.style.display='flex';
   speedSlider.value=State.speed;speedVal.textContent=State.speed;elementCountEl.textContent=(s.elements||[]).length;tickCountEl.textContent=State.tick;playBtn.textContent=State.running?'⏸':'▶';
   if(State.selectedCell){renderInspector();openInspectorSheet();} else closeInspectorSheet();
@@ -3545,6 +3717,24 @@ function updateToolButtonsEnabled(){
 }
 
 /* ============================== INSPECTOR ============================== */
+function buildOrientationProgram(selected,choices,iconFor,readOnly,onChange){
+  const program=document.createElement('div');program.className='orientation-program';
+  selected.forEach((current,rowIndex)=>{
+    const row=document.createElement('div');row.className='orientation-choice-row';
+    const step=document.createElement('span');step.className='orientation-step';step.textContent=String(rowIndex+1);row.appendChild(step);
+    for(const choice of choices){
+      const button=document.createElement('button');button.type='button';button.className='orientation-choice'+(choice==null?' blank':'')+(choice===current?' selected':'');
+      button.innerHTML=iconFor(choice);button.setAttribute('aria-pressed',choice===current?'true':'false');
+      button.setAttribute('aria-label',choice==null?`Step ${rowIndex+1}: blank`:`Step ${rowIndex+1}: ${choice}`);
+      button.title=choice==null?'No change':`Orientation ${choice}`;
+      button.disabled=readOnly||(rowIndex===0&&choice==null);
+      if(!button.disabled)button.addEventListener('click',()=>onChange(rowIndex,choice));
+      row.appendChild(button);
+    }
+    program.appendChild(row);
+  });
+  return program;
+}
 function renderInspector(){
   if(State.screen!=='puzzleEdit' && State.screen!=='solutionEdit'){ return; }
   if(!State.selectedCell){ closeInspectorSheet(); return; }
@@ -3573,22 +3763,14 @@ function renderInspector(){
     p.textContent='Reflects packets entering from its reflective side; packets entering from its transparent side pass straight through. Packets arriving together still mix, and outputs traveling the same way combine.';wrap.appendChild(p);
     const lbl=document.createElement('label');lbl.className='field';lbl.textContent='Facing sequence';wrap.appendChild(lbl);
     const hint=document.createElement('p');hint.style.cssText='font-size:11.5px;color:var(--dimmer);margin:-2px 0 8px;line-height:1.4;';
-    hint.textContent='Facing is the reflective corner. The first tile is the starting facing; click it to rotate clockwise. Tiles 2–4 start off—click to switch one on, then keep clicking to rotate it through all four corners before turning it off again.';wrap.appendChild(hint);
-    const row=document.createElement('div');row.className='prism-seq-row';
+    hint.textContent='Facing is the reflective corner. Choose one orientation in each row, or choose blank to keep the previous orientation. The first row sets the required starting orientation.';wrap.appendChild(hint);
     const facing=el.facing||legacyHalfMirrorFacing(el);
-    const seq=Array.isArray(el.seq)?el.seq:[null,null,null];
-    const slot1=document.createElement('button');slot1.type='button';slot1.className='prism-slot';slot1.innerHTML=miniHalfMirrorIconSVG(facing);slot1.title=`Starting facing: ${facing}`;
-    if(readOnly)slot1.disabled=true;
-    else slot1.addEventListener('click',()=>mutateSelectedConfig(cfg=>{normalizeHalfMirrorData(cfg);cfg.facing=CORNER_CW[cfg.facing];}));
-    row.appendChild(slot1);
-    for(let i=0;i<3;i++){
-      const val=seq[i]!=null?seq[i]:null;
-      const slot=document.createElement('button');slot.type='button';slot.className='prism-slot'+(val==null?' off':'');slot.innerHTML=miniHalfMirrorIconSVG(val);slot.title=val==null?'Off — click to switch it on':`Facing ${val} — click to rotate`;
-      if(readOnly)slot.disabled=true;
-      else slot.addEventListener('click',()=>mutateSelectedConfig(cfg=>{normalizeHalfMirrorData(cfg);const s=cfg.seq.slice();s[i]=nextHalfMirrorSeqStep(s[i]);cfg.seq=s;}));
-      row.appendChild(slot);
-    }
-    wrap.appendChild(row);
+    const seq=[0,1,2].map(i=>Array.isArray(el.seq)&&el.seq[i]!=null?el.seq[i]:null);
+    wrap.appendChild(buildOrientationProgram([facing,...seq],['NW','NE','SE','SW',null],miniHalfMirrorIconSVG,readOnly,(rowIndex,value)=>mutateSelectedConfig(cfg=>{
+      normalizeHalfMirrorData(cfg);
+      if(rowIndex===0)cfg.facing=value;
+      else {const s=cfg.seq.slice();s[rowIndex-1]=value;cfg.seq=s;}
+    })));
   } else if(el.type==='crystal'){
     const p=document.createElement('p'); p.style.color='var(--dim)'; p.style.fontSize='12.5px';
     p.textContent = el.filterColor==null
@@ -3634,37 +3816,26 @@ function renderInspector(){
     const lbl=document.createElement('label'); lbl.className='field'; lbl.textContent='Rotation program';
     wrap.appendChild(lbl);
     const hint=document.createElement('p'); hint.style.cssText='font-size:11.5px;color:var(--dimmer);margin:-2px 0 8px;line-height:1.4;';
-    hint.textContent = 'The first tile is the prism\'s own facing — click it (or the prism itself) to rotate. Tiles 2–4 start off; click one to switch it on, then keep clicking to rotate it through all four directions before it turns off again.';
+    hint.textContent = 'Choose one orientation in each row, or choose blank to keep the previous orientation. The first row sets the required starting orientation.';
     wrap.appendChild(hint);
-    const row=document.createElement('div'); row.className='prism-seq-row';
-    const seq = Array.isArray(el.seq) ? el.seq : [null,null,null];
-    const slot1=document.createElement('button'); slot1.type='button'; slot1.className='prism-slot';
-    slot1.innerHTML = miniPrismIconSVG(el.base);
-    slot1.title = 'Starting facing (same as the prism on the board)';
-    if(readOnly) slot1.disabled=true;
-    else slot1.addEventListener('click', ()=>mutateSelectedConfig(cfg=>cfg.base=CW[cfg.base]));
-    row.appendChild(slot1);
-    for(let i=0;i<3;i++){
-      const val = seq[i]!=null ? seq[i] : null;
-      const slot=document.createElement('button'); slot.type='button'; slot.className='prism-slot'+(val==null?' off':'');
-      slot.innerHTML = miniPrismIconSVG(val);
-      slot.title = val==null ? 'Off — click to switch it on' : 'Click to rotate';
-      if(readOnly) slot.disabled=true;
-      else slot.addEventListener('click', ()=>mutateSelectedConfig(cfg=>{
-        const s = (Array.isArray(cfg.seq) ? cfg.seq : [null,null,null]).slice();
-        s[i] = nextSeqStep(s[i]!=null ? s[i] : null);
-        cfg.seq = s;
-      }));
-      row.appendChild(slot);
-    }
-    wrap.appendChild(row);
+    const seq = [0,1,2].map(i=>Array.isArray(el.seq)&&el.seq[i]!=null?el.seq[i]:null);
+    wrap.appendChild(buildOrientationProgram([el.base,...seq],['N','E','S','W',null],miniPrismIconSVG,readOnly,(rowIndex,value)=>mutateSelectedConfig(cfg=>{
+      if(rowIndex===0)cfg.base=value;
+      else {const s=(Array.isArray(cfg.seq)?cfg.seq:[null,null,null]).slice();s[rowIndex-1]=value;cfg.seq=s;}
+    })));
   }
 
   sheetBody.appendChild(wrap);
 }
 
+function positionInspectorSheet(){
+  if(!boardChrome||!rightPanel)return;
+  const bottom=Math.round(boardChrome.getBoundingClientRect().bottom);
+  rightPanel.style.setProperty('--inspector-top',bottom+'px');
+}
 function openInspectorSheet(){
   rightPanel.style.transform='';rightPanel.style.transition='';sheetBackdrop.style.opacity='';
+  positionInspectorSheet();
   State.sheetOpen=true; rightPanel.classList.add('sheet-open'); sheetBackdrop.classList.add('show');
 }
 function closeInspectorSheet(){
@@ -3673,30 +3844,6 @@ function closeInspectorSheet(){
   if(State.grid) render();
 }
 sheetBackdrop.addEventListener('click',closeInspectorSheet);
-
-let sheetDrag=null;
-rightPanel.addEventListener('pointerdown',e=>{
-  if(!isNarrowLayout()||!State.sheetOpen||!e.target.closest('.sheet-head')||e.target.closest('button'))return;
-  sheetDrag={pointerId:e.pointerId,startY:e.clientY,dy:0};
-  rightPanel.style.transition='none';
-  if(rightPanel.setPointerCapture)rightPanel.setPointerCapture(e.pointerId);
-});
-rightPanel.addEventListener('pointermove',e=>{
-  if(!sheetDrag||e.pointerId!==sheetDrag.pointerId)return;
-  sheetDrag.dy=Math.max(0,e.clientY-sheetDrag.startY);
-  if(sheetDrag.dy>0)e.preventDefault();
-  rightPanel.style.transform=`translate(-50%,${sheetDrag.dy}px)`;
-  sheetBackdrop.style.opacity=String(Math.max(0,1-sheetDrag.dy/260));
-});
-function finishSheetDrag(e){
-  if(!sheetDrag||e.pointerId!==sheetDrag.pointerId)return;
-  const dismiss=sheetDrag.dy>75;sheetDrag=null;
-  if(dismiss){closeInspectorSheet();return;}
-  rightPanel.style.transition='transform .18s ease';rightPanel.style.transform='translate(-50%,0)';sheetBackdrop.style.opacity='';
-  setTimeout(()=>{if(State.sheetOpen){rightPanel.style.transition='';rightPanel.style.transform='';}},190);
-}
-rightPanel.addEventListener('pointerup',finishSheetDrag);
-rightPanel.addEventListener('pointercancel',finishSheetDrag);
 
 function labelFor(t){ return {emitter:'Emitter',receiver:'Receiver',mirrorDiag:'Mirror',mirrorHalf:'Half-Mirror',crystal:'Crystal',prism:'Prism',transformer:'Transformer',eraser:'Eraser'}[t]||t; }
 
@@ -3787,7 +3934,8 @@ speedSlider.addEventListener('input', ()=>{
   State.speed=parseInt(speedSlider.value); speedVal.textContent=State.speed;
 });
 playBtn.addEventListener('click', ()=>{
-  if(State.finished) return;
+  if(State.finished)renderScreen();
+  cancelPiecePreview(true);
   State.runStarted = true;
   closeInspectorSheet();
   State.running = !State.running;
@@ -3801,6 +3949,7 @@ playBtn.addEventListener('click', ()=>{
 });
 stepBtn.addEventListener('click', ()=>{
   if(State.finished) return;
+  cancelPiecePreview(true);
   State.runStarted = true;
   closeInspectorSheet();
   doTick();
@@ -3809,6 +3958,7 @@ stepBtn.addEventListener('click', ()=>{
   updateRunUI(); render();
 });
 resetRunBtn.addEventListener('click', ()=>{
+  cancelPiecePreview(true);
   // Restart playback from the very beginning — a full screen refresh is
   // the simplest way to get everything back in sync: tick/running/finished
   // reset, the tool palette re-enabled, and the right panel switched back
@@ -3938,7 +4088,7 @@ ${W} White meets anything → both become ${W} White
 
 <h3>Solve Mode</h3>
 <p>You start with a list of puzzle sets. Expand a set and then a puzzle to see its saved solutions or start fresh. Each solution is an independent arrangement of solver pieces. A filled star means that puzzle has at least one successful solution.</p>
-<p>While editing a solution, choose a piece type from the Tools menu and tap or click any empty square to place it. Select a placed piece to open its configuration sheet, or choose Eraser and select a piece to remove it.</p>
+<p>While editing a solution, choose a piece type from the Tools menu and tap or click any empty square to place it. Select a newly placed piece again within one second to configure it immediately. Otherwise, select a placed piece once to preview its routine twice; select it again during the preview or shortly afterward to open its configuration sheet. Choose Eraser and select a piece to remove it. Choose Clone, select a placed solver piece, and then select empty squares to make copies; selecting a different piece changes what Clone copies.</p>
 
 <div class="help-piece"><div class="pn">Mirror</div><div class="pd">Reflects a packet 90° from any direction. Packets that meet at the mirror merge colors. A mirror has two possible orientations, selected in its configuration sheet. A mirror can optionally be set to flip its orientation when a packet hits it.</div></div>
 
@@ -3958,7 +4108,7 @@ A half-mirror can face any of four directions. It can optionally be set to follo
 </ul>
 A prism can face any of four directions. It can optionally follow a pattern of up to four orientations, changing orientation when a packet hits it.</div></div>
 <p>Puzzles can be configured as <strong>Mirrors Only</strong>, in which case Prisms aren't available.</p>
-<p>Press play to run your solution. The speed slider controls playback rate (0 is paused); step advances one square; reset returns the run to the beginning. If a run fails, everything stops so you can see what happened. The playback speed does not affect the outcome.</p>
+<p>Press play to run your solution. The speed slider controls playback rate (0 is paused); step advances one square; reset returns the run to the beginning. After a run succeeds or fails, pressing play resets it and starts it again. If a run fails, everything stops so you can see what happened. The playback speed does not affect the outcome.</p>
 
 <h3>What's already on the board</h3>
 <p>A puzzle configuration includes objects you can't move or change:</p>
@@ -4000,7 +4150,7 @@ Crystals can have a durability factor: every arriving packet decreases the durab
 <p>If none of the above happens and every receiver gets its full correct sequence of colored packets, congratulations, you solved the puzzle! The solution locks, and its element and tick counts appear with it in the solution list.</p>
 
 <h3>Creating Puzzles</h3>
-<p>In <strong>Create Puzzles</strong> mode, build a new puzzle or edit one. Setup controls its name, grid size (5–13 rows × 5–9 columns), Strict setting, and Mirrors Only restriction. Choose a fixed piece—emitter, receiver, crystal, or transformer—from the Tools menu and then tap or click an empty board square to place it; tap or click a placed piece to open its configuration sheet.</p>
+<p>In <strong>Create Puzzles</strong> mode, build a new puzzle or edit one. Setup controls its name, grid size (5–13 rows × 5–9 columns), Strict setting, and Mirrors Only restriction. Choose a fixed piece—emitter, receiver, crystal, or transformer—from the Tools menu and then tap or click an empty board square to place it; select a placed piece to open its configuration sheet. Clone lets you select an existing piece and then place copies on empty squares. In the puzzle list, use the drag handles to reorder sets and puzzles or move a puzzle into another set.</p>
 
 <h3>Sharing puzzles &amp; solutions</h3>
 <p>Everything is stored locally in your browser. You can export or import:</p>
