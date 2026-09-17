@@ -351,6 +351,8 @@ main#boardPanel.board-open{transform:translateX(0);}
 .board-stage #gridCanvas{flex:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 .library-actions,.scope-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .library-actions{margin-bottom:12px;}
+.collection-heading{margin:18px 2px 8px;color:var(--dim);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;}
+.collection-heading:first-of-type{margin-top:8px;}
 .scope-actions{margin:8px 0;}
 .scope-actions .scope-label{font-size:12px;font-weight:700;color:var(--dim);margin-right:2px;}
 .library-actions .btn,.scope-actions .btn{width:auto;margin:0;}
@@ -568,6 +570,30 @@ function computeCrossFrac(startA, endA, startB, endB){
 let idCounter = 1;
 function uid(){ return 'id'+(idCounter++)+'_'+Date.now().toString(36); }
 
+// A puzzle's id identifies the puzzle; this hash identifies one exact design.
+// Object keys and element order are normalized so inconsequential serialization
+// differences do not make equivalent configurations look different.
+function stableStringify(value){
+  if(value===null || typeof value!=='object') return JSON.stringify(value);
+  if(Array.isArray(value)) return '['+value.map(stableStringify).join(',')+']';
+  return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableStringify(value[k])).join(',')+'}';
+}
+function puzzleConfigurationHash(puzzle){
+  const elements=((puzzle&&puzzle.elements)||[]).map(el=>{
+    const copy=JSON.parse(JSON.stringify(el));delete copy.fixed;return copy;
+  }).sort((a,b)=>stableStringify(a).localeCompare(stableStringify(b)));
+  const canonical=stableStringify({
+    rows:Number(puzzle&&puzzle.rows)||7,cols:Number(puzzle&&puzzle.cols)||7,
+    strict:!!(puzzle&&puzzle.strict),noPrisms:puzzle&&puzzle.noPrisms!=null?!!puzzle.noPrisms:!!(puzzle&&puzzle.mirrorsOnly),
+    noHalfMirrors:!!(puzzle&&puzzle.noHalfMirrors),elements
+  });
+  let a=0x811c9dc5,b=0x9e3779b9;
+  for(let i=0;i<canonical.length;i++){
+    const c=canonical.charCodeAt(i);a=Math.imul(a^c,0x01000193);b=Math.imul(b^c,0x85ebca6b);
+  }
+  return 'cfg-'+(a>>>0).toString(36).padStart(7,'0')+(b>>>0).toString(36).padStart(7,'0');
+}
+
 /* ============================== EXPORT / IMPORT ============================== */
 // Self-describing JSON files: a "schema"+"schemaVersion" envelope around a plain
 // snapshot of the stored objects, so any element type this app knows about today
@@ -589,11 +615,43 @@ function downloadTextFile(text,filename,mimeType){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function canonicalPuzzleId(p){ return p&&p._builtIn?p._sourceId:p&&p.id; }
+function canonicalSetId(s){ return s&&s._builtIn?s._sourceId:s&&s.id; }
+function portablePuzzle(p,setId){
+  const copy=JSON.parse(JSON.stringify(p));
+  copy.id=canonicalPuzzleId(p);copy.setId=setId==null?(p._builtIn?p._sourceSetId:p.setId):setId;
+  delete copy._builtIn;delete copy._sourceId;delete copy._sourceSetId;delete copy.configurationHash;
+  return copy;
+}
+function allSets(){ return [...State.builtInSets,...State.sets]; }
+function allPuzzles(){ return [...State.builtInPuzzles,...State.puzzles]; }
+function findSetByRuntimeId(id){ return allSets().find(s=>s.id===id)||null; }
+function findPuzzleByRuntimeId(id){ return allPuzzles().find(p=>p.id===id)||null; }
+function puzzlesForSet(set){
+  const source=set&&set._builtIn?State.builtInPuzzles:State.puzzles;
+  return source.filter(p=>p.setId===set.id);
+}
+function puzzleMatchesSolution(p,solution){
+  return !!p && !!solution && solution.puzzleId===canonicalPuzzleId(p) &&
+    (!solution.puzzleHash || solution.puzzleHash===puzzleConfigurationHash(p));
+}
+function puzzleForSolution(solution){
+  const current=findPuzzleByRuntimeId(State.currentPuzzleId);
+  if(puzzleMatchesSolution(current,solution))return current;
+  return allPuzzles().find(p=>puzzleMatchesSolution(p,solution))||null;
+}
 function saveAsWebApp(){
+  const catalogSets=allSets();
+  const usedSetIds=new Set();
+  const catalog=catalogSets.map((set,index)=>{
+    const base=canonicalSetId(set)||('set-'+index);let id=base,n=2;
+    while(usedSetIds.has(id))id=base+'~'+n++;
+    usedSetIds.add(id);return {set,id};
+  });
   const embedded={
     storageNamespace:'app-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8),
-    sets:JSON.parse(JSON.stringify(State.sets)),
-    puzzles:JSON.parse(JSON.stringify(State.puzzles))
+    sets:catalog.map(({set,id})=>({id,name:set.name,createdAt:set.createdAt||Date.now()})),
+    puzzles:catalog.flatMap(({set,id})=>puzzlesForSet(set).map(p=>portablePuzzle(p,id)))
   };
   // Escaping '<' prevents script-closing text in a puzzle or set name from
   // terminating the inline script in the generated app.
@@ -612,24 +670,24 @@ function exportPuzzle(puzzle){
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'puzzle',
     exportedAt: Date.now(),
-    puzzle: JSON.parse(JSON.stringify(puzzle))
+    puzzle: portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId)))
   }, slugify(puzzle.name)+'.lightyard-puzzle.json');
 }
 function exportSolution(solution){
-  const puzzle = State.puzzles.find(p=>p.id===solution.puzzleId) || null;
+  const puzzle = puzzleForSolution(solution);
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'solution',
     exportedAt: Date.now(),
-    puzzle: puzzle ? JSON.parse(JSON.stringify(puzzle)) : null,
+    puzzle: puzzle ? portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId))) : null,
     solution: JSON.parse(JSON.stringify(solution))
   }, slugify((puzzle?puzzle.name+'-':'')+solution.name)+'.lightyard-solution.json');
 }
 function exportAllSolutions(puzzle){
-  const solutions = State.solutions.filter(s=>s.puzzleId===puzzle.id);
+  const solutions = solutionsForPuzzle(puzzle);
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'solutions',
     exportedAt: Date.now(),
-    puzzle: JSON.parse(JSON.stringify(puzzle)),
+    puzzle: portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId))),
     solutions: JSON.parse(JSON.stringify(solutions))
   }, slugify(puzzle.name)+'-solutions.json');
 }
@@ -704,20 +762,23 @@ function normalizeHalfMirrorData(el){
   delete el.orientation; delete el.reflectiveSide; delete el.switching;
   return el;
 }
-function sanitizeSolutionData(raw, puzzleId){
+function sanitizeSolutionData(raw, puzzleRef){
   if(!raw || typeof raw!=='object') throw new Error('missing solution data');
   const elements = Array.isArray(raw.elements) ? raw.elements.map(sanitizeElementData).filter(Boolean) : [];
   const solved = raw.status==='solved';
+  const puzzle=typeof puzzleRef==='object'?puzzleRef:findPuzzleByRuntimeId(puzzleRef)||State.puzzles.find(p=>p.id===puzzleRef);
+  const puzzleId=puzzle?canonicalPuzzleId(puzzle):puzzleRef;
   const solution = {
     id: uid(),
     puzzleId,
+    puzzleHash:puzzle?puzzleConfigurationHash(puzzle):(raw.puzzleHash||null),
     name: (raw.name && String(raw.name).slice(0,80)) || 'Imported Solution',
     elements,
     status: solved ? 'solved' : 'in-progress',
     createdAt: Date.now()
   };
   if(solved && raw.ticksToSolve!=null && Number.isFinite(Number(raw.ticksToSolve))){ solution.ticksToSolve=Math.max(0,Math.floor(Number(raw.ticksToSolve))); }
-  enforcePuzzleSolutionRules(State.puzzles.find(p=>p.id===puzzleId),solution);
+  enforcePuzzleSolutionRules(puzzle,solution);
   return solution;
 }
 function enforcePuzzleSolutionRules(puzzle,solution){
@@ -761,7 +822,7 @@ function importSolutionPayload(data){
   if(!data.solution) throw new Error('this file has no solution data in it');
   const puzzleId = puzzle ? puzzle.id : (typeof data.solution.puzzleId==='string' ? data.solution.puzzleId : null);
   if(!puzzleId) throw new Error('this solution file has no puzzle attached to it');
-  const solution = sanitizeSolutionData(data.solution, puzzleId);
+  const solution = sanitizeSolutionData(data.solution, puzzle||puzzleId);
   State.solutions.push(solution);
   persistSolutions();
   return {puzzle, solution};
@@ -778,7 +839,7 @@ function importSolutionsPayload(data){
   const raws = Array.isArray(data.solutions) ? data.solutions : [];
   const imported = [];
   for(const raw of raws){
-    const solution = sanitizeSolutionData(raw, puzzleId);
+    const solution = sanitizeSolutionData(raw, puzzle||puzzleId);
     State.solutions.push(solution);
     imported.push(solution);
   }
@@ -788,18 +849,18 @@ function importSolutionsPayload(data){
 
 /* ---------- Sets: export ---------- */
 function exportSet(set){
-  const puzzles = State.puzzles.filter(p=>p.setId===set.id);
+  const puzzles = puzzlesForSet(set);
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'set',
     exportedAt: Date.now(),
     setName: set.name,
-    puzzles: JSON.parse(JSON.stringify(puzzles))
+    puzzles: puzzles.map(p=>portablePuzzle(p,canonicalSetId(set)))
   }, slugify(set.name)+'.lightyard-set.json');
 }
 function exportAllSets(){
-  const sets = State.sets.map(s=>({
+  const sets = allSets().map(s=>({
     name: s.name,
-    puzzles: JSON.parse(JSON.stringify(State.puzzles.filter(p=>p.setId===s.id)))
+    puzzles: puzzlesForSet(s).map(p=>portablePuzzle(p,canonicalSetId(s)))
   }));
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'sets',
@@ -808,21 +869,20 @@ function exportAllSets(){
   }, 'lightyard-all-sets.json');
 }
 function exportSetSolutions(set){
-  const puzzles = State.puzzles.filter(p=>p.setId===set.id);
-  const ids = new Set(puzzles.map(p=>p.id));
-  const sols = State.solutions.filter(s=>ids.has(s.puzzleId));
+  const puzzles = puzzlesForSet(set);
+  const sols = puzzles.flatMap(p=>solutionsForPuzzle(p));
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'setSolutions',
     exportedAt: Date.now(),
     setName: set.name,
-    puzzles: JSON.parse(JSON.stringify(puzzles)),
+    puzzles: puzzles.map(p=>portablePuzzle(p,canonicalSetId(set))),
     solutions: JSON.parse(JSON.stringify(sols))
   }, slugify(set.name)+'-solutions.json');
 }
 function exportAllSolutionsGlobal(){
-  const sets = State.sets.map(s=>({
+  const sets = allSets().map(s=>({
     name: s.name,
-    puzzles: JSON.parse(JSON.stringify(State.puzzles.filter(p=>p.setId===s.id)))
+    puzzles: puzzlesForSet(s).map(p=>portablePuzzle(p,canonicalSetId(s)))
   }));
   downloadJSON({
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'allSolutions',
@@ -920,6 +980,7 @@ function showImportSetsDialog(incomingSets, onConfirm){
 }
 function applyIncomingSets(incomingSets, choices){
   let totalPuzzles=0, totalSolutions=0;
+  const replacedPuzzles=[];
   for(let i=0;i<incomingSets.length;i++){
     const s = incomingSets[i];
     const choice = choices[i];
@@ -927,9 +988,8 @@ function applyIncomingSets(incomingSets, choices){
     if(choice.mode==='replace'){
       const existing = State.sets.find(x=>x.name===s.name);
       targetSetId = existing.id;
-      const idsToRemove = new Set(State.puzzles.filter(p=>p.setId===targetSetId).map(p=>p.id));
+      replacedPuzzles.push(...State.puzzles.filter(p=>p.setId===targetSetId));
       State.puzzles = State.puzzles.filter(p=>p.setId!==targetSetId);
-      State.solutions = State.solutions.filter(sol=>!idsToRemove.has(sol.puzzleId));
     } else if(choice.mode==='merge'){
       targetSetId = choice.targetSetId;
     } else {
@@ -940,17 +1000,20 @@ function applyIncomingSets(incomingSets, choices){
     const idMap = new Map();
     for(const rawP of s.puzzles){
       const puzzle = sanitizePuzzleData(rawP, targetSetId);
-      if(rawP && typeof rawP.id==='string') idMap.set(rawP.id, puzzle.id);
+      if(rawP && typeof rawP.id==='string') idMap.set(rawP.id, puzzle);
       State.puzzles.push(puzzle);
       totalPuzzles++;
     }
     for(const rawSol of s.solutions){
-      const newPid = idMap.get(rawSol.puzzleId);
-      if(!newPid) continue; // solution's puzzle wasn't part of this bundle
-      const solution = sanitizeSolutionData(rawSol, newPid);
+      const newPuzzle = idMap.get(rawSol.puzzleId);
+      if(!newPuzzle) continue; // solution's puzzle wasn't part of this bundle
+      const solution = sanitizeSolutionData(rawSol, newPuzzle);
       State.solutions.push(solution);
       totalSolutions++;
     }
+  }
+  if(replacedPuzzles.length){
+    State.solutions=State.solutions.filter(sol=>!replacedPuzzles.some(p=>puzzleMatchesSolution(p,sol))||allPuzzles().some(p=>puzzleMatchesSolution(p,sol)));
   }
   persistSets(); persistPuzzles(); persistSolutions();
   alert('Imported '+totalPuzzles+' puzzle'+(totalPuzzles!==1?'s':'')+
@@ -964,9 +1027,10 @@ function applyIncomingSets(incomingSets, choices){
 
 function sourcePuzzleMatches(raw, local){
   if(!raw || !local) return false;
-  if(typeof raw.id==='string' && raw.id===local.id) return true;
+  if(typeof raw.id==='string' && raw.id===canonicalPuzzleId(local) && puzzleConfigurationHash(raw)===puzzleConfigurationHash(local)) return true;
   return String(raw.name||'')===String(local.name||'') &&
-    Number(raw.rows)===Number(local.rows) && Number(raw.cols)===Number(local.cols);
+    Number(raw.rows)===Number(local.rows) && Number(raw.cols)===Number(local.cols) &&
+    puzzleConfigurationHash(raw)===puzzleConfigurationHash(local);
 }
 function solutionBundlesFromFile(data){
   if(data.kind==='solution') return [{name:null,puzzles:data.puzzle?[data.puzzle]:[],solutions:data.solution?[data.solution]:[]}];
@@ -975,22 +1039,22 @@ function solutionBundlesFromFile(data){
 }
 function importScopedSolutions(data,scope){
   const allowed = scope.kind==='puzzleSolutions'
-    ? State.puzzles.filter(p=>p.id===scope.puzzleId)
+    ? allPuzzles().filter(p=>p.id===scope.puzzleId)
     : scope.kind==='setSolutions'
-      ? State.puzzles.filter(p=>p.setId===scope.setId)
-      : State.puzzles.slice();
+      ? allPuzzles().filter(p=>p.setId===scope.setId)
+      : allPuzzles();
   const allowedIds=new Set(allowed.map(p=>p.id));
-  const targetSet=scope.kind==='setSolutions'?State.sets.find(s=>s.id===scope.setId):null;
+  const targetSet=scope.kind==='setSolutions'?findSetByRuntimeId(scope.setId):null;
   let imported=0;
   for(const bundle of solutionBundlesFromFile(data)){
     const rawById=new Map((bundle.puzzles||[]).filter(Boolean).map(p=>[p.id,p]));
     for(const rawSol of bundle.solutions||[]){
       const rawPuzzle=rawById.get(rawSol.puzzleId) || null;
-      let target=allowed.find(p=>p.id===rawSol.puzzleId);
+      let target=allowed.find(p=>canonicalPuzzleId(p)===rawSol.puzzleId && (!rawSol.puzzleHash||rawSol.puzzleHash===puzzleConfigurationHash(p)));
       const canFallbackByShape=!targetSet || !bundle.name || bundle.name===targetSet.name;
       if(!target && rawPuzzle && canFallbackByShape) target=allowed.find(p=>sourcePuzzleMatches(rawPuzzle,p));
       if(!target || !allowedIds.has(target.id)) continue;
-      State.solutions.push(sanitizeSolutionData(rawSol,target.id));
+      State.solutions.push(sanitizeSolutionData(rawSol,target));
       imported++;
     }
   }
@@ -1025,9 +1089,7 @@ function importPuzzleReplacement(data,puzzleId){
   if(!confirm(`Replace the design of "${target.name}" with the imported puzzle?`)) return;
   const fresh=sanitizePuzzleData(raw,target.setId);
   target.name=fresh.name; target.rows=fresh.rows; target.cols=fresh.cols; target.elements=fresh.elements; target.strict=fresh.strict; target.noPrisms=fresh.noPrisms; target.noHalfMirrors=fresh.noHalfMirrors; delete target.mirrorsOnly;
-  let solutionsChanged=false;
-  for(const solution of State.solutions){if(solution.puzzleId===target.id && enforcePuzzleSolutionRules(target,solution))solutionsChanged=true;}
-  persistPuzzles();if(solutionsChanged)persistSolutions();State.selectedCell=null; State.selectedTool=null; closeInspectorSheet(); renderScreen();
+  persistPuzzles();State.selectedCell=null; State.selectedTool=null; closeInspectorSheet(); renderScreen();
 }
 
 function handleImportedFile(file,scope){
@@ -1121,6 +1183,8 @@ function triggerImport(scope){ State.importScope=scope||null; importFileInput.cl
 /* ============================== STATE ============================== */
 const State = {
   mode:'solve', // 'solve' | 'create'
+  builtInSets: [],
+  builtInPuzzles: [],
   sets: [],
   puzzles: [],
   solutions: [],
@@ -1160,19 +1224,40 @@ function storageKey(kind){
   const ns=BUILT_IN_APP_DATA&&BUILT_IN_APP_DATA.storageNamespace;
   return ns?`lightyard_${ns}_${kind}`:`lightyard_${kind}`;
 }
+function loadBuiltInCatalog(){
+  State.builtInSets=[];State.builtInPuzzles=[];
+  if(!BUILT_IN_APP_DATA)return;
+  const rawSets=Array.isArray(BUILT_IN_APP_DATA.sets)?BUILT_IN_APP_DATA.sets:[];
+  const setRuntimeBySource=new Map();
+  rawSets.forEach((raw,index)=>{
+    const sourceId=typeof raw.id==='string'?raw.id:'builtin-set-'+index;
+    const set={...JSON.parse(JSON.stringify(raw)),id:'__builtin_set_'+index+'_'+sourceId,_sourceId:sourceId,_builtIn:true};
+    State.builtInSets.push(set);if(!setRuntimeBySource.has(sourceId))setRuntimeBySource.set(sourceId,set.id);
+  });
+  const rawPuzzles=Array.isArray(BUILT_IN_APP_DATA.puzzles)?BUILT_IN_APP_DATA.puzzles:[];
+  rawPuzzles.forEach((raw,index)=>{
+    const sourceId=typeof raw.id==='string'?raw.id:'builtin-puzzle-'+index;
+    let runtimeSetId=setRuntimeBySource.get(raw.setId);
+    if(!runtimeSetId){
+      const sourceSetId='builtin-orphans';
+      let set=State.builtInSets.find(s=>s._sourceId===sourceSetId);
+      if(!set){set={id:'__builtin_set_orphans',_sourceId:sourceSetId,_builtIn:true,name:'Built-in Puzzles',createdAt:Date.now()};State.builtInSets.push(set);}
+      runtimeSetId=set.id;
+    }
+    const p=JSON.parse(JSON.stringify(raw));
+    p.id='__builtin_puzzle_'+index+'_'+sourceId;p.setId=runtimeSetId;p._sourceId=sourceId;p._sourceSetId=raw.setId;p._builtIn=true;
+    p.noPrisms=p.noPrisms!=null?!!p.noPrisms:!!p.mirrorsOnly;p.noHalfMirrors=!!p.noHalfMirrors;delete p.mirrorsOnly;
+    p.elements=(p.elements||[]).map(sanitizeElementData).filter(Boolean);p.configurationHash=puzzleConfigurationHash(p);
+    State.builtInPuzzles.push(p);
+  });
+}
 function loadAll(){
+  loadBuiltInCatalog();
   const storedSets=localStorage.getItem(storageKey('sets'));
   const storedPuzzles=localStorage.getItem(storageKey('puzzles'));
-  if(storedSets==null&&storedPuzzles==null&&BUILT_IN_APP_DATA){
-    State.sets=JSON.parse(JSON.stringify(BUILT_IN_APP_DATA.sets||[]));
-    State.puzzles=JSON.parse(JSON.stringify(BUILT_IN_APP_DATA.puzzles||[]));
-    State.solutions=[];
-    persistSets();persistPuzzles();persistSolutions();
-  } else {
-    try{ State.sets = JSON.parse(storedSets||'[]'); }catch(e){ State.sets=[]; }
-    try{ State.puzzles = JSON.parse(storedPuzzles||'[]'); }catch(e){ State.puzzles=[]; }
-    try{ State.solutions = JSON.parse(localStorage.getItem(storageKey('solutions'))||'[]'); }catch(e){ State.solutions=[]; }
-  }
+  try{ State.sets = JSON.parse(storedSets||'[]'); }catch(e){ State.sets=[]; }
+  try{ State.puzzles = JSON.parse(storedPuzzles||'[]'); }catch(e){ State.puzzles=[]; }
+  try{ State.solutions = JSON.parse(localStorage.getItem(storageKey('solutions'))||'[]'); }catch(e){ State.solutions=[]; }
   // Fold any element still carrying the old, now-merged 'crystalColored'
   // type name (from before clear and colored crystals became one 'crystal'
   // type) into 'crystal' — same migration sanitizeElementData does for
@@ -1204,7 +1289,10 @@ function loadAll(){
   let solutionDataChanged=false;
   for(const s of State.solutions){
     if('solvedAt' in s){delete s.solvedAt;solutionDataChanged=true;}
-    const owner=State.puzzles.find(p=>p.id===s.puzzleId);
+    const owner=s.puzzleHash
+      ? allPuzzles().find(p=>puzzleMatchesSolution(p,s))
+      : State.puzzles.find(p=>p.id===s.puzzleId) || State.builtInPuzzles.find(p=>canonicalPuzzleId(p)===s.puzzleId);
+    if(owner && !s.puzzleHash){s.puzzleHash=puzzleConfigurationHash(owner);solutionDataChanged=true;}
     if(packetSequenceChangedPuzzles.has(s.puzzleId)){
       if(s.status!=='in-progress'){s.status='in-progress';solutionDataChanged=true;}
       if('ticksToSolve' in s){delete s.ticksToSolve;solutionDataChanged=true;}
@@ -1223,7 +1311,7 @@ function loadAll(){
     State.sets.push(def);
     for(const p of orphans) p.setId = def.id;
     persistSets(); persistPuzzles();
-  } else if(State.sets.length===0){
+  } else if(State.sets.length===0 && State.builtInSets.length===0){
     const def = {id:uid(), name:'My Puzzles', createdAt:Date.now()};
     State.sets.push(def);
     const sp = samplePuzzle(); sp.setId = def.id;
@@ -2802,7 +2890,7 @@ function mutateSelectedConfig(mutator){
 }
 
 /* ============================== DATA HELPERS ============================== */
-function getCurrentPuzzle(){ return State.puzzles.find(p=>p.id===State.currentPuzzleId); }
+function getCurrentPuzzle(){ return findPuzzleByRuntimeId(State.currentPuzzleId); }
 // A puzzle always has a virtual "blank" solution pinned above its real
 // ones — nothing is actually created or persisted for it until the first
 // edit happens (see promoteBlankIfNeeded). currentSolutionId is 'BLANK'
@@ -2813,7 +2901,7 @@ function getCurrentSolution(){
     if(s) return s;
   }
   const p = getCurrentPuzzle();
-  return {id:'BLANK', puzzleId: p?p.id:null, name:'New solution', elements:[], status:'in-progress', createdAt:null};
+  return {id:'BLANK', puzzleId:p?canonicalPuzzleId(p):null,puzzleHash:p?puzzleConfigurationHash(p):null,name:'New solution', elements:[], status:'in-progress', createdAt:null};
 }
 // Called right before an actual edit (placing/moving/deleting/configuring
 // a solver-placed element) is about to happen. If the blank virtual slot
@@ -2824,13 +2912,18 @@ function promoteBlankIfNeeded(){
   const cur = getCurrentSolution();
   if(cur.id!=='BLANK') return cur;
   const p = getCurrentPuzzle();
-  const s = {id:uid(), puzzleId:p.id, name:'Attempt '+(solutionsForPuzzle(p.id).length+1), elements:[], status:'in-progress', createdAt:Date.now()};
+  const s = {id:uid(),puzzleId:canonicalPuzzleId(p),puzzleHash:puzzleConfigurationHash(p),name:'Attempt '+(solutionsForPuzzle(p).length+1),elements:[],status:'in-progress',createdAt:Date.now()};
   State.solutions.push(s);
   persistSolutions();
   State.currentSolutionId = s.id;
   return s;
 }
-function solutionsForPuzzle(pid){ return State.solutions.filter(s=>s.puzzleId===pid); }
+function solutionsForPuzzle(puzzleRef){
+  const p=typeof puzzleRef==='object'?puzzleRef:findPuzzleByRuntimeId(puzzleRef)||State.puzzles.find(x=>x.id===puzzleRef);
+  if(!p)return [];
+  const id=canonicalPuzzleId(p),hash=puzzleConfigurationHash(p);
+  return State.solutions.filter(s=>s.puzzleId===id && (!s.puzzleHash||s.puzzleHash===hash));
+}
 
 /* ============================== TOP NAV / MODE ============================== */
 document.querySelectorAll('nav.modes button').forEach(btn=>{
@@ -3287,6 +3380,23 @@ function newPuzzleInSet(set){
   const p={id:uid(),setId:set.id,name:'Untitled Puzzle',rows:7,cols:7,createdAt:Date.now(),elements:[],strict:false,noPrisms:false,noHalfMirrors:false};
   State.puzzles.push(p); persistPuzzles(); State.expandedSetIds.add(set.id); openPuzzleBoard(p,null);
 }
+function localSetForBuiltIn(set){
+  let local=State.sets.find(s=>s.name===set.name);
+  if(!local){local={id:uid(),name:set.name,createdAt:Date.now()};State.sets.push(local);persistSets();}
+  return local;
+}
+function cloneBuiltInPuzzleToLocal(p,set,openAfter=true){
+  const localSet=localSetForBuiltIn(set||findSetByRuntimeId(p.setId));
+  const copy=sanitizePuzzleData(portablePuzzle(p,localSet.id),localSet.id);
+  copy.name=(p.name+' (copy)').slice(0,80);State.puzzles.push(copy);persistPuzzles();State.expandedSetIds.add(localSet.id);
+  if(openAfter)openPuzzleBoard(copy,null);else renderScreen();
+  return copy;
+}
+function cloneBuiltInSetToLocal(set){
+  const local={id:uid(),name:uniqueSetName(set.name),createdAt:Date.now()};State.sets.push(local);
+  for(const p of puzzlesForSet(set))State.puzzles.push(sanitizePuzzleData(portablePuzzle(p,local.id),local.id));
+  persistSets();persistPuzzles();State.expandedSetIds.add(local.id);renderScreen();
+}
 let listDrag=null;
 function clearListDropMarks(){
   document.querySelectorAll('.list-drop-before,.list-drop-after,.list-drop-inside').forEach(el=>el.classList.remove('list-drop-before','list-drop-after','list-drop-inside'));
@@ -3319,6 +3429,7 @@ function updateListDragTarget(e){
   const under=document.elementFromPoint(e.clientX,e.clientY);if(!under)return;
   if(listDrag.kind==='set'){
     const setBox=under.closest&&under.closest('.tree-set');if(!setBox)return;
+    if(setBox.dataset.builtIn==='true')return;
     const after=e.clientY>setBox.getBoundingClientRect().top+setBox.getBoundingClientRect().height/2;
     setBox.classList.add(after?'list-drop-after':'list-drop-before');
     listDrag.target={setId:setBox.dataset.setId,after};
@@ -3326,13 +3437,14 @@ function updateListDragTarget(e){
   }
   const puzzleBox=under.closest&&under.closest('.tree-puzzle');
   if(puzzleBox){
+    if(puzzleBox.dataset.builtIn==='true')return;
     const rect=puzzleBox.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;
     puzzleBox.classList.add(after?'list-drop-after':'list-drop-before');
     listDrag.target={setId:puzzleBox.dataset.setId,puzzleId:puzzleBox.dataset.puzzleId,after};
     return;
   }
   const setBox=under.closest&&under.closest('.tree-set');
-  if(setBox){setBox.classList.add('list-drop-inside');listDrag.target={setId:setBox.dataset.setId,puzzleId:null,after:true};}
+  if(setBox&&setBox.dataset.builtIn!=='true'){setBox.classList.add('list-drop-inside');listDrag.target={setId:setBox.dataset.setId,puzzleId:null,after:true};}
 }
 function reorderSet(sourceId,targetId,after){
   if(!targetId||sourceId===targetId)return;
@@ -3386,10 +3498,17 @@ function renderSetListScreen(){
   }
   leftPanel.appendChild(top);
 
-  for(const set of State.sets){
-    const puzzles=State.puzzles.filter(p=>p.setId===set.id);
+  const groups=State.builtInSets.length
+    ? [{title:'Built-in',sets:State.builtInSets,builtIn:true},{title:'Local',sets:State.sets,builtIn:false}]
+    : [{title:'Local',sets:State.sets,builtIn:false}];
+  for(const group of groups){
+    const groupHeading=document.createElement('div');groupHeading.className='collection-heading';groupHeading.textContent=group.title;leftPanel.appendChild(groupHeading);
+    if(!group.sets.length){const empty=document.createElement('div');empty.className='tree-empty';empty.textContent=group.builtIn?'No built-in sets.':'No local sets yet.';leftPanel.appendChild(empty);}
+  for(const set of group.sets){
+    const puzzles=puzzlesForSet(set);
+    const isBuiltIn=!!group.builtIn;
     const expanded=State.expandedSetIds.has(set.id);
-    const box=document.createElement('section'); box.className='tree-set';box.dataset.setId=set.id;
+    const box=document.createElement('section'); box.className='tree-set';box.dataset.setId=set.id;box.dataset.builtIn=isBuiltIn?'true':'false';
     const head=document.createElement('button'); head.type='button'; head.className='tree-head';
     head.innerHTML=`<span class="tree-caret">${expanded?'▾':'▸'}</span><span class="tree-copy"><span class="tree-name">${escapeHtml(set.name)}</span>${State.mode==='create'
       ? `<span class="tree-meta">${puzzles.length} puzzle${puzzles.length!==1?'s':''}</span>`
@@ -3398,11 +3517,14 @@ function renderSetListScreen(){
       if(expanded) State.expandedSetIds.delete(set.id); else State.expandedSetIds.add(set.id);
       renderScreen();
     });
-    if(State.mode==='create')box.appendChild(makeListDragHandle('set',set.id,set.name));
+    if(State.mode==='create'&&!isBuiltIn)box.appendChild(makeListDragHandle('set',set.id,set.name));
     box.appendChild(head);
     if(expanded){
       const body=document.createElement('div'); body.className='tree-body';
-      if(State.mode==='create'){
+      if(State.mode==='create'&&isBuiltIn){
+        const controls=document.createElement('div');controls.className='scope-actions';
+        controls.appendChild(actionButton('Clone Set to Local','',()=>cloneBuiltInSetToLocal(set)));body.appendChild(controls);
+      } else if(State.mode==='create'){
         const controls=document.createElement('div'); controls.className='scope-actions';
         controls.appendChild(actionButton('Import','',()=>triggerImport({kind:'puzzlesIntoSet',setId:set.id})));
         controls.appendChild(actionButton('Export','',()=>exportSet(set)));
@@ -3411,10 +3533,11 @@ function renderSetListScreen(){
           if(name&&name.trim()){set.name=name.trim().slice(0,80);persistSets();renderScreen();}
         }));
         controls.appendChild(actionButton('Delete','danger',()=>{
-          const ids=new Set(puzzles.map(p=>p.id));
+          const removedPuzzles=puzzles.slice();
           if(!confirm(`Delete set "${set.name}" and its ${puzzles.length} puzzle${puzzles.length!==1?'s':''}?`)) return;
           State.sets=State.sets.filter(s=>s.id!==set.id); State.puzzles=State.puzzles.filter(p=>p.setId!==set.id);
-          State.solutions=State.solutions.filter(s=>!ids.has(s.puzzleId)); persistSets();persistPuzzles();persistSolutions();renderScreen();
+          State.solutions=State.solutions.filter(sol=>!removedPuzzles.some(p=>puzzleMatchesSolution(p,sol))||allPuzzles().some(p=>puzzleMatchesSolution(p,sol)));
+          persistSets();persistPuzzles();persistSolutions();renderScreen();
         }));
         body.appendChild(controls);
         const fresh=document.createElement('button'); fresh.type='button'; fresh.className='tree-solution';
@@ -3427,18 +3550,24 @@ function renderSetListScreen(){
       if(!puzzles.length){ const e=document.createElement('div');e.className='tree-empty';e.textContent='No puzzles in this set.';body.appendChild(e); }
       for(const p of puzzles){
         const pExpanded=State.expandedPuzzleIds.has(p.id);
-        const pw=document.createElement('div'); pw.className='tree-puzzle';pw.dataset.puzzleId=p.id;pw.dataset.setId=set.id;
+        const pw=document.createElement('div'); pw.className='tree-puzzle';pw.dataset.puzzleId=p.id;pw.dataset.setId=set.id;pw.dataset.builtIn=isBuiltIn?'true':'false';
         const ph=document.createElement('button'); ph.type='button'; ph.className='tree-puzzle-head';
         ph.innerHTML=(State.mode==='solve'?`<span class="tree-star ${solvedPuzzle(p)?'solved':''}">${solvedPuzzle(p)?'★':'☆'}</span>`:'')+
           `<span class="tree-copy"><span class="tree-name">${escapeHtml(p.name)}</span><span class="tree-meta">${puzzleMeta(p,State.mode==='solve')}</span></span>`+
           (State.mode==='solve'?`<span class="tree-caret">${pExpanded?'▾':'▸'}</span>`:'');
         ph.addEventListener('click',()=>{
-          if(State.mode==='create'){ openPuzzleBoard(p,null); return; }
+          if(State.mode==='create'){
+            if(isBuiltIn){alert('Built-in puzzles are read-only. Use Clone to Local to edit this puzzle.');return;}
+            openPuzzleBoard(p,null); return;
+          }
           if(pExpanded) State.expandedPuzzleIds.delete(p.id); else State.expandedPuzzleIds.add(p.id);
           renderScreen();
         });
-        if(State.mode==='create')pw.appendChild(makeListDragHandle('puzzle',p.id,p.name));
+        if(State.mode==='create'&&!isBuiltIn)pw.appendChild(makeListDragHandle('puzzle',p.id,p.name));
         pw.appendChild(ph);
+        if(State.mode==='create'&&isBuiltIn){
+          const clone=actionButton('Clone to Local','',()=>cloneBuiltInPuzzleToLocal(p,set));clone.style.margin='0 10px 9px';pw.appendChild(clone);
+        }
         if(State.mode==='solve' && pExpanded){
           const pb=document.createElement('div'); pb.className='tree-puzzle-body';
           appendScopeActions(pb,'Solutions:',()=>triggerImport({kind:'puzzleSolutions',puzzleId:p.id}),()=>exportAllSolutions(p));
@@ -3462,7 +3591,7 @@ function renderSetListScreen(){
     }
     leftPanel.appendChild(box);
   }
-  if(!State.sets.length){ const e=document.createElement('div');e.className='tree-empty';e.textContent='No sets yet.';leftPanel.appendChild(e); }
+  }
 }
 
 function closeBoardToList(){
@@ -3575,9 +3704,9 @@ function showPuzzleSetupDialog(p){
     if(noPrisms&&!p.noPrisms)newlyDisallowed.push('prism');
     if(noHalfMirrors&&!p.noHalfMirrors)newlyDisallowed.push('mirrorHalf');
     const affected=newlyDisallowed.length
-      ? State.solutions.filter(s=>s.puzzleId===p.id && (s.elements||[]).some(el=>newlyDisallowed.includes(el.type))).length : 0;
+      ? solutionsForPuzzle(p).filter(s=>(s.elements||[]).some(el=>newlyDisallowed.includes(el.type))).length : 0;
     const restrictionNames=newlyDisallowed.map(type=>type==='prism'?'No Prisms':'No Half-Mirrors').join(' and ');
-    if(affected && !confirm(`Turning on ${restrictionNames} will remove disallowed pieces from ${affected} saved solution${affected!==1?'s':''} and mark those solutions in progress. Continue?`))return;
+    if(affected && !confirm(`Turning on ${restrictionNames} changes the puzzle configuration. ${affected} saved solution${affected!==1?'s':''} will remain attached to the previous configuration and will not count for the edited puzzle. Continue?`))return;
     if(strict && !p.strict){
       const {emitted,expected}=puzzlePacketTotals({elements});
       if(emitted!==expected)alert(`This puzzle will be unsolvable in Strict mode: its emitters produce ${emitted} packet${emitted!==1?'s':''}, but its receivers expect ${expected}. The totals must be equal.`);
@@ -3590,9 +3719,9 @@ function showPuzzleSetupDialog(p){
     p.noHalfMirrors=noHalfMirrors;
     delete p.mirrorsOnly;
     p.elements=elements;
-    let solutionsChanged=false;
-    for(const solution of State.solutions){if(solution.puzzleId===p.id && enforcePuzzleSolutionRules(p,solution))solutionsChanged=true;}
-    persistPuzzles();if(solutionsChanged)persistSolutions();
+    // Existing solutions retain the old configuration hash. They remain valid
+    // for an identical built-in/local copy, but no longer appear for this new design.
+    persistPuzzles();
     State.selectedCell=null; closeInspectorSheet(); close(); renderScreen();
   });
   setTimeout(()=>dialog.querySelector('#setupName').focus(),0);
@@ -3627,7 +3756,7 @@ function deleteCurrentPuzzle(){
   const extra=solutions.length?` This will also delete ${solutions.length} saved solution${solutions.length!==1?'s':''}.`:'';
   if(!confirm(`Delete puzzle "${puzzle.name}"?${extra}`))return;
   State.puzzles=State.puzzles.filter(p=>p.id!==puzzle.id);
-  State.solutions=State.solutions.filter(s=>s.puzzleId!==puzzle.id);
+  State.solutions=State.solutions.filter(s=>!puzzleMatchesSolution(puzzle,s)||allPuzzles().some(p=>puzzleMatchesSolution(p,s)));
   persistPuzzles();persistSolutions();State.expandedSetIds.add(puzzle.setId);
   State.running=false;State.currentPuzzleId=null;State.currentSolutionId=null;State.selectedCell=null;State.selectedTool=null;State.screen='setList';renderScreen();
 }
@@ -3668,7 +3797,9 @@ function chooseBoardTool(value){
   if(value==='importSolution'){ State.selectedTool=null; triggerImport({kind:'puzzleSolutions',puzzleId:p.id,returnToBoard:true}); return; }
   if(value==='exportSolution'){ State.selectedTool=null; exportCurrentSolution(); return; }
   if(value==='goDesign'){
-    State.running=false; setActiveMode('create'); State.currentSolutionId=null; State.selectedCell=null; State.selectedTool=null; State.screen='puzzleEdit'; renderScreen(); return;
+    State.running=false;setActiveMode('create');State.currentSolutionId=null;State.selectedCell=null;State.selectedTool=null;
+    if(p._builtIn){cloneBuiltInPuzzleToLocal(p,findSetByRuntimeId(p.setId));return;}
+    State.screen='puzzleEdit';renderScreen();return;
   }
   State.selectedTool=value||null; State.selectedCell=null; closeInspectorSheet();syncBoardToolControls();
 }
@@ -4082,6 +4213,8 @@ function onRunFinished(overflow, leftoverPackets, strictFail, hardFail){
   if(State.solved){
     const s=getCurrentSolution().id==='BLANK'?promoteBlankIfNeeded():getCurrentSolution();
     s.status='solved';
+    s.puzzleId=canonicalPuzzleId(getCurrentPuzzle());
+    s.puzzleHash=puzzleConfigurationHash(getCurrentPuzzle());
     s.ticksToSolve=State.tick;
     persistSolutions();
     showStatus('Solved! Solution locked.', 'solved');
@@ -4139,7 +4272,7 @@ ${W} White meets anything → both become ${W} White
 </div>
 
 <h3>Solve Mode</h3>
-<p>You start with a list of puzzle sets. Expand a set and then a puzzle to see its saved solutions or start fresh. Each solution is an independent arrangement of solver pieces. A filled star means that puzzle has at least one successful solution.</p>
+<p>You start with puzzle sets in two sections: <strong>Built-in</strong> puzzles embedded in this copy of Lightyard, followed by <strong>Local</strong> puzzles stored in this browser. Expand a set and then a puzzle to see its saved solutions or start fresh. Each solution is an independent arrangement of solver pieces. A filled star means that exact puzzle configuration has at least one successful solution.</p>
 <p>While editing a solution, choose a piece type from the Tools menu and tap or click any empty square to place it. Select a newly placed piece again within two seconds to configure it immediately. Otherwise, select a placed piece once to preview its routine twice; select it again during the preview or shortly afterward to open its configuration sheet. Choose Eraser and select a piece to remove it. Choose Clone, select a placed solver piece, and then select empty squares to make copies; selecting a different piece changes what Clone copies.</p>
 
 <div class="help-piece"><div class="pn">Mirror</div><div class="pd">Reflects a packet 90° from any direction. Packets that meet at the mirror merge colors. A mirror has two possible orientations, selected in its configuration sheet. A mirror can optionally be set to flip its orientation when a packet hits it.</div></div>
@@ -4253,10 +4386,10 @@ Crystals can have a durability factor: every arriving packet decreases the durab
 </ul>
 
 <h4>Testing and organizing</h4>
-<p>Use <strong>Try It Now</strong> whenever you want to test the current design. From the puzzle list, sets and individual puzzles can be imported, exported, renamed, cloned, or deleted. <strong>Save as Web App</strong> downloads a standalone copy containing the current puzzle sets but no saved solutions.</p>
+<p>Use <strong>Try It Now</strong> whenever you want to test the current design. Built-in puzzles are read-only; clone a puzzle or set to Local before editing it. Local sets and individual puzzles can be imported, exported, renamed, cloned, reordered, moved, or deleted. <strong>Save as Web App</strong> downloads a standalone copy containing the current built-in and local puzzle sets but no saved solutions.</p>
 
 <h3>Sharing puzzles &amp; solutions</h3>
-<p>Everything is stored locally in your browser. You can export or import:</p>
+<p>Local puzzles, changes, and solutions are stored in your browser; built-in puzzles remain embedded in the app file. You can export or import:</p>
 <ul>
   <li>A single solution</li>
   <li>All the solutions for a puzzle</li>
