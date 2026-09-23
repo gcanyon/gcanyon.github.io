@@ -328,6 +328,16 @@ label.field.sequence-heading{color:var(--dim);}
 .victory-dialog::after{right:18px;top:15px;transform:rotate(16deg);}
 .victory-message{font-size:clamp(28px,7vw,42px);font-weight:800;line-height:1.08;letter-spacing:-1px;text-wrap:balance;}
 .victory-name{display:block;color:#ffd94d;margin-top:4px;overflow-wrap:anywhere;}
+.victory-stats{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:16px;font:700 14px 'JetBrains Mono',monospace;}
+.victory-stat{padding:7px 10px;border:1px solid #ffffff22;border-radius:10px;background:#0b0e1588;color:#f5f6fa;}
+.victory-stat.elements.equal{color:#7d7daf;border-color:#4d4dfe55;}
+.victory-stat.elements.better{color:#4d4dfe;border-color:#4d4dfebb;text-shadow:0 0 10px #4d4dfe55;}
+.victory-stat.ticks.equal{color:#a86f6f;border-color:#ff4d4d55;}
+.victory-stat.ticks.better{color:#ff4d4d;border-color:#ff4d4dbb;text-shadow:0 0 10px #ff4d4d55;}
+.victory-callouts{margin-top:12px;font-size:14px;font-weight:700;line-height:1.4;}
+.victory-callout + .victory-callout{margin-top:4px;}
+.victory-callout.elements.equal{color:#7d7daf;}.victory-callout.elements.better{color:#4d4dfe;}
+.victory-callout.ticks.equal{color:#a86f6f;}.victory-callout.ticks.better{color:#ff4d4d;}
 .victory-dialog .btn{width:auto;margin:20px auto 0;padding:9px 20px;text-align:center;}
 @keyframes victory-arrive{from{opacity:0;transform:translate(-50%,-50%) scale(.72) rotate(-2deg);}to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0);}}
 
@@ -453,7 +463,7 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
 .board-select{display:none;}
 .mobile-tool-strip{display:flex;position:relative;gap:6px;min-width:0;width:100%;}
 .mobile-tool-strip-scroll{display:flex;gap:6px;min-width:0;flex:1;}
-.mobile-tool-button,.mobile-more-button{
+.mobile-tool-button,.mobile-more-button,.header-more-button{
   border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:8px;
   min-height:46px;padding:5px 4px;font-size:10.5px;font-weight:650;line-height:1.1;cursor:pointer;
 }
@@ -467,6 +477,9 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
   border-radius:3px;background:#f4fbff;box-shadow:0 0 6px #dcefffaa;transform:translate(-50%,-50%) rotate(-45deg);}
 .mobile-more-wrap{position:relative;display:flex;flex:0 0 76px;min-width:60px;}
 .mobile-more-button{width:100%;color:var(--text);}
+.header-more-wrap{position:relative;display:flex;flex:none;}
+.header-more-button{width:42px;min-height:38px;padding:0;color:var(--text);font-size:23px;line-height:1;
+  letter-spacing:2px;text-align:center;}
 .mobile-more-menu{display:none;position:fixed;z-index:90;min-width:170px;padding:5px;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 35px #000b;}
 .mobile-more-menu.open{display:block;}
@@ -477,12 +490,32 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
 .board-stage #gridCanvas{flex:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 .library-actions,.scope-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .library-actions{margin-bottom:12px;}
+.action-menu-button{width:auto!important;margin:0!important;}
+.action-menu-button.kebab-menu-button{width:36px!important;min-width:36px;min-height:34px;padding:0!important;
+  font-size:22px;line-height:1;letter-spacing:1px;color:var(--text);}
+.action-menu-popup{display:none;position:fixed;z-index:92;min-width:190px;padding:5px;
+  border:1px solid var(--line);border-radius:9px;background:var(--panel);box-shadow:0 14px 42px #000b;}
+.action-menu-popup.open{display:block;}
+.action-menu-popup button{display:block;width:100%;border:0;border-radius:7px;background:transparent;color:var(--text);text-align:left;padding:10px;font-size:13px;cursor:pointer;}
+.action-menu-popup button:hover{background:var(--panel2);}
+.action-menu-popup button.danger{color:#ff8080;}
 .collection-heading{margin:18px 2px 8px;color:var(--dim);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;}
 .collection-heading:first-of-type{margin-top:8px;}
+.collection-heading.with-menu,.collection-heading.with-right-menu{display:flex;align-items:center;gap:6px;}
+.collection-heading.with-menu .collection-title,.collection-heading.with-right-menu .collection-title{min-width:0;}
+.collection-heading-menu-right{margin-left:auto;}
 .scope-actions{margin:8px 0;}
 .scope-actions .scope-label{font-size:12px;font-weight:700;color:var(--dim);margin-right:2px;}
 .library-actions .btn,.scope-actions .btn{width:auto;margin:0;}
 .tree-set{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:9px;overflow:hidden;}
+.tree-set-menu{position:absolute;z-index:3;left:7px;top:7px;}
+.tree-set.has-set-menu > .tree-head{padding-left:50px;}
+.tree-set-solution-menu,.tree-puzzle-solution-menu{position:absolute;z-index:3;right:46px;top:7px;}
+.tree-puzzle-solution-menu{top:5px;}
+.tree-set.has-right-menu > .tree-head,.tree-puzzle.has-right-menu > .tree-puzzle-head{padding-right:92px;}
+.tree-set.has-right-menu > .tree-head .tree-chevron,.tree-puzzle.has-right-menu > .tree-puzzle-head .tree-chevron{
+  position:absolute;right:7px;top:7px;}
+.tree-puzzle.has-right-menu > .tree-puzzle-head .tree-chevron{top:5px;}
 .tree-head,.tree-puzzle-head,.tree-solution{display:flex;align-items:center;gap:9px;width:100%;border:0;color:var(--text);text-align:left;cursor:pointer;}
 .tree-head{padding:12px;background:var(--panel2);}
 .tree-head:hover,.tree-puzzle-head:hover,.tree-solution:hover{background:#182029;}
@@ -494,6 +527,9 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
 .tree-chevron.expanded::before{transform:rotate(45deg);}
 .tree-copy{min-width:0;flex:1;}
 .tree-name{display:block;font-size:14px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tree-name-line{display:flex;align-items:baseline;gap:10px;min-width:0;}
+.tree-name-line .tree-name{flex:1;min-width:0;}
+.tree-goal{flex:none;color:#aeb5c5;font:600 10.5px 'JetBrains Mono',monospace;white-space:nowrap;}
 .tree-meta{display:block;font-size:11.5px;color:var(--dimmer);margin-top:3px;line-height:1.35;}
 .tree-stars{display:block;font-size:16px;letter-spacing:2px;line-height:1;color:#4b5060;margin-top:5px;}
 .tree-stars .solved{color:#ffd94d;}
@@ -504,6 +540,15 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
 .tree-solution{padding:9px 10px;background:var(--panel2);border-radius:8px;margin-top:6px;}
 .tree-star{font-size:18px;color:#4b5060;flex:none;}
 .tree-star.solved{color:#ffd94d;}
+.tree-star.goal-elements,.tree-stars .goal-elements,.tree-star.goal-ticks,.tree-stars .goal-ticks{display:inline-block;position:relative;}
+.goal-elements-equal{--goal-blue:#7d7daf;}
+.goal-elements-better{--goal-blue:#4d4dfe;}
+.goal-ticks-equal{--goal-red:#a86f6f;}
+.goal-ticks-better{--goal-red:#ff4d4d;}
+.tree-star.goal-elements:not(.goal-ticks),.tree-stars .goal-elements:not(.goal-ticks){text-shadow:2px 0 0 var(--goal-blue);}
+.tree-star.goal-ticks:not(.goal-elements),.tree-stars .goal-ticks:not(.goal-elements){text-shadow:2px 0 0 var(--goal-red);}
+.tree-star.goal-elements.goal-ticks,.tree-stars .goal-elements.goal-ticks{
+  text-shadow:1.5px 0 0 var(--goal-blue),3px 0 0 var(--goal-red);}
 .tree-empty{font-size:12px;color:var(--dimmer);padding:10px;}
 .list-drag-handle{position:absolute;z-index:2;right:7px;top:7px;width:34px;height:34px;border:0;border-radius:7px;
   background:transparent;color:var(--dimmer);font-size:18px;line-height:1;cursor:grab;touch-action:none;
@@ -531,6 +576,7 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
   .board-title{font-size:14px;}
   .mobile-tool-strip{width:100%;overflow:visible;gap:4px;}
   .mobile-tool-button,.mobile-more-wrap{flex:1 0 56px;min-width:56px;}
+  .header-more-wrap{flex:none;min-width:0;}
   .mobile-tool-strip-scroll{display:flex;gap:4px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:none;}
   .mobile-tool-strip-scroll::-webkit-scrollbar{display:none;}
   #rightPanel,#body.editing > #rightPanel{max-height:calc(100dvh - var(--inspector-top,96px) - 8px - env(safe-area-inset-bottom));}
@@ -671,7 +717,7 @@ main#boardPanel.run-failed #gridCanvas{border-radius:4px;
 // Captured before the app renders anything dynamic. Save as Web App uses this
 // clean source—not the mutated live DOM—as the shell for a standalone copy.
 const SOURCE_APP_HTML='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-const BUILT_IN_APP_DATA = /*__LIGHTYARD_EMBED_START__*/ {"storageNamespace":"app-mub8902w-ube6vi","playerName":"Horatio","colorblind":false,"soundEnabled":false,"sets":[{"id":"id1_mttey4cj","name":"Acai Berry","createdAt":1788916923523},{"id":"id1_mu6el9zo","name":"Blueberry","createdAt":1789702384596},{"id":"id8_mu6gonxi","name":"Cranberry","createdAt":1789705901862},{"id":"id2_mu3j5y48","name":"Dewberry","createdAt":1789528668921},{"id":"id2_mttf1xyb","name":"Elderberry","createdAt":1788917101859},{"id":"id1_mtykmo6m","name":"Farkleberry","createdAt":1789228797934},{"id":"id5_mu23cpzv","name":"Gooseberry","createdAt":1789441644955},{"id":"id4_mu252gzu","name":"Huckleberry","createdAt":1789444525962},{"id":"id1_mu8dy1no","name":"Juneberry","createdAt":1789822233060}],"puzzles":[{"id":"id1_mtq7j6pp","name":"First Light","rows":7,"cols":7,"createdAt":1788723070909,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]}],"setId":"id1_mttey4cj","noPrisms":true,"noHalfMirrors":true,"strict":false,"introText":"Welcome to Lightyard! Your goal is to get each of the light packets where it needs to go. \n\nIn this puzzle the emitter [[EMITTER]] will output red [[R]] green [[G]] and blue [[B]] packets in that order.\n\nThe receiver [[RECEIVER]] is also set up to need red, green, and blue. In fact, you don't need to do anything to solve this puzzle -- just hit play and watch the packets go where they need to!"},{"id":"id2_mu6esrhl","setId":"id1_mttey4cj","name":"The Bend","rows":7,"cols":7,"createdAt":1789702733865,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["S"],"colors":[1,2],"r":0,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Here you just need to add a mirror to get the packets where they need to go. \nClick/tap the mirror tool [[MIRROR]] then click/tap the square where the packets need to make a left turn to get to the receiver."},{"id":"id2_mu8qdenp","setId":"id1_mttey4cj","name":"Bend the Other Way","rows":7,"cols":7,"createdAt":1789843105141,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Now the packets need to make a right turn. \nClick/tap the mirror tool [[MIRROR]] then click/tap the square where the packets need to make a right turn to get to the receiver.\nThen click the mirror a second time to open the configuration for it, and flip it the other way, and you're good to go!\n"},{"id":"id3_mu3j5y49","setId":"id1_mttey4cj","name":"Switchback","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":1,"c":6,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":5,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle introduces crystals [[CRYSTAL]] \nThese crystals are black and will absorb your packets of light. If they do, your solution won't work.\nSo you need to use mirrors to navigate around the crystals to get the packets to the receiver. Good luck!"},{"id":"id1_mu9ynzvg","setId":"id1_mttey4cj","name":"Bend both ways","rows":7,"cols":7,"createdAt":1789917502300,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2],"r":6,"c":3},{"type":"emitter","dirs":["S"],"colors":[3,6],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6],"r":3,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Mirrors reflect on both sides. \nSee if you can get all the light packets where they need to go with just one mirror.\n"},{"id":"id1_mu249mt3","setId":"id1_mttey4cj","name":"Move Over!","rows":7,"cols":7,"createdAt":1789443180471,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":1},{"type":"emitter","dirs":["E"],"colors":[2],"r":3,"c":1},{"type":"emitter","dirs":["E"],"colors":[4],"r":5,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":2,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":4,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":6,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle has multiple emitters and receivers, but the goal is the same: each receiver has colors it needs to receive, and you can't have any packets go off the edge of the board, or hit an emitter, or hit a receiver from the wrong side or in the wrong order. \nThere's no limit to the number of mirrors you can use to solve this puzzle"},{"id":"id4_mu6fy05x","setId":"id1_mttey4cj","name":"Elbow","rows":7,"cols":7,"createdAt":1789704658005,"elements":[{"type":"emitter","dirs":["N"],"colors":[1],"r":6,"c":2},{"type":"emitter","dirs":["N"],"colors":[2],"r":6,"c":4},{"type":"emitter","dirs":["N"],"colors":[4],"r":6,"c":6},{"type":"receiver","dirs":["E"],"colors":[1],"r":4,"c":0},{"type":"receiver","dirs":["E"],"colors":[2],"r":2,"c":0},{"type":"receiver","dirs":["E"],"colors":[4],"r":0,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":""},{"id":"id3_mu951w7t","setId":"id1_mttey4cj","name":"Round the Bend","rows":7,"cols":7,"createdAt":1789867762265,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"emitter","dirs":["E"],"colors":[1],"r":5,"c":0},{"type":"receiver","dirs":["E"],"colors":[4],"r":6,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":1,"c":0},{"type":"receiver","dirs":["E"],"colors":[1],"r":0,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":""},{"id":"id3_mu8v0894","setId":"id1_mttey4cj","name":"Lots of Mirrors","rows":7,"cols":7,"createdAt":1789850888392,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":1,"c":6,"type":"receiver","dirs":["N","W"],"colors":[1,2,4]},{"r":5,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":4,"c":2,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":4,"c":1,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":5,"c":4,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":1,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":2,"c":5,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":2,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":2,"c":4,"type":"crystal","filterColor":"black","maxHits":"inf"}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle has many black crystals [[CRYSTAL]] \nYou will need many mirrors to navigate around the crystals to get the packets to the receiver."},{"id":"id7_mu95h7n9","setId":"id1_mttey4cj","name":"Get to the Exits!","rows":7,"cols":7,"createdAt":1789868476917,"elements":[{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":6},{"type":"emitter","dirs":["E"],"colors":[1],"r":5,"c":0},{"type":"emitter","dirs":["E"],"colors":[2],"r":4,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4],"r":6,"c":4},{"type":"emitter","dirs":["E"],"colors":[3],"r":2,"c":0},{"type":"emitter","dirs":["E"],"colors":[5],"r":1,"c":0},{"type":"emitter","dirs":["E"],"colors":[6],"r":0,"c":0},{"type":"receiver","dirs":["N"],"colors":[3],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":2},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"\n"},{"id":"id4_mu3j5y49","setId":"id1_mu6el9zo","name":"Every Other","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,4,2,5,3,6]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,2,3]},{"r":6,"c":3,"type":"receiver","dirs":["N"],"colors":[4,5,6]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"Mirrors can be set to flip every time a packet of light hits them. You'll need to set that in the mirror configuration to send each of these packets to the correct receiver. Be sure to pick the right starting position!"},{"id":"id2_mu24c8se","setId":"id1_mu6el9zo","name":"Decisions","rows":7,"cols":7,"createdAt":1789443302270,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":3,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":5,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"You'll need two switching mirrors to solve this."},{"id":"id1_mu8wfxe5","setId":"id1_mu6el9zo","name":"Mixing","rows":7,"cols":7,"createdAt":1789853300429,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,6,5],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"When two packets of different colors cross or merge, their colors combine:\nred and green make yellow: [[R]] + [[G]] -> [[Y]]\ngreen and blue make cyan: [[G]] + [[B]] -> [[C]]\nred and blue make magenta: [[R]] + [[B]] -> [[M]]\nevery other combination makes white [[W]]\nYou'll need to cross the packets to solve this!\n"},{"id":"id5_mu6g0pdj","setId":"id1_mu6el9zo","name":"Don't Touch!","rows":7,"cols":7,"createdAt":1789704783991,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[1],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Sometimes you want the colors NOT to mix. You'll have to use mirrors to avoid mixing here."},{"id":"id2_mtrbxlkq","name":"Order","rows":7,"cols":7,"createdAt":1788790927994,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,4],"r":1,"c":1},{"type":"receiver","dirs":["W"],"colors":[4,1],"r":1,"c":5}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"Receivers have an order to the colors they'll accept: the blue has to get to the receiver first to solve this puzzle. How can you delay the red?"},{"id":"id5_mu8xw9y1","setId":"id1_mu6el9zo","name":"Mix some","rows":7,"cols":7,"createdAt":1789855742809,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,5],"r":6,"c":3},{"type":"receiver","dirs":["W"],"colors":[4],"r":2,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":2}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle requires some packets to mix, and others not."},{"id":"id19_mu9rjm1u","name":"Two in One","rows":7,"cols":7,"createdAt":1789905540450,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":1},{"type":"receiver","dirs":["N"],"colors":[4,2],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":3,"c":6}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"Can you get light packets from different emitters into one receiver just using a mirror?"},{"id":"id20_mu9rmpav","name":"Not Like That!","rows":7,"cols":7,"createdAt":1789905684631,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,2],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":3,"c":5}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"...what if they're not in the right order?"},{"id":"id5_mu9x53ji","name":"Wrong Order","rows":7,"cols":7,"createdAt":1789914940974,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":1,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,2,1],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":2,"c":6},{"type":"emitter","dirs":["E"],"colors":[1],"r":3,"c":0}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"...what if they're not in the right order?"},{"id":"id7_mu9yboe1","setId":"id8_mu6gonxi","name":"Join Paths","rows":7,"cols":7,"createdAt":1789916927545,"elements":[{"type":"emitter","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"emitter","dirs":["E"],"colors":[6],"r":4,"c":0},{"type":"receiver","dirs":["S"],"colors":[5,6],"r":0,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Now we're adding half-mirrors: [[HALF_MIRROR]]\nA half-mirror reflects on one side, but passes through on the other. That means you can use half-mirrors to put packets onto the same path. See if you can get the [[M]] and [[C]] to the receiver using a single half-mirror."},{"id":"id5_mu3j5y49","setId":"id8_mu6gonxi","name":"Get Together","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":6,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"You can configure half mirrors to face any way you like. Tap/click to open the configuration, and set the orientation you need in the first row."},{"id":"id7_mu3j5y49","setId":"id8_mu6gonxi","name":"Two Become One","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":6,"c":1,"type":"emitter","dirs":["N"],"colors":[1,2,4]},{"r":6,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"These don't start out ready to merge -- you'll have to make that happen."},{"id":"id3_mua16hgj","setId":"id8_mu6gonxi","name":"Cramped","rows":7,"cols":7,"createdAt":1789921724131,"elements":[{"r":6,"c":3,"type":"emitter","dirs":["E"],"colors":[1,5,2,3,4,6]},{"r":6,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]},{"r":4,"c":5,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Half mirrors can change orientation every time they are hit, in a sequence you define, up to four steps long. The sequence repeats. \nTap/click to open the configuration, and set the orientation you need in each row. You'll need two steps to solve this puzzle."},{"id":"id6_mua2ygru","setId":"id8_mu6gonxi","name":"Cramped (three)","rows":7,"cols":7,"createdAt":1789924709226,"elements":[{"r":6,"c":3,"type":"emitter","dirs":["E"],"colors":[1,5,2,3,4,6]},{"r":6,"c":6,"type":"receiver","dirs":["W"],"colors":[1,5,3,4]},{"r":4,"c":5,"type":"receiver","dirs":["S"],"colors":[2,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Your half mirror configuration will need three steps to solve this puzzle."},{"id":"id1_mtr99o6w","name":"Full Merge","rows":7,"cols":7,"createdAt":1788786452408,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":3,"c":5},{"type":"emitter","dirs":["W"],"colors":[2],"r":5,"c":5},{"type":"receiver","dirs":["E"],"colors":[7],"r":3,"c":0}],"setId":"id8_mu6gonxi","noPrisms":true,"noHalfMirrors":false,"strict":false,"introText":""},{"id":"id4_mua7fmbg","name":"Full Merge XL","rows":7,"cols":7,"createdAt":1789932228028,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,2],"r":2,"c":5},{"type":"emitter","dirs":["W"],"colors":[4,1],"r":3,"c":5},{"type":"emitter","dirs":["W"],"colors":[2,4],"r":4,"c":5},{"type":"receiver","dirs":["E"],"colors":[7,7],"r":3,"c":0}],"setId":"id8_mu6gonxi","noPrisms":true,"noHalfMirrors":false,"strict":false,"introText":""},{"id":"id9_mu6hqn8c","setId":"id8_mu6gonxi","name":"Worries","rows":7,"cols":7,"createdAt":1789707673884,"elements":[{"type":"emitter","dirs":["E"],"colors":[3,5],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[4,3],"r":0,"c":1},{"type":"emitter","dirs":["N"],"colors":[6,7],"r":6,"c":5},{"type":"emitter","dirs":["W"],"colors":[1,2],"r":5,"c":6},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":5,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3,5],"r":0,"c":5},{"type":"receiver","dirs":["W"],"colors":[6,7],"r":1,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":""},{"id":"id1_mu8y6pl9","setId":"id8_mu6gonxi","name":"Wait wait!","rows":7,"cols":7,"createdAt":1789856229645,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"emitter","dirs":["W"],"colors":[3,5,6],"r":3,"c":6},{"type":"emitter","dirs":["N"],"colors":[3,5,6],"r":6,"c":3},{"type":"receiver","dirs":["S"],"colors":[3,5,6],"r":0,"c":2},{"type":"receiver","dirs":["E"],"colors":[3,5,6],"r":2,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2,4],"r":6,"c":4},{"type":"receiver","dirs":["W"],"colors":[1,2,4],"r":4,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Don't let everything crash in the middle!"},{"id":"id6_mua8bi31","setId":"id8_mu6gonxi","name":"Worries Mirrors-Only","rows":7,"cols":7,"createdAt":1789933715533,"elements":[{"type":"emitter","dirs":["E"],"colors":[3,5],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[4,3],"r":0,"c":1},{"type":"emitter","dirs":["N"],"colors":[6,7],"r":6,"c":5},{"type":"emitter","dirs":["W"],"colors":[1,2],"r":5,"c":6},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":5,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3,5],"r":0,"c":5},{"type":"receiver","dirs":["W"],"colors":[6,7],"r":1,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":""},{"id":"id6_mu3j5y49","setId":"id2_mu3j5y48","name":"Borrowed Time","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1]},{"r":6,"c":2,"type":"emitter","dirs":["N"],"colors":[4]},{"r":3,"c":2,"type":"crystal","filterColor":null,"maxHits":"inf"},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[5]},{"r":0,"c":4,"type":"receiver","dirs":["S"],"colors":[5]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle introduces Prisms. [[CRYSTAL]]\nPrisms slow down packets to half-speed, costing them a square of progress relative to other packets. This can make it possible to merge packets that otherwise couldn't be merged, which you'll have to do to solve this puzzle."},{"id":"id7_mua8o97o","setId":"id2_mu3j5y48","name":"Cut Down","rows":7,"cols":7,"createdAt":1789934310564,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,1,1,1],"r":6,"c":2},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":2}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals only pass the colors that match them. This puzzle starts with too many packets, and you can't use half-mirrors to join packets. \nSo you have to use crystals to absorb the packets you don't need."},{"id":"id9_mua8v9jf","setId":"id2_mu3j5y48","name":"Who Shall Pass","rows":7,"cols":7,"createdAt":1789934637579,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[1,4],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[1,4],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals that aren't clear only pass their matching color. You'll need to get each color to the correct crystal to get through this."},{"id":"id11_mua8zpcn","setId":"id2_mu3j5y48","name":"Who Shall Pass Delayed","rows":7,"cols":7,"createdAt":1789934844695,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[4,1],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[4,1],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Remember, packets need to get to the receiver in the correct order!"},{"id":"id13_mua946xc","setId":"id2_mu3j5y48","name":"Strip Down","rows":7,"cols":7,"createdAt":1789935054096,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[3,6],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[4,1],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"A packet can pass through a crystal if it contains that crystal's color:\n[[M]] can pass through either [[R]] or [[B]]\n[[C]] can pass through either [[B]] or [[G]]\n[[Y]] can pass through either [[G]] or [[R]]\n[[W]] can pass through any crystal that is not [[K]]\nIn all cases the packet emerges as the color of the crystal."},{"id":"id23_muafxq21","setId":"id2_mu3j5y48","name":"Breakthrough","rows":7,"cols":7,"createdAt":1789946509609,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":6},{"type":"crystal","filterColor":1,"maxHits":1,"lastFiniteHits":1,"r":2,"c":3},{"type":"receiver","dirs":["S"],"colors":[1,1],"r":0,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,1,1],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals can be fragile; after they are hit a certain number of times, they disappear. \nThat's what will happen in this puzzle."},{"id":"id20_muafj0qu","setId":"id2_mu3j5y48","name":"Breakthrough Colors","rows":7,"cols":7,"createdAt":1789945823622,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":6},{"type":"crystal","filterColor":1,"maxHits":1,"lastFiniteHits":1,"r":2,"c":3},{"type":"receiver","dirs":["S"],"colors":[1,4,2],"r":0,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,4,2],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"These packets are needed, so they can't merge on their way through. \nScheduling is tricky!"},{"id":"id18_muad51r2","setId":"id2_mu3j5y48","name":"Step by Step","rows":7,"cols":7,"createdAt":1789941812510,"elements":[{"type":"emitter","dirs":["E"],"colors":[2],"r":2,"c":0},{"type":"transformer","direction":"up","r":2,"c":3},{"type":"transformer","direction":"down","r":4,"c":3},{"type":"emitter","dirs":["E"],"colors":[2],"r":4,"c":0},{"type":"receiver","dirs":["W"],"colors":[6],"r":2,"c":6},{"type":"receiver","dirs":["W"],"colors":[3],"r":4,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Transformers [[TRANSFORMER]] change the color of packets that pass through them. They can move the color toward red, or toward magenta, indicated by the color sequence they display."},{"id":"id9_mu3j5y49","setId":"id2_mu3j5y48","name":"Color Staircase","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,3,2]},{"r":5,"c":2,"type":"transformer","direction":"up"},{"r":3,"c":5,"type":"transformer","direction":"up"},{"r":1,"c":6,"type":"receiver","dirs":["S"],"colors":[2,6,4]},{"r":5,"c":5,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true},{"id":"id5_mu255g5s","setId":"id2_mu3j5y48","name":"Two Step","rows":7,"cols":7,"createdAt":1789444664848,"elements":[{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["W"],"colors":[2,6,4],"r":5,"c":6},{"type":"emitter","dirs":["E"],"colors":[1,3,2],"r":1,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Only one transformer, but the packets have to go through twice."},{"id":"id8_mu3j5y49","setId":"id2_mttf1xyb","name":"Separate Ways","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[5,3,6]},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":6,"c":5,"type":"receiver","dirs":["N"],"colors":[4,1,2]}],"strict":false,"noPrisms":false,"noHalfMirrors":true,"introText":"Prisms [[PRISM]] bend packets to their flat end, and can combine packets heading out together, the same way half-mirrors can.\nPrisms can also be configured for multiple orientations like half-mirrors.\nPrisms can also split packets that enter through the flat end:\n[[R]][[G]][[B]][[W]] split into two identical packets.\n[[Y]][[M]][[C]] split into their component colors.\nYou'll need that functionality to solve this puzzle!\n"},{"id":"id2_mtq9djgn","name":"Excess Baggage","rows":13,"cols":9,"createdAt":1788726166727,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[1,4],"r":10,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":6}],"setId":"id2_mttf1xyb","noPrisms":false,"noHalfMirrors":false},{"id":"id2_mtwg6ncx","setId":"id2_mttf1xyb","name":"Not So Fast","rows":7,"cols":7,"createdAt":1789100399553,"elements":[{"type":"crystal","filterColor":3,"r":4,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":2,"c":0,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[7,7],"r":0,"c":3},{"type":"emitter","dirs":["E","W"],"colors":[5,3],"r":6,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":true,"noPrisms":false,"noHalfMirrors":false},{"id":"id23_mu3k7ct1","setId":"id2_mttf1xyb","name":"hree-Body Problem","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":0,"c":3,"type":"emitter","dirs":["E"],"colors":[2,4,1]},{"r":4,"c":1,"type":"crystal","filterColor":null,"maxHits":"inf"},{"r":1,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6]},{"r":4,"c":8,"type":"receiver","dirs":["W"],"colors":[7,7,7]},{"r":6,"c":8,"type":"receiver","dirs":["W"],"colors":[7,7,7]}],"strict":true,"noPrisms":true,"noHalfMirrors":true},{"id":"id1_mts70a09","name":"Whip Around","rows":13,"cols":9,"createdAt":1788843121065,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[4,1,1,1],"r":10,"c":4}],"strict":true,"setId":"id2_mttf1xyb","noPrisms":false,"noHalfMirrors":false},{"id":"id1_mu3dxz6b","setId":"id2_mttf1xyb","name":"No Prisms","rows":7,"cols":7,"createdAt":1789519898963,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1,1,3],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[3,3,3,3],"r":6,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":false},{"id":"id3_mu26fwm9","setId":"id2_mttf1xyb","name":"The Narrows","rows":11,"cols":5,"createdAt":1789446832353,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":8,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":0},{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[4,2,1],"r":10,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":false},{"id":"id3_mu24dhjk","setId":"id2_mttf1xyb","name":"Out of Order","rows":7,"cols":7,"createdAt":1789443360272,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["E"],"colors":[2],"r":1,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":2,"c":0},{"type":"emitter","dirs":["E"],"colors":[3],"r":3,"c":0},{"type":"emitter","dirs":["E"],"colors":[5],"r":4,"c":0},{"type":"emitter","dirs":["E"],"colors":[6],"r":5,"c":0},{"type":"emitter","dirs":["E"],"colors":[7],"r":6,"c":0},{"type":"receiver","dirs":["W"],"colors":[7],"r":0,"c":6},{"type":"receiver","dirs":["W"],"colors":[6],"r":1,"c":6},{"type":"receiver","dirs":["W"],"colors":[5],"r":2,"c":6},{"type":"receiver","dirs":["W"],"colors":[3],"r":3,"c":6},{"type":"receiver","dirs":["W"],"colors":[4],"r":4,"c":6},{"type":"receiver","dirs":["W"],"colors":[2],"r":5,"c":6},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id5_mu95ajy6","setId":"id2_mttf1xyb","name":"Every Which Way","rows":7,"cols":7,"createdAt":1789868166271,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[2],"r":0,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":5,"c":6},{"type":"emitter","dirs":["N"],"colors":[3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3],"r":0,"c":4},{"type":"receiver","dirs":["W"],"colors":[1],"r":4,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":2},{"type":"receiver","dirs":["E"],"colors":[4],"r":2,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"\n"},{"id":"id4_mtyn4duc","setId":"id1_mtykmo6m","name":"Shifty","rows":7,"cols":7,"createdAt":1789232983572,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,5,1],"r":0,"c":0},{"type":"receiver","dirs":["W"],"colors":[1,1,4],"r":6,"c":6}],"strict":true,"noPrisms":false,"noHalfMirrors":false},{"id":"id2_mtylowjs","setId":"id1_mtykmo6m","name":"Careful!","rows":7,"cols":7,"createdAt":1789230581704,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":6},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5,2,4,1],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false},{"id":"id3_mu22oi8s","setId":"id1_mtykmo6m","name":"Winding","rows":9,"cols":8,"createdAt":1789440515164,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["W"],"colors":[2],"r":0,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":4},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":8,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id2_mtwbyfuj","setId":"id1_mtykmo6m","name":"Filters","rows":7,"cols":7,"createdAt":1789093298107,"elements":[{"type":"emitter","dirs":["W"],"colors":[7,7,7],"r":6,"c":6},{"type":"crystal","filterColor":3,"r":3,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":3,"c":3,"maxHits":"inf"},{"type":"crystal","filterColor":6,"r":3,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":5},{"type":"crystal","r":6,"c":3,"maxHits":"inf"}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtts8pe8","setId":"id1_mtykmo6m","name":"Swappy Swappy","rows":7,"cols":7,"createdAt":1788939252368,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,1,4,4],"r":0,"c":6},{"type":"crystal","filterColor":1,"r":0,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":1,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":1,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":0,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":2,"maxHits":"inf"},{"type":"receiver","dirs":["E"],"colors":[4,4,1,1],"r":6,"c":0},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mu3g89yo","setId":"id1_mtykmo6m","name":"No Prisms, No Half-Mirrors","rows":7,"cols":7,"createdAt":1789523738737,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1,1,3],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[3,3,3,3],"r":6,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":true},{"id":"id22_mu3k7ct1","setId":"id1_mtykmo6m","name":"Four-Way Appointment","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,4,2,5,3,6,4,1]},{"r":1,"c":8,"type":"receiver","dirs":["W"],"colors":[1,3]},{"r":1,"c":0,"type":"receiver","dirs":["E"],"colors":[2,4]},{"r":7,"c":8,"type":"receiver","dirs":["W"],"colors":[4,6]},{"r":7,"c":0,"type":"receiver","dirs":["E"],"colors":[5,1]},{"r":4,"c":5,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true},{"id":"id1_mu6kk0xp","setId":"id1_mtykmo6m","name":"Tricky Routing","rows":7,"cols":7,"createdAt":1789712403901,"elements":[{"type":"emitter","dirs":["N"],"colors":[1,2,4,3,5,6],"r":6,"c":3},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":0},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[5],"r":0,"c":2},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":4},{"type":"receiver","dirs":["S"],"colors":[3],"r":0,"c":5},{"type":"receiver","dirs":["S"],"colors":[6],"r":0,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"introText":""},{"id":"id10_mu3j5y49","setId":"id1_mtykmo6m","name":"Give and Take","rows":9,"cols":7,"createdAt":1789528668921,"elements":[{"r":1,"c":0,"type":"emitter","dirs":["E"],"colors":[5,3,6]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":2,"c":3,"type":"receiver","dirs":["N"],"colors":[4,1,2]},{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":4,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":""},{"id":"id3_mu8xkzy5","setId":"id1_mtykmo6m","name":"Mix Hard","rows":7,"cols":7,"createdAt":1789855216637,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,4,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,2,5],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle requires some packets to mix, and others not. Remember they need to arrive in order to solve the puzzle!\n\n"},{"id":"id3_mttf3msx","setId":"id5_mu23cpzv","name":"Slip Through","rows":7,"cols":7,"createdAt":1788917180721,"elements":[{"type":"emitter","dirs":["E","S"],"colors":[1,2,4,1],"r":0,"c":0},{"type":"crystal","filterColor":5,"r":5,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":1,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["W"],"colors":[1,2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":5,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":0,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mu21b4bf","setId":"id5_mu23cpzv","name":"Roundabout","rows":7,"cols":7,"createdAt":1789438210971,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3},{"type":"receiver","dirs":["N","W"],"colors":[3,5,6],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtwxeho2","setId":"id5_mu23cpzv","name":"Step Right Up","rows":5,"cols":5,"createdAt":1789129318898,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":0,"c":4},{"type":"transformer","direction":"up","r":2,"c":2},{"type":"receiver","dirs":["E"],"colors":[5],"r":4,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtroll9v","name":"Don't Pass","rows":7,"cols":7,"createdAt":1788812202739,"elements":[{"type":"crystal","filterColor":1,"r":2,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":4,"c":0,"maxHits":"inf"},{"type":"emitter","dirs":["E","W"],"colors":[1,4],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":6,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":false,"setId":"id5_mu23cpzv","noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtraj10s","name":"Color Swap","rows":7,"cols":7,"createdAt":1788788568556,"elements":[{"type":"emitter","dirs":["S"],"colors":[3],"r":0,"c":1},{"type":"emitter","dirs":["S"],"colors":[5],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":5}],"setId":"id5_mu23cpzv","strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtqoxu54","name":"Borehole","rows":7,"cols":7,"createdAt":1788752307928,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":6}],"setId":"id4_mu252gzu","strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mtxp9y5q","setId":"id4_mu252gzu","name":"Waiting","rows":7,"cols":7,"createdAt":1789176136238,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1],"r":0,"c":0},{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"crystal","filterColor":4,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":null,"r":3,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id6_mttkxigv","setId":"id4_mu252gzu","name":"Threeway","rows":7,"cols":7,"createdAt":1788926972863,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4,3,5,6],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[1,1,1],"r":6,"c":0},{"type":"receiver","dirs":["N"],"colors":[2,2,2],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,4,4],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mu25k8be","setId":"id4_mu252gzu","name":"Conductor","rows":7,"cols":7,"createdAt":1789445354522,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,4],"r":0,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":4},{"type":"crystal","filterColor":4,"maxHits":5,"lastFiniteHits":5,"r":3,"c":4},{"type":"receiver","dirs":["N","W"],"colors":[1,4],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false},{"id":"id25_mu3k7ct1","setId":"id4_mu252gzu","name":"A Change of Plans","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,5,2,6]},{"r":4,"c":8,"type":"receiver","dirs":["W"],"colors":[1,2]},{"r":0,"c":6,"type":"receiver","dirs":["S"],"colors":[1,4]},{"r":8,"c":6,"type":"receiver","dirs":["N"],"colors":[4,2]}],"strict":false,"noPrisms":false,"noHalfMirrors":true},{"id":"id24_mu3k7ct1","setId":"id4_mu252gzu","name":"Second Time Around","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1]},{"r":2,"c":3,"type":"transformer","direction":"up"},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[2]},{"r":5,"c":7,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true},{"id":"id26_mu3k7ct1","setId":"id4_mu252gzu","name":"Keeping the Books","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":1,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4,3]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,4]},{"r":2,"c":3,"type":"receiver","dirs":["N"],"colors":[1,4]},{"r":1,"c":8,"type":"receiver","dirs":["W"],"colors":[2,3]},{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4,3]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2,4]},{"r":4,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6,7]},{"r":5,"c":8,"type":"receiver","dirs":["W"],"colors":[3,7]}],"strict":true,"noPrisms":false,"noHalfMirrors":false},{"id":"id2_mu8dy5vu","setId":"id1_mu8dy1no","name":"Untitled Puzzle","rows":7,"cols":7,"createdAt":1789822238538,"elements":[{"type":"crystal","filterColor":null,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"transformer","direction":"up","r":1,"c":3},{"type":"crystal","filterColor":1,"maxHits":99,"lastFiniteHits":99,"r":3,"c":2},{"type":"receiver","dirs":["W"],"colors":[1],"r":3,"c":4},{"type":"emitter","dirs":["E"],"colors":[1],"r":4,"c":1}],"strict":false,"noPrisms":false,"noHalfMirrors":false}]} /*__LIGHTYARD_EMBED_END__*/;
+const BUILT_IN_APP_DATA = /*__LIGHTYARD_EMBED_START__*/ {"storageNamespace":"app-mudnfut1-xhq22u","playerName":"Horatio","colorblind":false,"soundEnabled":false,"sets":[{"id":"id1_mttey4cj","name":"Acai Berry","createdAt":1788916923523},{"id":"id1_mu6el9zo","name":"Blueberry","createdAt":1789702384596},{"id":"id8_mu6gonxi","name":"Cranberry","createdAt":1789705901862},{"id":"id2_mu3j5y48","name":"Dewberry","createdAt":1789528668921},{"id":"id2_mttf1xyb","name":"Elderberry","createdAt":1788917101859},{"id":"id1_mtykmo6m","name":"Farkleberry","createdAt":1789228797934},{"id":"id5_mu23cpzv","name":"Gooseberry","createdAt":1789441644955},{"id":"id4_mu252gzu","name":"Huckleberry","createdAt":1789444525962},{"id":"id1_mu8dy1no","name":"Juneberry","createdAt":1789822233060}],"puzzles":[{"id":"id1_mtq7j6pp","name":"First Light","rows":7,"cols":7,"createdAt":1788723070909,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]}],"setId":"id1_mttey4cj","noPrisms":true,"noHalfMirrors":true,"strict":false,"introText":"Welcome to Lightyard! Your goal is to get each of the light packets where it needs to go. \n\nIn this puzzle the emitter [[EMITTER]] will output red [[R]] green [[G]] and blue [[B]] packets in that order.\n\nThe receiver [[RECEIVER]] is also set up to need red, green, and blue. In fact, you don't need to do anything to solve this puzzle -- just hit play and watch the packets go where they need to!","goalElements":0,"goalTicks":9},{"id":"id2_mu6esrhl","setId":"id1_mttey4cj","name":"The Bend","rows":7,"cols":7,"createdAt":1789702733865,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["S"],"colors":[1,2],"r":0,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Here you just need to add a mirror to get the packets where they need to go. \nClick/tap the mirror tool [[MIRROR]] then click/tap the square where the packets need to make a left turn to get to the receiver.","goalElements":1,"goalTicks":8},{"id":"id2_mu8qdenp","setId":"id1_mttey4cj","name":"Bend the Other Way","rows":7,"cols":7,"createdAt":1789843105141,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Now the packets need to make a right turn. \nClick/tap the mirror tool [[MIRROR]] then click/tap the square where the packets need to make a right turn to get to the receiver.\nThen click the mirror a second time to open the configuration for it, and flip it the other way, and you're good to go!\n","goalElements":1,"goalTicks":11},{"id":"id3_mu3j5y49","setId":"id1_mttey4cj","name":"Switchback","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":1,"c":6,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":5,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle introduces crystals [[CRYSTAL]] \nThese crystals are black and will absorb your packets of light. If they do, your solution won't work.\nSo you need to use mirrors to navigate around the crystals to get the packets to the receiver. Good luck!","goalElements":3,"goalTicks":13},{"id":"id1_mu9ynzvg","setId":"id1_mttey4cj","name":"Bend both ways","rows":7,"cols":7,"createdAt":1789917502300,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2],"r":6,"c":3},{"type":"emitter","dirs":["S"],"colors":[3,6],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6],"r":3,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Mirrors reflect on both sides. \nSee if you can get all the light packets where they need to go with just one mirror.\n","goalElements":1,"goalTicks":8},{"id":"id1_mu249mt3","setId":"id1_mttey4cj","name":"Move Over!","rows":7,"cols":7,"createdAt":1789443180471,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":1},{"type":"emitter","dirs":["E"],"colors":[2],"r":3,"c":1},{"type":"emitter","dirs":["E"],"colors":[4],"r":5,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":2,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":4,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":6,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle has multiple emitters and receivers, but the goal is the same: each receiver has colors it needs to receive, and you can't have any packets go off the edge of the board, or hit an emitter, or hit a receiver from the wrong side or in the wrong order. \nThere's no limit to the number of mirrors you can use to solve this puzzle","goalElements":6,"goalTicks":6},{"id":"id4_mu6fy05x","setId":"id1_mttey4cj","name":"Elbow","rows":7,"cols":7,"createdAt":1789704658005,"elements":[{"type":"emitter","dirs":["N"],"colors":[1],"r":6,"c":2},{"type":"emitter","dirs":["N"],"colors":[2],"r":6,"c":4},{"type":"emitter","dirs":["N"],"colors":[4],"r":6,"c":6},{"type":"receiver","dirs":["E"],"colors":[1],"r":4,"c":0},{"type":"receiver","dirs":["E"],"colors":[2],"r":2,"c":0},{"type":"receiver","dirs":["E"],"colors":[4],"r":0,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"","goalElements":3,"goalTicks":13},{"id":"id3_mu951w7t","setId":"id1_mttey4cj","name":"Round the Bend","rows":7,"cols":7,"createdAt":1789867762265,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"emitter","dirs":["E"],"colors":[1],"r":5,"c":0},{"type":"receiver","dirs":["E"],"colors":[4],"r":6,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":1,"c":0},{"type":"receiver","dirs":["E"],"colors":[1],"r":0,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"","goalElements":4,"goalTicks":18},{"id":"id3_mu8v0894","setId":"id1_mttey4cj","name":"Lots of Mirrors","rows":7,"cols":7,"createdAt":1789850888392,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":1,"c":6,"type":"receiver","dirs":["N","W"],"colors":[1,2,4]},{"r":5,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":3,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":4,"c":2,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":4,"c":1,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":5,"c":4,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":1,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":2,"c":5,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":1,"c":2,"type":"crystal","filterColor":"black","maxHits":"inf"},{"r":2,"c":4,"type":"crystal","filterColor":"black","maxHits":"inf"}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle has many black crystals [[CRYSTAL]] \nYou will need many mirrors to navigate around the crystals to get the packets to the receiver.","goalElements":7,"goalTicks":29},{"id":"id7_mu95h7n9","setId":"id1_mttey4cj","name":"Get to the Exits!","rows":7,"cols":7,"createdAt":1789868476917,"elements":[{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":6},{"type":"emitter","dirs":["E"],"colors":[1],"r":5,"c":0},{"type":"emitter","dirs":["E"],"colors":[2],"r":4,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4],"r":6,"c":4},{"type":"emitter","dirs":["E"],"colors":[3],"r":2,"c":0},{"type":"emitter","dirs":["E"],"colors":[5],"r":1,"c":0},{"type":"emitter","dirs":["E"],"colors":[6],"r":0,"c":0},{"type":"receiver","dirs":["N"],"colors":[3],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":2},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"\n","goalElements":6,"goalTicks":8},{"id":"id4_mu3j5y49","setId":"id1_mu6el9zo","name":"Every Other","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,4,2,5,3,6]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,2,3]},{"r":6,"c":3,"type":"receiver","dirs":["N"],"colors":[4,5,6]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"Mirrors can be set to flip every time a packet of light hits them. You'll need to set that in the mirror configuration to send each of these packets to the correct receiver. Be sure to pick the right starting position!","goalElements":1,"goalTicks":12},{"id":"id2_mu24c8se","setId":"id1_mu6el9zo","name":"Decisions","rows":7,"cols":7,"createdAt":1789443302270,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":1},{"type":"receiver","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"receiver","dirs":["W"],"colors":[2],"r":3,"c":5},{"type":"receiver","dirs":["W"],"colors":[4],"r":5,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"You'll need two switching mirrors to solve this.","goalElements":7,"goalTicks":17},{"id":"id1_mu8wfxe5","setId":"id1_mu6el9zo","name":"Mixing","rows":7,"cols":7,"createdAt":1789853300429,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,6,5],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"When two packets of different colors cross or merge, their colors combine:\nred and green make yellow: [[R]] + [[G]] -> [[Y]]\ngreen and blue make cyan: [[G]] + [[B]] -> [[C]]\nred and blue make magenta: [[R]] + [[B]] -> [[M]]\nevery other combination makes white [[W]]\nYou'll need to cross the packets to solve this!\n","goalElements":0,"goalTicks":9},{"id":"id5_mu6g0pdj","setId":"id1_mu6el9zo","name":"Don't Touch!","rows":7,"cols":7,"createdAt":1789704783991,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[1],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Sometimes you want the colors NOT to mix. You'll have to use mirrors to avoid mixing here.","goalElements":4,"goalTicks":9},{"id":"id2_mtrbxlkq","name":"Order","rows":7,"cols":7,"createdAt":1788790927994,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,4],"r":1,"c":1},{"type":"receiver","dirs":["W"],"colors":[4,1],"r":1,"c":5}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"Receivers have an order to the colors they'll accept: the blue has to get to the receiver first to solve this puzzle. How can you delay the red?","goalElements":6,"goalTicks":9},{"id":"id5_mu8xw9y1","setId":"id1_mu6el9zo","name":"Mix some","rows":7,"cols":7,"createdAt":1789855742809,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,5],"r":6,"c":3},{"type":"receiver","dirs":["W"],"colors":[4],"r":2,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":2}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle requires some packets to mix, and others not.","goalElements":11,"goalTicks":11},{"id":"id19_mu9rjm1u","name":"Two in One","rows":7,"cols":7,"createdAt":1789905540450,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":1},{"type":"receiver","dirs":["N"],"colors":[4,2],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":3,"c":6}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"Can you get light packets from different emitters into one receiver just using a mirror?","goalElements":1,"goalTicks":7},{"id":"id20_mu9rmpav","name":"Not Like That!","rows":7,"cols":7,"createdAt":1789905684631,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":3,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,2],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":3,"c":5}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"...what if they're not in the right order?","goalElements":7,"goalTicks":12},{"id":"id5_mu9x53ji","name":"Wrong Order","rows":7,"cols":7,"createdAt":1789914940974,"elements":[{"type":"emitter","dirs":["E"],"colors":[4],"r":1,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,2,1],"r":6,"c":3},{"type":"emitter","dirs":["W"],"colors":[2],"r":2,"c":6},{"type":"emitter","dirs":["E"],"colors":[1],"r":3,"c":0}],"strict":false,"setId":"id1_mu6el9zo","noPrisms":true,"noHalfMirrors":true,"introText":"...what if they're not in the right order?","goalElements":10,"goalTicks":11},{"id":"id7_mu9yboe1","setId":"id8_mu6gonxi","name":"Join Paths","rows":7,"cols":7,"createdAt":1789916927545,"elements":[{"type":"emitter","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"emitter","dirs":["E"],"colors":[6],"r":4,"c":0},{"type":"receiver","dirs":["S"],"colors":[5,6],"r":0,"c":5}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Now we're adding half-mirrors: [[HALF_MIRROR]]\nA half-mirror reflects on one side, but passes through on the other. That means you can use half-mirrors to put packets onto the same path. See if you can get the [[M]] and [[C]] to the receiver using a single half-mirror.","goalElements":1,"goalTicks":10},{"id":"id5_mu3j5y49","setId":"id8_mu6gonxi","name":"Get Together","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":6,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"You can configure half mirrors to face any way you like. Tap/click to open the configuration, and set the orientation you need in the first row.","goalElements":1,"goalTicks":9},{"id":"id7_mu3j5y49","setId":"id8_mu6gonxi","name":"Two Become One","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":6,"c":1,"type":"emitter","dirs":["N"],"colors":[1,2,4]},{"r":6,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"These don't start out ready to merge -- you'll have to make that happen.","goalElements":6,"goalTicks":13},{"id":"id3_mua16hgj","setId":"id8_mu6gonxi","name":"Cramped","rows":7,"cols":7,"createdAt":1789921724131,"elements":[{"r":6,"c":3,"type":"emitter","dirs":["E"],"colors":[1,5,2,3,4,6]},{"r":6,"c":6,"type":"receiver","dirs":["W"],"colors":[1,2,4]},{"r":4,"c":5,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Half mirrors can change orientation every time they are hit, in a sequence you define, up to four steps long. The sequence repeats. \nTap/click to open the configuration, and set the orientation you need in each row. You'll need two steps to solve this puzzle.","goalElements":1,"goalTicks":10},{"id":"id6_mua2ygru","setId":"id8_mu6gonxi","name":"Cramped (three)","rows":7,"cols":7,"createdAt":1789924709226,"elements":[{"r":6,"c":3,"type":"emitter","dirs":["E"],"colors":[1,5,2,3,4,6]},{"r":6,"c":6,"type":"receiver","dirs":["W"],"colors":[1,5,3,4]},{"r":4,"c":5,"type":"receiver","dirs":["S"],"colors":[2,6]}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"Your half mirror configuration will need three steps to solve this puzzle.","goalElements":1,"goalTicks":10},{"id":"id1_mtr99o6w","name":"Full Merge","rows":7,"cols":7,"createdAt":1788786452408,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":1,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":3,"c":5},{"type":"emitter","dirs":["W"],"colors":[2],"r":5,"c":5},{"type":"receiver","dirs":["E"],"colors":[7],"r":3,"c":0}],"setId":"id8_mu6gonxi","noPrisms":true,"noHalfMirrors":false,"strict":false,"introText":"","goalElements":7,"goalTicks":8},{"id":"id4_mua7fmbg","name":"Full Merge XL","rows":7,"cols":7,"createdAt":1789932228028,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,2],"r":2,"c":5},{"type":"emitter","dirs":["W"],"colors":[4,1],"r":3,"c":5},{"type":"emitter","dirs":["W"],"colors":[2,4],"r":4,"c":5},{"type":"receiver","dirs":["E"],"colors":[7,7],"r":3,"c":0}],"setId":"id8_mu6gonxi","noPrisms":true,"noHalfMirrors":false,"strict":false,"introText":"","goalElements":22,"goalTicks":35},{"id":"id9_mu6hqn8c","setId":"id8_mu6gonxi","name":"Worries","rows":7,"cols":7,"createdAt":1789707673884,"elements":[{"type":"emitter","dirs":["E"],"colors":[3,5],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[4,3],"r":0,"c":1},{"type":"emitter","dirs":["N"],"colors":[6,7],"r":6,"c":5},{"type":"emitter","dirs":["W"],"colors":[1,2],"r":5,"c":6},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":5,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3,5],"r":0,"c":5},{"type":"receiver","dirs":["W"],"colors":[6,7],"r":1,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"introText":"","goalElements":17,"goalTicks":16},{"id":"id1_mu8y6pl9","setId":"id8_mu6gonxi","name":"Wait wait!","rows":7,"cols":7,"createdAt":1789856229645,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"emitter","dirs":["W"],"colors":[3,5,6],"r":3,"c":6},{"type":"emitter","dirs":["N"],"colors":[3,5,6],"r":6,"c":3},{"type":"receiver","dirs":["S"],"colors":[3,5,6],"r":0,"c":2},{"type":"receiver","dirs":["E"],"colors":[3,5,6],"r":2,"c":0},{"type":"receiver","dirs":["N"],"colors":[1,2,4],"r":6,"c":4},{"type":"receiver","dirs":["W"],"colors":[1,2,4],"r":4,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Don't let everything crash in the middle!","goalElements":8,"goalTicks":10},{"id":"id6_mua8bi31","setId":"id8_mu6gonxi","name":"Worries Mirrors-Only","rows":7,"cols":7,"createdAt":1789933715533,"elements":[{"type":"emitter","dirs":["E"],"colors":[3,5],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[4,3],"r":0,"c":1},{"type":"emitter","dirs":["N"],"colors":[6,7],"r":6,"c":5},{"type":"emitter","dirs":["W"],"colors":[1,2],"r":5,"c":6},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":5,"c":0},{"type":"receiver","dirs":["N"],"colors":[4,3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3,5],"r":0,"c":5},{"type":"receiver","dirs":["W"],"colors":[6,7],"r":1,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"","goalElements":17,"goalTicks":14},{"id":"id6_mu3j5y49","setId":"id2_mu3j5y48","name":"Borrowed Time","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[1]},{"r":6,"c":2,"type":"emitter","dirs":["N"],"colors":[4]},{"r":3,"c":2,"type":"crystal","filterColor":null,"maxHits":"inf"},{"r":3,"c":6,"type":"receiver","dirs":["W"],"colors":[5]},{"r":0,"c":4,"type":"receiver","dirs":["S"],"colors":[5]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle introduces Prisms. [[CRYSTAL]]\nPrisms slow down packets to half-speed, costing them a square of progress relative to other packets. This can make it possible to merge packets that otherwise couldn't be merged, which you'll have to do to solve this puzzle.","goalElements":4,"goalTicks":9},{"id":"id7_mua8o97o","setId":"id2_mu3j5y48","name":"Cut Down","rows":7,"cols":7,"createdAt":1789934310564,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,1,1,1],"r":6,"c":2},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":2}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals only pass the colors that match them. This puzzle starts with too many packets, and you can't use half-mirrors to join packets. \nSo you have to use crystals to absorb the packets you don't need.","goalElements":7,"goalTicks":15},{"id":"id9_mua8v9jf","setId":"id2_mu3j5y48","name":"Who Shall Pass","rows":7,"cols":7,"createdAt":1789934637579,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[1,4],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[1,4],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals that aren't clear only pass their matching color. You'll need to get each color to the correct crystal to get through this.","goalElements":6,"goalTicks":19},{"id":"id11_mua8zpcn","setId":"id2_mu3j5y48","name":"Who Shall Pass Delayed","rows":7,"cols":7,"createdAt":1789934844695,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[4,1],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[4,1],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Remember, packets need to get to the receiver in the correct order!","goalElements":12,"goalTicks":21},{"id":"id13_mua946xc","setId":"id2_mu3j5y48","name":"Strip Down","rows":7,"cols":7,"createdAt":1789935054096,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"emitter","dirs":["E"],"colors":[3,6],"r":5,"c":1},{"type":"receiver","dirs":["E"],"colors":[4,1],"r":1,"c":1}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"A packet can pass through a crystal if it contains that crystal's color:\n[[M]] can pass through either [[R]] or [[B]]\n[[C]] can pass through either [[B]] or [[G]]\n[[Y]] can pass through either [[G]] or [[R]]\n[[W]] can pass through any crystal that is not [[K]]\nIn all cases the packet emerges as the color of the crystal.","goalElements":10,"goalTicks":20},{"id":"id23_muafxq21","setId":"id2_mu3j5y48","name":"Breakthrough","rows":7,"cols":7,"createdAt":1789946509609,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":6},{"type":"crystal","filterColor":1,"maxHits":1,"lastFiniteHits":1,"r":2,"c":3},{"type":"receiver","dirs":["S"],"colors":[1,1],"r":0,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,1,1],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Crystals can be fragile; after they are hit a certain number of times, they disappear. \nThat's what will happen in this puzzle.","goalElements":0,"goalTicks":9},{"id":"id20_muafj0qu","setId":"id2_mu3j5y48","name":"Breakthrough Colors","rows":7,"cols":7,"createdAt":1789945823622,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":6},{"type":"crystal","filterColor":1,"maxHits":1,"lastFiniteHits":1,"r":2,"c":3},{"type":"receiver","dirs":["S"],"colors":[1,4,2],"r":0,"c":3},{"type":"emitter","dirs":["N"],"colors":[1,4,2],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"These packets are needed, so they can't merge on their way through. \nScheduling is tricky!","goalElements":9,"goalTicks":17},{"id":"id18_muad51r2","setId":"id2_mu3j5y48","name":"Step by Step","rows":7,"cols":7,"createdAt":1789941812510,"elements":[{"type":"emitter","dirs":["E"],"colors":[2],"r":2,"c":0},{"type":"transformer","direction":"up","r":2,"c":3},{"type":"transformer","direction":"down","r":4,"c":3},{"type":"emitter","dirs":["E"],"colors":[2],"r":4,"c":0},{"type":"receiver","dirs":["W"],"colors":[6],"r":2,"c":6},{"type":"receiver","dirs":["W"],"colors":[3],"r":4,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Transformers [[TRANSFORMER]] change the color of packets that pass through them. They can move the color toward red, or toward magenta, indicated by the color sequence they display.","goalElements":0,"goalTicks":7},{"id":"id9_mu3j5y49","setId":"id2_mu3j5y48","name":"Color Staircase","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,3,2]},{"r":5,"c":2,"type":"transformer","direction":"up"},{"r":3,"c":5,"type":"transformer","direction":"up"},{"r":1,"c":6,"type":"receiver","dirs":["S"],"colors":[2,6,4]},{"r":5,"c":5,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"goalElements":3,"goalTicks":13},{"id":"id5_mu255g5s","setId":"id2_mu3j5y48","name":"Two Step","rows":7,"cols":7,"createdAt":1789444664848,"elements":[{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["W"],"colors":[2,6,4],"r":5,"c":6},{"type":"emitter","dirs":["E"],"colors":[1,3,2],"r":1,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"Only one transformer, but the packets have to go through twice.","goalElements":6,"goalTicks":17},{"id":"id8_mu3j5y49","setId":"id2_mttf1xyb","name":"Separate Ways","rows":7,"cols":7,"createdAt":1789528668921,"elements":[{"r":3,"c":0,"type":"emitter","dirs":["E"],"colors":[5,3,6]},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":6,"c":5,"type":"receiver","dirs":["N"],"colors":[4,1,2]}],"strict":false,"noPrisms":false,"noHalfMirrors":true,"introText":"Prisms [[PRISM]] bend packets to their flat end, and can combine packets heading out together, the same way half-mirrors can.\nPrisms can also be configured for multiple orientations like half-mirrors.\nPrisms can also split packets that enter through the flat end:\n[[R]][[G]][[B]][[W]] split into two identical packets.\n[[Y]][[M]][[C]] split into their component colors.\nYou'll need that functionality to solve this puzzle!\n","goalElements":1,"goalTicks":11},{"id":"id2_mtq9djgn","name":"Excess Baggage","rows":13,"cols":9,"createdAt":1788726166727,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[1,4],"r":10,"c":4},{"type":"crystal","filterColor":4,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":6}],"setId":"id2_mttf1xyb","noPrisms":false,"noHalfMirrors":false,"goalElements":9,"goalTicks":16},{"id":"id2_mtwg6ncx","setId":"id2_mttf1xyb","name":"Not So Fast","rows":7,"cols":7,"createdAt":1789100399553,"elements":[{"type":"crystal","filterColor":3,"r":4,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":2,"c":0,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[7,7],"r":0,"c":3},{"type":"emitter","dirs":["E","W"],"colors":[5,3],"r":6,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":true,"noPrisms":false,"noHalfMirrors":false,"goalElements":10,"goalTicks":29},{"id":"id23_mu3k7ct1","setId":"id2_mttf1xyb","name":"hree-Body Problem","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":0,"c":3,"type":"emitter","dirs":["E"],"colors":[2,4,1]},{"r":4,"c":1,"type":"crystal","filterColor":null,"maxHits":"inf"},{"r":1,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6]},{"r":4,"c":8,"type":"receiver","dirs":["W"],"colors":[7,7,7]},{"r":6,"c":8,"type":"receiver","dirs":["W"],"colors":[7,7,7]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"goalElements":2,"goalTicks":14},{"id":"id1_mts70a09","name":"Whip Around","rows":13,"cols":9,"createdAt":1788843121065,"elements":[{"type":"emitter","dirs":["N","E","S","W"],"colors":[1,1,1,5],"r":2,"c":4},{"type":"receiver","dirs":["N"],"colors":[4,1,1,1],"r":10,"c":4}],"strict":true,"setId":"id2_mttf1xyb","noPrisms":false,"noHalfMirrors":false,"goalElements":16,"goalTicks":25},{"id":"id1_mu3dxz6b","setId":"id2_mttf1xyb","name":"No Prisms","rows":7,"cols":7,"createdAt":1789519898963,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1,1,3],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[3,3,3,3],"r":6,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":false,"goalElements":12,"goalTicks":36},{"id":"id3_mu26fwm9","setId":"id2_mttf1xyb","name":"The Narrows","rows":11,"cols":5,"createdAt":1789446832353,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":8,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":0},{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[4,2,1],"r":10,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":false,"goalElements":8,"goalTicks":47},{"id":"id3_mu24dhjk","setId":"id2_mttf1xyb","name":"Out of Order","rows":7,"cols":7,"createdAt":1789443360272,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["E"],"colors":[2],"r":1,"c":0},{"type":"emitter","dirs":["E"],"colors":[4],"r":2,"c":0},{"type":"emitter","dirs":["E"],"colors":[3],"r":3,"c":0},{"type":"emitter","dirs":["E"],"colors":[5],"r":4,"c":0},{"type":"emitter","dirs":["E"],"colors":[6],"r":5,"c":0},{"type":"emitter","dirs":["E"],"colors":[7],"r":6,"c":0},{"type":"receiver","dirs":["W"],"colors":[7],"r":0,"c":6},{"type":"receiver","dirs":["W"],"colors":[6],"r":1,"c":6},{"type":"receiver","dirs":["W"],"colors":[5],"r":2,"c":6},{"type":"receiver","dirs":["W"],"colors":[3],"r":3,"c":6},{"type":"receiver","dirs":["W"],"colors":[4],"r":4,"c":6},{"type":"receiver","dirs":["W"],"colors":[2],"r":5,"c":6},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":16,"goalTicks":15},{"id":"id5_mu95ajy6","setId":"id2_mttf1xyb","name":"Every Which Way","rows":7,"cols":7,"createdAt":1789868166271,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"emitter","dirs":["S"],"colors":[2],"r":0,"c":5},{"type":"emitter","dirs":["W"],"colors":[4],"r":5,"c":6},{"type":"emitter","dirs":["N"],"colors":[3],"r":6,"c":1},{"type":"receiver","dirs":["S"],"colors":[3],"r":0,"c":4},{"type":"receiver","dirs":["W"],"colors":[1],"r":4,"c":6},{"type":"receiver","dirs":["N"],"colors":[2],"r":6,"c":2},{"type":"receiver","dirs":["E"],"colors":[4],"r":2,"c":0}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"\n","goalElements":14,"goalTicks":14},{"id":"id4_mtyn4duc","setId":"id1_mtykmo6m","name":"Shifty","rows":7,"cols":7,"createdAt":1789232983572,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,5,1],"r":0,"c":0},{"type":"receiver","dirs":["W"],"colors":[1,1,4],"r":6,"c":6}],"strict":true,"noPrisms":false,"noHalfMirrors":false,"goalElements":12,"goalTicks":18},{"id":"id2_mtylowjs","setId":"id1_mtykmo6m","name":"Careful!","rows":7,"cols":7,"createdAt":1789230581704,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":6},{"type":"emitter","dirs":["S"],"colors":[1,2,4],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,6,5,2,4,1],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"goalElements":20,"goalTicks":22},{"id":"id3_mu22oi8s","setId":"id1_mtykmo6m","name":"Winding","rows":9,"cols":8,"createdAt":1789440515164,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":0,"c":0},{"type":"emitter","dirs":["W"],"colors":[2],"r":0,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":6},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":7},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":1,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":7,"c":4},{"type":"receiver","dirs":["E"],"colors":[1,2],"r":8,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":16,"goalTicks":44},{"id":"id2_mtwbyfuj","setId":"id1_mtykmo6m","name":"Filters","rows":7,"cols":7,"createdAt":1789093298107,"elements":[{"type":"emitter","dirs":["W"],"colors":[7,7,7],"r":6,"c":6},{"type":"crystal","filterColor":3,"r":3,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":3,"c":3,"maxHits":"inf"},{"type":"crystal","filterColor":6,"r":3,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":3},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":5},{"type":"crystal","r":6,"c":3,"maxHits":"inf"}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":23,"goalTicks":23},{"id":"id1_mtts8pe8","setId":"id1_mtykmo6m","name":"Swappy Swappy","rows":7,"cols":7,"createdAt":1788939252368,"elements":[{"type":"emitter","dirs":["W"],"colors":[1,1,4,4],"r":0,"c":6},{"type":"crystal","filterColor":1,"r":0,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":1,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":1,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":0,"c":2,"maxHits":"inf"},{"type":"crystal","filterColor":5,"r":4,"c":2,"maxHits":"inf"},{"type":"receiver","dirs":["E"],"colors":[4,4,1,1],"r":6,"c":0},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":5,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":16,"goalTicks":31},{"id":"id1_mu3g89yo","setId":"id1_mtykmo6m","name":"No Prisms, No Half-Mirrors","rows":7,"cols":7,"createdAt":1789523738737,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1,1,3],"r":0,"c":0},{"type":"receiver","dirs":["E"],"colors":[3,3,3,3],"r":6,"c":0}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"goalElements":12,"goalTicks":36},{"id":"id22_mu3k7ct1","setId":"id1_mtykmo6m","name":"Four-Way Appointment","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,4,2,5,3,6,4,1]},{"r":1,"c":8,"type":"receiver","dirs":["W"],"colors":[1,3]},{"r":1,"c":0,"type":"receiver","dirs":["E"],"colors":[2,4]},{"r":7,"c":8,"type":"receiver","dirs":["W"],"colors":[4,6]},{"r":7,"c":0,"type":"receiver","dirs":["E"],"colors":[5,1]},{"r":4,"c":5,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"goalElements":3,"goalTicks":17},{"id":"id1_mu6kk0xp","setId":"id1_mtykmo6m","name":"Tricky Routing","rows":7,"cols":7,"createdAt":1789712403901,"elements":[{"type":"emitter","dirs":["N"],"colors":[1,2,4,3,5,6],"r":6,"c":3},{"type":"receiver","dirs":["S"],"colors":[1],"r":0,"c":0},{"type":"receiver","dirs":["S"],"colors":[4],"r":0,"c":1},{"type":"receiver","dirs":["S"],"colors":[5],"r":0,"c":2},{"type":"receiver","dirs":["S"],"colors":[2],"r":0,"c":4},{"type":"receiver","dirs":["S"],"colors":[3],"r":0,"c":5},{"type":"receiver","dirs":["S"],"colors":[6],"r":0,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"introText":""},{"id":"id10_mu3j5y49","setId":"id1_mtykmo6m","name":"Give and Take","rows":9,"cols":7,"createdAt":1789528668921,"elements":[{"r":1,"c":0,"type":"emitter","dirs":["E"],"colors":[5,3,6]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,2,4]},{"r":2,"c":3,"type":"receiver","dirs":["N"],"colors":[4,1,2]},{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2]},{"r":4,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6]}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"introText":""},{"id":"id3_mu8xkzy5","setId":"id1_mtykmo6m","name":"Mix Hard","rows":7,"cols":7,"createdAt":1789855216637,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":3,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":3},{"type":"receiver","dirs":["W"],"colors":[3,4,5],"r":3,"c":6},{"type":"receiver","dirs":["N"],"colors":[3,2,5],"r":6,"c":3}],"strict":false,"noPrisms":true,"noHalfMirrors":true,"introText":"This puzzle requires some packets to mix, and others not. Remember they need to arrive in order to solve the puzzle!\n\n","goalElements":13,"goalTicks":11},{"id":"id3_mttf3msx","setId":"id5_mu23cpzv","name":"Slip Through","rows":7,"cols":7,"createdAt":1788917180721,"elements":[{"type":"emitter","dirs":["E","S"],"colors":[1,2,4,1],"r":0,"c":0},{"type":"crystal","filterColor":5,"r":5,"c":1,"maxHits":"inf"},{"type":"crystal","filterColor":3,"r":1,"c":5,"maxHits":"inf"},{"type":"receiver","dirs":["W"],"colors":[1,2],"r":6,"c":5},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":5,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":0,"c":6},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":6,"maxHits":"inf","lastFiniteHits":99,"r":6,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":27,"goalTicks":22},{"id":"id1_mu21b4bf","setId":"id5_mu23cpzv","name":"Roundabout","rows":7,"cols":7,"createdAt":1789438210971,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,2,4],"r":0,"c":0},{"type":"emitter","dirs":["S"],"colors":[2,4,1],"r":0,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":3,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3},{"type":"receiver","dirs":["N","W"],"colors":[3,5,6],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":18,"goalTicks":32},{"id":"id1_mtwxeho2","setId":"id5_mu23cpzv","name":"Step Right Up","rows":5,"cols":5,"createdAt":1789129318898,"elements":[{"type":"emitter","dirs":["W"],"colors":[1],"r":0,"c":4},{"type":"transformer","direction":"up","r":2,"c":2},{"type":"receiver","dirs":["E"],"colors":[5],"r":4,"c":0}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":7,"goalTicks":35},{"id":"id1_mtroll9v","name":"Don't Pass","rows":7,"cols":7,"createdAt":1788812202739,"elements":[{"type":"crystal","filterColor":1,"r":2,"c":0,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":2,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":4,"r":4,"c":0,"maxHits":"inf"},{"type":"emitter","dirs":["E","W"],"colors":[1,4],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,1],"r":6,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":1},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":2,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":3},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":2},{"type":"crystal","filterColor":2,"maxHits":"inf","lastFiniteHits":99,"r":4,"c":1}],"strict":false,"setId":"id5_mu23cpzv","noPrisms":false,"noHalfMirrors":false,"goalElements":12,"goalTicks":31},{"id":"id1_mtraj10s","name":"Color Swap","rows":7,"cols":7,"createdAt":1788788568556,"elements":[{"type":"emitter","dirs":["S"],"colors":[3],"r":0,"c":1},{"type":"emitter","dirs":["S"],"colors":[5],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[6],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[1],"r":6,"c":5}],"setId":"id5_mu23cpzv","strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":12,"goalTicks":13},{"id":"id1_mtqoxu54","name":"Borehole","rows":7,"cols":7,"createdAt":1788752307928,"elements":[{"type":"emitter","dirs":["E"],"colors":[1],"r":1,"c":0},{"type":"receiver","dirs":["W"],"colors":[1],"r":6,"c":6},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":0},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":4,"maxHits":99,"lastFiniteHits":99,"r":5,"c":6}],"setId":"id4_mu252gzu","strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":19,"goalTicks":472},{"id":"id1_mtxp9y5q","setId":"id4_mu252gzu","name":"Waiting","rows":7,"cols":7,"createdAt":1789176136238,"elements":[{"type":"emitter","dirs":["E"],"colors":[1,1],"r":0,"c":0},{"type":"transformer","direction":"up","r":3,"c":3},{"type":"receiver","dirs":["N"],"colors":[5],"r":6,"c":5},{"type":"crystal","filterColor":4,"r":4,"c":6,"maxHits":"inf"},{"type":"crystal","filterColor":1,"r":4,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":null,"r":3,"c":4,"maxHits":"inf"},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":3}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":20,"goalTicks":48},{"id":"id6_mttkxigv","setId":"id4_mu252gzu","name":"Threeway","rows":7,"cols":7,"createdAt":1788926972863,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,2,4,3,5,6],"r":0,"c":3},{"type":"receiver","dirs":["N"],"colors":[1,1,1],"r":6,"c":0},{"type":"receiver","dirs":["N"],"colors":[2,2,2],"r":6,"c":3},{"type":"receiver","dirs":["N"],"colors":[4,4,4],"r":6,"c":6}],"strict":false,"noPrisms":false,"noHalfMirrors":false,"goalElements":16,"goalTicks":17},{"id":"id1_mu25k8be","setId":"id4_mu252gzu","name":"Conductor","rows":7,"cols":7,"createdAt":1789445354522,"elements":[{"type":"emitter","dirs":["S"],"colors":[1,4],"r":0,"c":0},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":0,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":2,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":4,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":6,"c":4},{"type":"crystal","filterColor":4,"maxHits":5,"lastFiniteHits":5,"r":3,"c":4},{"type":"receiver","dirs":["N","W"],"colors":[1,4],"r":6,"c":6}],"strict":false,"noPrisms":true,"noHalfMirrors":false,"goalElements":18,"goalTicks":101},{"id":"id25_mu3k7ct1","setId":"id4_mu252gzu","name":"A Change of Plans","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":4,"c":0,"type":"emitter","dirs":["E"],"colors":[1,5,2,6]},{"r":4,"c":8,"type":"receiver","dirs":["W"],"colors":[1,2]},{"r":0,"c":6,"type":"receiver","dirs":["S"],"colors":[1,4]},{"r":8,"c":6,"type":"receiver","dirs":["N"],"colors":[4,2]}],"strict":false,"noPrisms":false,"noHalfMirrors":true,"goalElements":18,"goalTicks":24},{"id":"id24_mu3k7ct1","setId":"id4_mu252gzu","name":"Second Time Around","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1]},{"r":2,"c":3,"type":"transformer","direction":"up"},{"r":0,"c":5,"type":"receiver","dirs":["S"],"colors":[2]},{"r":5,"c":7,"type":"crystal","filterColor":0,"maxHits":"inf"}],"strict":true,"noPrisms":true,"noHalfMirrors":true,"goalElements":5,"goalTicks":15},{"id":"id26_mu3k7ct1","setId":"id4_mu252gzu","name":"Keeping the Books","rows":9,"cols":9,"createdAt":1789530414229,"elements":[{"r":1,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4,3]},{"r":0,"c":3,"type":"receiver","dirs":["S"],"colors":[1,4]},{"r":2,"c":3,"type":"receiver","dirs":["N"],"colors":[1,4]},{"r":1,"c":8,"type":"receiver","dirs":["W"],"colors":[2,3]},{"r":5,"c":0,"type":"emitter","dirs":["E"],"colors":[1,2,4,3]},{"r":8,"c":3,"type":"emitter","dirs":["N"],"colors":[4,1,2,4]},{"r":4,"c":3,"type":"receiver","dirs":["S"],"colors":[5,3,6,7]},{"r":5,"c":8,"type":"receiver","dirs":["W"],"colors":[3,7]}],"strict":true,"noPrisms":false,"noHalfMirrors":false},{"id":"id1_mubz0obn","setId":"id1_mu8dy1no","name":"Lead the Way!","rows":13,"cols":7,"createdAt":1790039026211,"elements":[{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":9,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":5,"c":6},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":1},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":2},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":3},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":4},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":5},{"type":"crystal","filterColor":"black","maxHits":"inf","lastFiniteHits":99,"r":1,"c":6},{"type":"emitter","dirs":["W"],"colors":[1,2,4,1,2,4],"r":12,"c":6},{"type":"crystal","filterColor":1,"maxHits":1,"lastFiniteHits":1,"r":9,"c":0},{"type":"crystal","filterColor":2,"maxHits":1,"lastFiniteHits":1,"r":5,"c":0},{"type":"crystal","filterColor":4,"maxHits":1,"lastFiniteHits":1,"r":1,"c":0},{"type":"receiver","dirs":["W"],"colors":[4,2,1,4,2,1],"r":0,"c":6}],"strict":true,"noPrisms":true,"noHalfMirrors":false,"introText":"","goalElements":32,"goalTicks":70}]} /*__LIGHTYARD_EMBED_END__*/;
 
 /* ============================== CONSTANTS ============================== */
 const DIRS = ['N','E','S','W'];
@@ -822,6 +868,31 @@ function puzzleForSolution(solution){
   if(puzzleMatchesSolution(current,solution))return current;
   return allPuzzles().find(p=>puzzleMatchesSolution(p,solution))||null;
 }
+function embeddedPuzzleGoal(puzzle){
+  if(!puzzle||puzzle.goalElements==null||puzzle.goalTicks==null)return null;
+  const elements=Number(puzzle&&puzzle.goalElements),ticks=Number(puzzle&&puzzle.goalTicks);
+  return Number.isFinite(elements)&&elements>=0&&Number.isFinite(ticks)&&ticks>=0
+    ? {elements:Math.floor(elements),ticks:Math.floor(ticks)}
+    : null;
+}
+function puzzleGoalForWebApp(puzzle){
+  const embedded=embeddedPuzzleGoal(puzzle);
+  let elements=embedded?embedded.elements:Infinity;
+  let ticks=embedded?embedded.ticks:Infinity;
+  for(const solution of solutionsForPuzzle(puzzle)){
+    if(solution.status!=='solved')continue;
+    elements=Math.min(elements,(solution.elements||[]).length);
+    if(solution.ticksToSolve!=null&&Number.isFinite(Number(solution.ticksToSolve)))ticks=Math.min(ticks,Math.max(0,Math.floor(Number(solution.ticksToSolve))));
+  }
+  return Number.isFinite(elements)&&Number.isFinite(ticks)?{elements,ticks}:null;
+}
+function portableWebAppPuzzle(puzzle,setId){
+  const copy=portablePuzzle(puzzle,setId);
+  const goal=puzzleGoalForWebApp(puzzle);
+  if(goal){copy.goalElements=goal.elements;copy.goalTicks=goal.ticks;}
+  else{delete copy.goalElements;delete copy.goalTicks;}
+  return copy;
+}
 function saveAsWebApp(){
   const catalogSets=allSets();
   const usedSetIds=new Set();
@@ -836,7 +907,7 @@ function saveAsWebApp(){
     colorblind:!!State.colorblind,
     soundEnabled:!!State.soundEnabled,
     sets:catalog.map(({set,id})=>({id,name:set.name,createdAt:set.createdAt||Date.now()})),
-    puzzles:catalog.flatMap(({set,id})=>puzzlesForSet(set).map(p=>portablePuzzle(p,id)))
+    puzzles:catalog.flatMap(({set,id})=>puzzlesForSet(set).map(p=>portableWebAppPuzzle(p,id)))
   };
   // Escaping '<' prevents script-closing text in a puzzle or set name from
   // terminating the inline script in the generated app.
@@ -851,30 +922,40 @@ function slugify(s){
   return (String(s||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')) || 'untitled';
 }
 
-function exportPuzzle(puzzle){
-  downloadJSON({
+function puzzleExportData(puzzle){
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'puzzle',
     exportedAt: Date.now(),
     puzzle: portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId)))
-  }, slugify(puzzle.name)+'.lightyard-puzzle.json');
+  };
 }
-function exportSolution(solution){
+function exportPuzzle(puzzle){
+  downloadJSON(puzzleExportData(puzzle), slugify(puzzle.name)+'.lightyard-puzzle.json');
+}
+function solutionExportData(solution){
   const puzzle = puzzleForSolution(solution);
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'solution',
     exportedAt: Date.now(),
     puzzle: puzzle ? portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId))) : null,
     solution: JSON.parse(JSON.stringify(solution))
-  }, slugify((puzzle?puzzle.name+'-':'')+solution.name)+'.lightyard-solution.json');
+  };
 }
-function exportAllSolutions(puzzle){
+function exportSolution(solution){
+  const puzzle = puzzleForSolution(solution);
+  downloadJSON(solutionExportData(solution), slugify((puzzle?puzzle.name+'-':'')+solution.name)+'.lightyard-solution.json');
+}
+function puzzleSolutionsExportData(puzzle){
   const solutions = solutionsForPuzzle(puzzle);
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'solutions',
     exportedAt: Date.now(),
     puzzle: portablePuzzle(puzzle,canonicalSetId(findSetByRuntimeId(puzzle.setId))),
     solutions: JSON.parse(JSON.stringify(solutions))
-  }, slugify(puzzle.name)+'-solutions.json');
+  };
+}
+function exportAllSolutions(puzzle){
+  downloadJSON(puzzleSolutionsExportData(puzzle), slugify(puzzle.name)+'-solutions.json');
 }
 
 // Sanitizers assign fresh ids (so re-importing the same file, or a file shared by
@@ -1034,48 +1115,99 @@ function importSolutionsPayload(data){
 }
 
 /* ---------- Sets: export ---------- */
-function exportSet(set){
+function setExportData(set){
   const puzzles = puzzlesForSet(set);
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'set',
     exportedAt: Date.now(),
     setName: set.name,
     puzzles: puzzles.map(p=>portablePuzzle(p,canonicalSetId(set)))
-  }, slugify(set.name)+'.lightyard-set.json');
+  };
 }
-function exportAllSets(){
+function exportSet(set){
+  downloadJSON(setExportData(set), slugify(set.name)+'.lightyard-set.json');
+}
+function allSetsExportData(){
   const sets = allSets().map(s=>({
     name: s.name,
     puzzles: puzzlesForSet(s).map(p=>portablePuzzle(p,canonicalSetId(s)))
   }));
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'sets',
     exportedAt: Date.now(),
     sets
-  }, 'lightyard-all-sets.json');
+  };
 }
-function exportSetSolutions(set){
+function exportAllSets(){
+  downloadJSON(allSetsExportData(), 'lightyard-all-sets.json');
+}
+function setSolutionsExportData(set){
   const puzzles = puzzlesForSet(set);
   const sols = puzzles.flatMap(p=>solutionsForPuzzle(p));
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'setSolutions',
     exportedAt: Date.now(),
     setName: set.name,
     puzzles: puzzles.map(p=>portablePuzzle(p,canonicalSetId(set))),
     solutions: JSON.parse(JSON.stringify(sols))
-  }, slugify(set.name)+'-solutions.json');
+  };
 }
-function exportAllSolutionsGlobal(){
+function exportSetSolutions(set){
+  downloadJSON(setSolutionsExportData(set), slugify(set.name)+'-solutions.json');
+}
+function allSolutionsExportData(){
   const sets = allSets().map(s=>({
     name: s.name,
     puzzles: puzzlesForSet(s).map(p=>portablePuzzle(p,canonicalSetId(s)))
   }));
-  downloadJSON({
+  return {
     schema:'lightyard', schemaVersion:EXPORT_SCHEMA_VERSION, kind:'allSolutions',
     exportedAt: Date.now(),
     sets,
     solutions: JSON.parse(JSON.stringify(State.solutions))
-  }, 'lightyard-all-solutions.json');
+  };
+}
+function exportAllSolutionsGlobal(){
+  downloadJSON(allSolutionsExportData(), 'lightyard-all-solutions.json');
+}
+
+/* ---------- Clipboard sharing ---------- */
+async function writeClipboardText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    try{await navigator.clipboard.writeText(text);return true;}catch(error){}
+  }
+  const area=document.createElement('textarea');area.value=text;area.setAttribute('readonly','');
+  area.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';document.body.appendChild(area);area.select();
+  let copied=false;try{copied=!!document.execCommand('copy');}catch(error){}area.remove();return copied;
+}
+async function copyLightyardData(data,label){
+  const copied=await writeClipboardText(JSON.stringify(data,null,2));
+  alert(copied?`${label} copied to the clipboard.`:`Could not copy ${label.toLowerCase()} automatically. Clipboard access may be blocked in this browser.`);
+}
+function importLightyardText(text,scope){
+  let data;
+  try{data=JSON.parse(text);}catch(error){alert('The clipboard does not contain valid JSON.');return;}
+  if(!data||data.schema!=='lightyard'||!data.kind){alert('The clipboard does not contain a Lightyard export.');return;}
+  handleImportedData(data,scope);
+}
+function showClipboardPasteDialog(scope,label){
+  const backdrop=document.createElement('div');backdrop.className='dialog-backdrop';
+  const dialog=document.createElement('div');dialog.className='dialog';
+  dialog.innerHTML=`<h3>Paste ${escapeHtml(label)}</h3><p style="font-size:12px;color:var(--dim);line-height:1.45;">Paste Lightyard data below, then choose Paste.</p><textarea style="width:100%;min-height:180px;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:11px 'JetBrains Mono',monospace;"></textarea><div class="rowbtns"><button class="btn" data-act="cancel">Cancel</button><button class="btn solid" data-act="paste">Paste</button></div>`;
+  backdrop.appendChild(dialog);document.body.appendChild(backdrop);
+  const area=dialog.querySelector('textarea');
+  const close=()=>backdrop.remove();dialog.querySelector('[data-act=cancel]').addEventListener('click',close);
+  dialog.querySelector('[data-act=paste]').addEventListener('click',()=>{const text=area.value;close();importLightyardText(text,scope);});
+  backdrop.addEventListener('click',event=>{if(event.target===backdrop)close();});setTimeout(()=>area.focus(),0);
+}
+async function pasteLightyardData(scope,label){
+  if(navigator.clipboard&&navigator.clipboard.readText){
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text&&text.trim()){importLightyardText(text,scope);return;}
+    }catch(error){}
+  }
+  showClipboardPasteDialog(scope,label);
 }
 
 /* ---------- Sets: import ---------- */
@@ -1251,10 +1383,25 @@ function importScopedSolutions(data,scope){
   if(!scope.returnToBoard){ State.screen='setList'; State.currentPuzzleId=null; State.currentSolutionId=null; }
   renderScreen();
 }
+function puzzleGroupsFromImport(data){
+  const grouped=[];
+  const ungrouped=[];
+  if(data.kind==='set'||data.kind==='sets'||data.kind==='setSolutions'||data.kind==='allSolutions'){
+    for(const bundle of normalizeIncomingSets(data)){
+      if((bundle.puzzles||[]).length)grouped.push({name:bundle.name||'Imported Set',puzzles:bundle.puzzles});
+    }
+  }else if(data.kind==='puzzle'&&data.puzzle){
+    ungrouped.push(data.puzzle);
+  }else if(data.kind==='puzzles'){
+    ungrouped.push(...(Array.isArray(data.puzzles)?data.puzzles:[]));
+  }else if((data.kind==='solution'||data.kind==='solutions')&&data.puzzle){
+    ungrouped.push(data.puzzle);
+  }
+  return {grouped,ungrouped};
+}
 function importPuzzlesIntoSet(data,setId){
-  const raws=[];
-  if(data.kind==='puzzle' && data.puzzle) raws.push(data.puzzle);
-  else for(const bundle of normalizeIncomingSets(data)) raws.push(...(bundle.puzzles||[]));
+  const found=puzzleGroupsFromImport(data);
+  const raws=found.grouped.flatMap(group=>group.puzzles).concat(found.ungrouped);
   for(const raw of raws) State.puzzles.push(sanitizePuzzleData(raw,setId));
   persistPuzzles();
   alert(raws.length
@@ -1262,20 +1409,90 @@ function importPuzzlesIntoSet(data,setId){
     : 'That file did not contain any puzzles.');
   State.expandedSetIds.add(setId); State.screen='setList'; renderScreen();
 }
-function importPuzzleReplacement(data,puzzleId){
-  const target=State.puzzles.find(p=>p.id===puzzleId);
-  if(!target) throw new Error('the selected puzzle no longer exists');
-  let raw=null;
-  if(data.kind==='puzzle') raw=data.puzzle||null;
-  else {
-    const bundles=normalizeIncomingSets(data);
-    raw=bundles.flatMap(b=>b.puzzles||[])[0]||null;
+function importCreateData(data){
+  const found=puzzleGroupsFromImport(data);
+  let imported=0;
+  for(const group of found.grouped){
+    const set={id:uid(),name:String(group.name||'Imported Set').slice(0,80),createdAt:Date.now()};
+    State.sets.push(set);State.expandedSetIds.add(set.id);
+    for(const raw of group.puzzles){State.puzzles.push(sanitizePuzzleData(raw,set.id));imported++;}
   }
-  if(!raw) throw new Error('that file does not contain a puzzle');
-  if(!confirm(`Replace the design of "${target.name}" with the imported puzzle?`)) return;
-  const fresh=sanitizePuzzleData(raw,target.setId);
-  target.name=fresh.name; target.rows=fresh.rows; target.cols=fresh.cols; target.elements=fresh.elements; target.strict=fresh.strict; target.noPrisms=fresh.noPrisms; target.noHalfMirrors=fresh.noHalfMirrors; delete target.mirrorsOnly;
-  persistPuzzles();State.selectedCell=null; State.selectedTool=null; closeInspectorSheet(); renderScreen();
+  if(found.ungrouped.length){
+    const set={id:uid(),name:'Added Puzzles',createdAt:Date.now()};
+    State.sets.push(set);State.expandedSetIds.add(set.id);
+    for(const raw of found.ungrouped){State.puzzles.push(sanitizePuzzleData(raw,set.id));imported++;}
+  }
+  if(!imported){alert('That file did not contain any puzzles.');return;}
+  persistSets();persistPuzzles();
+  alert(`Added ${imported} puzzle${imported!==1?'s':''}.`);
+  State.selectedCell=null;State.selectedTool=null;State.currentSetId=null;State.currentPuzzleId=null;State.currentSolutionId=null;
+  State.screen='setList';renderScreen();
+}
+function handleImportedData(data,scope){
+  try{
+    if(scope&&scope.kind==='addCreateData'){
+      importCreateData(data);
+      return;
+    }
+    if(scope&&scope.kind==='sets'){
+      const incoming=normalizeIncomingSets(data).filter(set=>(set.puzzles||[]).length);
+      if(!incoming.length){alert('That export does not contain any puzzle sets.');return;}
+      showImportSetsDialog(incoming,choices=>applyIncomingSets(incoming,choices));
+      return;
+    }
+    if(scope && (scope.kind==='allSolutions' || scope.kind==='setSolutions' || scope.kind==='puzzleSolutions')){
+      importScopedSolutions(data,scope);
+      return;
+    }
+    if(scope && scope.kind==='puzzlesIntoSet'){
+      importPuzzlesIntoSet(data,scope.setId);
+      return;
+    }
+    if(data.kind==='puzzle'){
+      const puzzle = importPuzzlePayload(data);
+      alert('Imported puzzle "'+puzzle.name+'".');
+      State.currentSetId = puzzle.setId;
+      State.selectedCell=null; State.selectedTool=null;
+      State.screen='puzzleList';
+      renderScreen();
+    } else if(data.kind==='solution'){
+      const {puzzle, solution} = importSolutionPayload(data);
+      alert('Imported puzzle "'+(puzzle?puzzle.name:'(existing)')+'" and solution "'+solution.name+'".');
+      setActiveMode('solve');
+      State.currentPuzzleId = solution.puzzleId;
+      const owner = puzzle || State.puzzles.find(p=>p.id===solution.puzzleId);
+      if(owner) State.currentSetId = owner.setId;
+      warnIfStrictPacketTotalsMismatch(owner);
+      State.currentSolutionId = solution.id;
+      State.selectedCell=null; State.selectedTool=null;
+      State.screen='solutionEdit';
+      renderScreen();
+    } else if(data.kind==='solutions'){
+      const {puzzle, solutions} = importSolutionsPayload(data);
+      alert('Imported puzzle "'+(puzzle?puzzle.name:'(existing)')+'" with '+solutions.length+' solution'+(solutions.length!==1?'s':'')+'.');
+      setActiveMode('solve');
+      State.currentPuzzleId = solutions.length ? solutions[0].puzzleId : (puzzle ? puzzle.id : null);
+      const owner = puzzle || State.puzzles.find(p=>p.id===State.currentPuzzleId);
+      if(owner) State.currentSetId = owner.setId;
+      warnIfStrictPacketTotalsMismatch(owner);
+      State.currentSolutionId = solutions.length ? solutions[0].id : 'BLANK';
+      State.selectedCell=null; State.selectedTool=null;
+      State.screen='solutionEdit';
+      renderScreen();
+    } else if(data.kind==='set' || data.kind==='sets' || data.kind==='setSolutions' || data.kind==='allSolutions' || data.kind==='puzzles'){
+      const incoming = normalizeIncomingSets(data).filter(s=>s.puzzles.length>0 || s.solutions.length>0);
+      if(incoming.length===0){
+        alert('That export has no puzzles to import.');
+        return;
+      }
+      if(data.kind==='setSolutions' || data.kind==='allSolutions') setActiveMode('solve');
+      showImportSetsDialog(incoming, (choices)=>applyIncomingSets(incoming, choices));
+    } else {
+      alert('Unrecognized Lightyard export type: "'+data.kind+'".');
+    }
+  } catch(error){
+    alert('Could not import that data: '+error.message);
+  }
 }
 
 function handleImportedFile(file,scope){
@@ -1288,64 +1505,7 @@ function handleImportedFile(file,scope){
       alert('That file does not look like a Lightyard export.');
       return;
     }
-    try{
-      if(scope && (scope.kind==='allSolutions' || scope.kind==='setSolutions' || scope.kind==='puzzleSolutions')){
-        importScopedSolutions(data,scope);
-        return;
-      }
-      if(scope && scope.kind==='puzzlesIntoSet'){
-        importPuzzlesIntoSet(data,scope.setId);
-        return;
-      }
-      if(scope && scope.kind==='replacePuzzle'){
-        importPuzzleReplacement(data,scope.puzzleId);
-        return;
-      }
-      if(data.kind==='puzzle'){
-        const puzzle = importPuzzlePayload(data);
-        alert('Imported puzzle "'+puzzle.name+'".');
-        State.currentSetId = puzzle.setId;
-        State.selectedCell=null; State.selectedTool=null;
-        State.screen='puzzleList';
-        renderScreen();
-      } else if(data.kind==='solution'){
-        const {puzzle, solution} = importSolutionPayload(data);
-        alert('Imported puzzle "'+(puzzle?puzzle.name:'(existing)')+'" and solution "'+solution.name+'".');
-        setActiveMode('solve');
-        State.currentPuzzleId = solution.puzzleId;
-        const owner = puzzle || State.puzzles.find(p=>p.id===solution.puzzleId);
-        if(owner) State.currentSetId = owner.setId;
-        warnIfStrictPacketTotalsMismatch(owner);
-        State.currentSolutionId = solution.id;
-        State.selectedCell=null; State.selectedTool=null;
-        State.screen='solutionEdit';
-        renderScreen();
-      } else if(data.kind==='solutions'){
-        const {puzzle, solutions} = importSolutionsPayload(data);
-        alert('Imported puzzle "'+(puzzle?puzzle.name:'(existing)')+'" with '+solutions.length+' solution'+(solutions.length!==1?'s':'')+'.');
-        setActiveMode('solve');
-        State.currentPuzzleId = solutions.length ? solutions[0].puzzleId : (puzzle ? puzzle.id : null);
-        const owner = puzzle || State.puzzles.find(p=>p.id===State.currentPuzzleId);
-        if(owner) State.currentSetId = owner.setId;
-        warnIfStrictPacketTotalsMismatch(owner);
-        State.currentSolutionId = solutions.length ? solutions[0].id : 'BLANK';
-        State.selectedCell=null; State.selectedTool=null;
-        State.screen='solutionEdit';
-        renderScreen();
-      } else if(data.kind==='set' || data.kind==='sets' || data.kind==='setSolutions' || data.kind==='allSolutions' || data.kind==='puzzles'){
-        const incoming = normalizeIncomingSets(data).filter(s=>s.puzzles.length>0 || s.solutions.length>0);
-        if(incoming.length===0){
-          alert('That file has no puzzles to import.');
-          return;
-        }
-        if(data.kind==='setSolutions' || data.kind==='allSolutions') setActiveMode('solve');
-        showImportSetsDialog(incoming, (choices)=>applyIncomingSets(incoming, choices));
-      } else {
-        alert('Unrecognized Lightyard export type: "'+data.kind+'".');
-      }
-    } catch(e){
-      alert('Could not import that file: '+e.message);
-    }
+    handleImportedData(data,scope);
   };
   reader.onerror = ()=> alert('Could not read that file.');
   reader.readAsText(file);
@@ -1442,6 +1602,8 @@ function loadBuiltInCatalog(){
     const p=JSON.parse(JSON.stringify(raw));
     p.id='__builtin_puzzle_'+index+'_'+sourceId;p.setId=runtimeSetId;p._sourceId=sourceId;p._sourceSetId=raw.setId;p._builtIn=true;
     p.noPrisms=p.noPrisms!=null?!!p.noPrisms:!!p.mirrorsOnly;p.noHalfMirrors=!!p.noHalfMirrors;delete p.mirrorsOnly;
+    const goal=embeddedPuzzleGoal(p);
+    if(goal){p.goalElements=goal.elements;p.goalTicks=goal.ticks;}else{delete p.goalElements;delete p.goalTicks;}
     p.elements=(p.elements||[]).map(sanitizeElementData).filter(Boolean);p.configurationHash=puzzleConfigurationHash(p);
     State.builtInPuzzles.push(p);
   });
@@ -3848,13 +4010,43 @@ function actionButton(text,cls,onClick){
   const b=document.createElement('button'); b.type='button'; b.className='btn small'+(cls?' '+cls:''); b.textContent=text;
   b.addEventListener('click',onClick); return b;
 }
-function appendScopeActions(parent,label,onImport,onExport){
-  const row=document.createElement('div'); row.className='scope-actions';
-  if(label){ const span=document.createElement('span'); span.className='scope-label'; span.textContent=label; row.appendChild(span); }
-  row.appendChild(actionButton('Import','',onImport));
-  row.appendChild(actionButton('Export','',onExport));
-  parent.appendChild(row);
-  return row;
+function closeActionMenus(){document.querySelectorAll('.action-menu-popup').forEach(menu=>menu.remove());}
+function actionMenu(label,items,kebab){
+  const button=document.createElement('button');button.type='button';button.className='btn small action-menu-button'+(kebab?' kebab-menu-button':'');
+  button.textContent=kebab?'⋮':label+' ▾';button.title=label;button.setAttribute('aria-label',label);
+  button.setAttribute('aria-haspopup','true');button.setAttribute('aria-expanded','false');
+  const menu=document.createElement('div');menu.className='action-menu-popup';
+  for(const item of items){
+    const option=document.createElement('button');option.type='button';option.textContent=item.label;
+    if(item.danger)option.classList.add('danger');
+    option.addEventListener('click',()=>{closeActionMenus();button.setAttribute('aria-expanded','false');item.action();});
+    menu.appendChild(option);
+  }
+  button.addEventListener('click',event=>{
+    event.stopPropagation();const opening=!menu.isConnected;closeActionMenus();
+    if(!opening){button.setAttribute('aria-expanded','false');return;}
+    document.body.appendChild(menu);menu.classList.add('open');button.setAttribute('aria-expanded','true');
+    const rect=button.getBoundingClientRect();
+    menu.style.left=Math.max(8,Math.min(window.innerWidth-menu.offsetWidth-8,rect.left))+'px';
+    const below=rect.bottom+5,above=rect.top-menu.offsetHeight-5;
+    menu.style.top=(below+menu.offsetHeight<=window.innerHeight-8?below:Math.max(8,above))+'px';
+  });
+  return button;
+}
+document.addEventListener('pointerdown',event=>{
+  if(event.target.closest&&(event.target.closest('.action-menu-button')||event.target.closest('.action-menu-popup')))return;
+  closeActionMenus();
+});
+function solutionMenuItems(copyData,pasteScope,onExport,onImport,newSolution){
+  const items=[];
+  if(newSolution)items.push({label:'New Solution',action:newSolution});
+  items.push(
+    {label:'Copy Solutions',action:()=>copyLightyardData(copyData(),'Solutions')},
+    {label:'Paste Solutions',action:()=>pasteLightyardData(pasteScope(),'solutions')},
+    {label:'Export Solutions',action:onExport},
+    {label:'Import Solutions',action:onImport}
+  );
+  return items;
 }
 function puzzleMeta(p,withSolutions){
   const emitters=(p.elements||[]).filter(e=>e.type==='emitter').length;
@@ -3884,8 +4076,34 @@ function warnIfStrictPacketTotalsMismatch(p){
   return true;
 }
 function solvedPuzzle(p){ return solutionsForPuzzle(p.id).some(s=>s.status==='solved'); }
+function puzzleGoalAchievement(p){
+  const goal=embeddedPuzzleGoal(p);
+  if(!goal)return null;
+  const solved=solutionsForPuzzle(p).filter(s=>s.status==='solved');
+  if(!solved.length)return {goal,elements:null,ticks:null};
+  const bestElements=Math.min(...solved.map(s=>(s.elements||[]).length));
+  const tickValues=solved.filter(s=>s.ticksToSolve!=null&&Number.isFinite(Number(s.ticksToSolve))).map(s=>Number(s.ticksToSolve));
+  const bestTicks=tickValues.length?Math.min(...tickValues):Infinity;
+  return {
+    goal,
+    elements:bestElements<goal.elements?'better':bestElements===goal.elements?'equal':null,
+    ticks:bestTicks<goal.ticks?'better':bestTicks===goal.ticks?'equal':null
+  };
+}
+function goalStarClasses(p){
+  const classes=[];
+  if(solvedPuzzle(p))classes.push('solved');
+  const achievement=puzzleGoalAchievement(p);
+  if(achievement&&achievement.elements)classes.push('goal-elements','goal-elements-'+achievement.elements);
+  if(achievement&&achievement.ticks)classes.push('goal-ticks','goal-ticks-'+achievement.ticks);
+  return classes.join(' ');
+}
+function puzzleGoalLabel(p){
+  const goal=embeddedPuzzleGoal(p);
+  return goal?`Goal: ${goal.elements} elements, ${goal.ticks} ticks`:'';
+}
 function starRow(puzzles){
-  return puzzles.map(p=>`<span class="${solvedPuzzle(p)?'solved':''}">${solvedPuzzle(p)?'★':'☆'}</span>`).join('');
+  return puzzles.map(p=>`<span class="${goalStarClasses(p)}">${solvedPuzzle(p)?'★':'☆'}</span>`).join('');
 }
 function openPuzzleBoard(p,solutionId){
   if(solutionId!=null)warnIfStrictPacketTotalsMismatch(p);
@@ -4000,35 +4218,76 @@ document.addEventListener('pointercancel',finishListDrag);
 function renderSetListScreen(){
   boardChrome.innerHTML='';
   leftPanel.innerHTML='';
-  const top=document.createElement('div'); top.className='library-actions';
-  if(State.mode==='create'){
-    top.appendChild(actionButton('+ New Set','solid',()=>{
+  const createMenuItems=[
+    {label:'New Set',action:()=>{
       const name=prompt('Name this set of puzzles','New Set');
       if(!name || !name.trim()) return;
       const set={id:uid(),name:name.trim().slice(0,80),createdAt:Date.now()};
       State.sets.push(set); State.expandedSetIds.add(set.id); persistSets(); renderScreen();
-    }));
-    top.appendChild(actionButton('Import','',()=>triggerImport()));
-    top.appendChild(actionButton('Export','',exportAllSets));
-    top.appendChild(actionButton('Save as Web App','',saveAsWebApp));
-  } else {
-    const label=document.createElement('span'); label.className='scope-label'; label.textContent='Solutions:'; top.appendChild(label);
-    top.appendChild(actionButton('Import','',()=>triggerImport({kind:'allSolutions'})));
-    top.appendChild(actionButton('Export','',exportAllSolutionsGlobal));
-  }
-  leftPanel.appendChild(top);
+    }},
+    {label:'Copy All',action:()=>copyLightyardData(allSetsExportData(),'All puzzles')},
+    {label:'Paste',action:()=>pasteLightyardData({kind:'addCreateData'},'puzzles')},
+    {label:'Export All',action:exportAllSets},
+    {label:'Import',action:()=>triggerImport({kind:'addCreateData'})},
+    {label:'Save as Web App',action:saveAsWebApp}
+  ];
+  const allSolutionMenuItems=solutionMenuItems(
+    ()=>allSolutionsExportData(),()=>({kind:'allSolutions'}),exportAllSolutionsGlobal,()=>triggerImport({kind:'allSolutions'})
+  );
 
   const groups=State.builtInSets.length
     ? [{title:'Built-in',sets:State.builtInSets,builtIn:true},{title:'Local',sets:State.sets,builtIn:false}]
     : [{title:'Local',sets:State.sets,builtIn:false}];
   for(const group of groups){
-    const groupHeading=document.createElement('div');groupHeading.className='collection-heading';groupHeading.textContent=group.title;leftPanel.appendChild(groupHeading);
+    const groupHeading=document.createElement('div');groupHeading.className='collection-heading';
+    if(State.mode==='create'&&!group.builtIn){
+      groupHeading.classList.add('with-menu');groupHeading.appendChild(actionMenu('Create Puzzles',createMenuItems,true));
+      const headingText=document.createElement('span');headingText.className='collection-title';headingText.textContent=group.title;groupHeading.appendChild(headingText);
+    }else if(State.mode==='solve'&&!group.builtIn){
+      groupHeading.classList.add('with-right-menu');
+      const headingText=document.createElement('span');headingText.className='collection-title';headingText.textContent=group.title;groupHeading.appendChild(headingText);
+      const menuWrap=document.createElement('span');menuWrap.className='collection-heading-menu-right';menuWrap.appendChild(actionMenu('Solutions',allSolutionMenuItems,true));groupHeading.appendChild(menuWrap);
+    }else groupHeading.textContent=group.title;
+    leftPanel.appendChild(groupHeading);
     if(!group.sets.length){const empty=document.createElement('div');empty.className='tree-empty';empty.textContent=group.builtIn?'No built-in sets.':'No local sets yet.';leftPanel.appendChild(empty);}
   for(const set of group.sets){
     const puzzles=puzzlesForSet(set);
     const isBuiltIn=!!group.builtIn;
     const expanded=State.expandedSetIds.has(set.id);
     const box=document.createElement('section'); box.className='tree-set';box.dataset.setId=set.id;box.dataset.builtIn=isBuiltIn?'true':'false';
+    if(State.mode==='create'){
+      const setMenuItems=isBuiltIn?[
+        {label:'Clone Set',action:()=>cloneBuiltInSetToLocal(set)},
+        {label:'Copy Set',action:()=>copyLightyardData(setExportData(set),'Set')},
+        {label:'Export Set',action:()=>exportSet(set)}
+      ]:[
+        {label:'New Puzzle',action:()=>newPuzzleInSet(set)},
+        {label:'Rename Set',action:()=>{
+          const name=prompt('Rename set',set.name);
+          if(name&&name.trim()){set.name=name.trim().slice(0,80);persistSets();renderScreen();}
+        }},
+        {label:'Copy Set',action:()=>copyLightyardData(setExportData(set),'Set')},
+        {label:'Paste Puzzles',action:()=>pasteLightyardData({kind:'puzzlesIntoSet',setId:set.id},'puzzles')},
+        {label:'Export Set',action:()=>exportSet(set)},
+        {label:'Import Puzzles',action:()=>triggerImport({kind:'puzzlesIntoSet',setId:set.id})},
+        {label:'Delete Set',danger:true,action:()=>{
+          const removedPuzzles=puzzles.slice();
+          if(!confirm(`Delete set "${set.name}" and its ${puzzles.length} puzzle${puzzles.length!==1?'s':''}?`)) return;
+          State.sets=State.sets.filter(s=>s.id!==set.id); State.puzzles=State.puzzles.filter(p=>p.setId!==set.id);
+          State.solutions=State.solutions.filter(sol=>!removedPuzzles.some(p=>puzzleMatchesSolution(p,sol))||allPuzzles().some(p=>puzzleMatchesSolution(p,sol)));
+          persistSets();persistPuzzles();persistSolutions();renderScreen();
+        }}
+      ];
+      box.classList.add('has-set-menu');
+      const setMenu=document.createElement('div');setMenu.className='tree-set-menu';setMenu.appendChild(actionMenu('Set',setMenuItems,true));box.appendChild(setMenu);
+    }else{
+      box.classList.add('has-right-menu');
+      const setMenu=document.createElement('div');setMenu.className='tree-set-solution-menu';
+      setMenu.appendChild(actionMenu('Solutions',solutionMenuItems(
+        ()=>setSolutionsExportData(set),()=>({kind:'setSolutions',setId:set.id}),()=>exportSetSolutions(set),()=>triggerImport({kind:'setSolutions',setId:set.id})
+      ),true));
+      box.appendChild(setMenu);
+    }
     const head=document.createElement('button'); head.type='button'; head.className='tree-head';
     head.innerHTML=`<span class="tree-copy"><span class="tree-name">${escapeHtml(set.name)}</span>${State.mode==='create'
       ? `<span class="tree-meta">${puzzles.length} puzzle${puzzles.length!==1?'s':''}</span>`
@@ -4042,39 +4301,22 @@ function renderSetListScreen(){
     box.appendChild(head);
     if(expanded){
       const body=document.createElement('div'); body.className='tree-body';
-      if(State.mode==='create'&&isBuiltIn){
-        const controls=document.createElement('div');controls.className='scope-actions';
-        controls.appendChild(actionButton('Clone Set to Local','',()=>cloneBuiltInSetToLocal(set)));body.appendChild(controls);
-      } else if(State.mode==='create'){
-        const controls=document.createElement('div'); controls.className='scope-actions';
-        controls.appendChild(actionButton('Import','',()=>triggerImport({kind:'puzzlesIntoSet',setId:set.id})));
-        controls.appendChild(actionButton('Export','',()=>exportSet(set)));
-        controls.appendChild(actionButton('Rename','',()=>{
-          const name=prompt('Rename set',set.name);
-          if(name&&name.trim()){set.name=name.trim().slice(0,80);persistSets();renderScreen();}
-        }));
-        controls.appendChild(actionButton('Delete','danger',()=>{
-          const removedPuzzles=puzzles.slice();
-          if(!confirm(`Delete set "${set.name}" and its ${puzzles.length} puzzle${puzzles.length!==1?'s':''}?`)) return;
-          State.sets=State.sets.filter(s=>s.id!==set.id); State.puzzles=State.puzzles.filter(p=>p.setId!==set.id);
-          State.solutions=State.solutions.filter(sol=>!removedPuzzles.some(p=>puzzleMatchesSolution(p,sol))||allPuzzles().some(p=>puzzleMatchesSolution(p,sol)));
-          persistSets();persistPuzzles();persistSolutions();renderScreen();
-        }));
-        body.appendChild(controls);
-        const fresh=document.createElement('button'); fresh.type='button'; fresh.className='tree-solution';
-        fresh.innerHTML='<span class="tree-copy"><span class="tree-name">+ New Puzzle</span></span>';
-        fresh.addEventListener('click',()=>newPuzzleInSet(set)); body.appendChild(fresh);
-      } else {
-        appendScopeActions(body,'Solutions:',()=>triggerImport({kind:'setSolutions',setId:set.id}),()=>exportSetSolutions(set));
-      }
-
       if(!puzzles.length){ const e=document.createElement('div');e.className='tree-empty';e.textContent='No puzzles in this set.';body.appendChild(e); }
       for(const p of puzzles){
         const pExpanded=State.expandedPuzzleIds.has(p.id);
         const pw=document.createElement('div'); pw.className='tree-puzzle';pw.dataset.puzzleId=p.id;pw.dataset.setId=set.id;pw.dataset.builtIn=isBuiltIn?'true':'false';
+        if(State.mode==='solve'){
+          pw.classList.add('has-right-menu');
+          const puzzleMenu=document.createElement('div');puzzleMenu.className='tree-puzzle-solution-menu';
+          puzzleMenu.appendChild(actionMenu('Solutions',solutionMenuItems(
+            ()=>puzzleSolutionsExportData(p),()=>({kind:'puzzleSolutions',puzzleId:p.id}),()=>exportAllSolutions(p),()=>triggerImport({kind:'puzzleSolutions',puzzleId:p.id}),()=>openPuzzleBoard(p,'BLANK')
+          ),true));
+          pw.appendChild(puzzleMenu);
+        }
         const ph=document.createElement('button'); ph.type='button'; ph.className='tree-puzzle-head';
-        ph.innerHTML=(State.mode==='solve'?`<span class="tree-star ${solvedPuzzle(p)?'solved':''}">${solvedPuzzle(p)?'★':'☆'}</span>`:'')+
-          `<span class="tree-copy"><span class="tree-name">${escapeHtml(p.name)}</span><span class="tree-meta">${puzzleMeta(p,State.mode==='solve')}</span></span>`+
+        const goalLabel=State.mode==='solve'?puzzleGoalLabel(p):'';
+        ph.innerHTML=(State.mode==='solve'?`<span class="tree-star ${goalStarClasses(p)}">${solvedPuzzle(p)?'★':'☆'}</span>`:'')+
+          `<span class="tree-copy"><span class="tree-name-line"><span class="tree-name">${escapeHtml(p.name)}</span>${goalLabel?`<span class="tree-goal">${goalLabel}</span>`:''}</span><span class="tree-meta">${puzzleMeta(p,State.mode==='solve')}</span></span>`+
           (State.mode==='solve'?`<span class="tree-chevron${pExpanded?' expanded':''}" aria-hidden="true"></span>`:'');
         if(State.mode==='solve')ph.setAttribute('aria-expanded',pExpanded?'true':'false');
         ph.addEventListener('click',()=>{
@@ -4092,7 +4334,6 @@ function renderSetListScreen(){
         }
         if(State.mode==='solve' && pExpanded){
           const pb=document.createElement('div'); pb.className='tree-puzzle-body';
-          appendScopeActions(pb,'Solutions:',()=>triggerImport({kind:'puzzleSolutions',puzzleId:p.id}),()=>exportAllSolutions(p));
           const fresh=document.createElement('button'); fresh.type='button'; fresh.className='tree-solution';
           fresh.innerHTML='<span class="tree-copy"><span class="tree-name">New Solution</span><span class="tree-meta">Start fresh</span></span>';
           fresh.addEventListener('click',()=>openPuzzleBoard(p,'BLANK')); pb.appendChild(fresh);
@@ -4138,7 +4379,44 @@ function syncBoardToolControls(){
 }
 function closeMobileMoreMenus(){
   document.querySelectorAll('.mobile-more-menu').forEach(menu=>menu.remove());
-  document.querySelectorAll('.mobile-more-button[aria-expanded="true"]').forEach(button=>button.setAttribute('aria-expanded','false'));
+  document.querySelectorAll('.mobile-more-button[aria-expanded="true"],.header-more-button[aria-expanded="true"]').forEach(button=>button.setAttribute('aria-expanded','false'));
+}
+function makeBoardMoreMenu(moreOptions,headerMenu){
+  const moreWrap=document.createElement('div');moreWrap.className=headerMenu?'header-more-wrap':'mobile-more-wrap';
+  const moreButton=document.createElement('button');moreButton.type='button';
+  moreButton.className=headerMenu?'header-more-button':'mobile-more-button';
+  moreButton.innerHTML=headerMenu?'⋮':'<span class="mobile-tool-glyph">•••</span>More';
+  moreButton.title='More';moreButton.setAttribute('aria-label','More');
+  const menu=document.createElement('div');menu.className='mobile-more-menu';
+  moreButton.addEventListener('click',(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    const opening=!menu.isConnected;
+    closeMobileMoreMenus();
+    if(opening){chooseBoardTool('');syncBoardToolControls();}
+    if(opening){
+      document.body.appendChild(menu);menu.classList.add('open');moreButton.setAttribute('aria-expanded','true');
+      const rect=moreButton.getBoundingClientRect();
+      menu.style.left=Math.max(8,Math.min(window.innerWidth-menu.offsetWidth-8,rect.right-menu.offsetWidth))+'px';
+      const below=rect.bottom+5,above=rect.top-menu.offsetHeight-5;
+      menu.style.top=(below+menu.offsetHeight<=window.innerHeight-8?below:Math.max(8,above))+'px';
+    }
+  });
+  moreButton.setAttribute('aria-haspopup','true');moreButton.setAttribute('aria-expanded','false');
+  for(const [value,label] of moreOptions){
+    const item=document.createElement('button');item.type='button';item.textContent=label;
+    if(value==='deletePuzzle'||value==='deleteSolution')item.classList.add('danger');
+    item.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      // Start the action while this click still carries browser user activation.
+      // This matters for Safari's clipboard permission handling.
+      chooseBoardTool(value);
+      closeMobileMoreMenus();
+    });
+    menu.appendChild(item);
+  }
+  moreWrap.appendChild(moreButton);
+  return moreWrap;
 }
 function makeMobileToolStrip(primaryOptions,moreOptions,extraClass){
   const strip=document.createElement('div');strip.className='mobile-tool-strip'+(extraClass?' '+extraClass:'');
@@ -4156,34 +4434,12 @@ function makeMobileToolStrip(primaryOptions,moreOptions,extraClass){
     });
     scrolling.appendChild(b);
   }
-  const moreWrap=document.createElement('div');moreWrap.className='mobile-more-wrap';
-  const moreButton=document.createElement('button');moreButton.type='button';moreButton.className='mobile-more-button';moreButton.innerHTML='<span class="mobile-tool-glyph">•••</span>More';
-  const menu=document.createElement('div');menu.className='mobile-more-menu';
-  moreButton.addEventListener('click',(e)=>{
-    e.stopPropagation();
-    const opening=!menu.isConnected;
-    closeMobileMoreMenus();
-    if(opening){chooseBoardTool('');syncBoardToolControls();}
-    if(opening){
-      document.body.appendChild(menu);menu.classList.add('open');moreButton.setAttribute('aria-expanded','true');
-      const rect=moreButton.getBoundingClientRect();
-      menu.style.left=Math.max(8,Math.min(window.innerWidth-menu.offsetWidth-8,rect.right-menu.offsetWidth))+'px';
-      const below=rect.bottom+5,above=rect.top-menu.offsetHeight-5;
-      menu.style.top=(below+menu.offsetHeight<=window.innerHeight-8?below:Math.max(8,above))+'px';
-    }
-  });
-  moreButton.setAttribute('aria-haspopup','true');moreButton.setAttribute('aria-expanded','false');
-  for(const [value,label] of moreOptions){
-    const item=document.createElement('button');item.type='button';item.textContent=label;
-    if(value==='deletePuzzle'||value==='deleteSolution')item.classList.add('danger');
-    item.addEventListener('click',()=>{closeMobileMoreMenus();chooseBoardTool(value);});
-    menu.appendChild(item);
-  }
-  moreWrap.appendChild(moreButton);scrolling.appendChild(moreWrap);strip.appendChild(scrolling);
+  if(moreOptions&&moreOptions.length)scrolling.appendChild(makeBoardMoreMenu(moreOptions,false));
+  strip.appendChild(scrolling);
   return strip;
 }
 document.addEventListener('pointerdown',e=>{
-  if(e.target.closest&&(e.target.closest('.mobile-more-wrap')||e.target.closest('.mobile-more-menu')))return;
+  if(e.target.closest&&(e.target.closest('.mobile-more-wrap')||e.target.closest('.header-more-wrap')||e.target.closest('.mobile-more-menu')))return;
   closeMobileMoreMenus();
 });
 window.addEventListener('resize',closeMobileMoreMenus);
@@ -4392,7 +4648,7 @@ function showPuzzleSetupDialog(p){
 }
 function showSolutionSetupSheet(){
   const current=getCurrentSolution();
-  rightPanel.innerHTML='<div class="sheet-head"><h2>Solution setup</h2><button class="iconbtn" id="closeSolutionSetup" title="Close">×</button></div><div class="sheet-body"><label class="field">Solution name</label><input id="solutionSetupName" type="text"><button class="btn solid" id="saveSolutionSetup">Save</button></div>';
+  rightPanel.innerHTML='<div class="sheet-head"><h2>Rename solution</h2><button class="iconbtn" id="closeSolutionSetup" title="Close">×</button></div><div class="sheet-body"><label class="field">Solution name</label><input id="solutionSetupName" type="text"><button class="btn solid" id="saveSolutionSetup">Save</button></div>';
   const input=document.getElementById('solutionSetupName'); input.value=current.name;
   document.getElementById('closeSolutionSetup').addEventListener('click',closeInspectorSheet);
   document.getElementById('saveSolutionSetup').addEventListener('click',()=>{
@@ -4405,6 +4661,11 @@ function exportCurrentSolution(){
   const sol=getCurrentSolution();
   if(sol.id==='BLANK'){alert('Place a piece or name this solution before exporting it.');return;}
   exportSolution(sol);
+}
+function copyCurrentSolution(){
+  const sol=getCurrentSolution();
+  if(sol.id==='BLANK'){alert('Place a piece or name this solution before copying it.');return;}
+  copyLightyardData(solutionExportData(sol),'Solution');
 }
 function cloneCurrentPuzzle(){
   const source=getCurrentPuzzle();
@@ -4433,6 +4694,17 @@ function cloneCurrentSolution(){
   State.solutions.push(copy); persistSolutions();
   State.running=false; State.currentSolutionId=copy.id; State.selectedCell=null; State.selectedTool=null; renderScreen();
 }
+function newBlankSolution(){
+  const puzzle=getCurrentPuzzle();if(!puzzle)return;
+  const solution={
+    id:uid(),puzzleId:canonicalPuzzleId(puzzle),puzzleHash:puzzleConfigurationHash(puzzle),
+    name:'Attempt '+(solutionsForPuzzle(puzzle).length+1),elements:[],status:'in-progress',createdAt:Date.now()
+  };
+  State.solutions.push(solution);persistSolutions();
+  State.running=false;State.finished=false;State.solved=false;State.violation=null;
+  State.currentSetId=puzzle.setId;State.currentPuzzleId=puzzle.id;State.currentSolutionId=solution.id;State.screen='solutionEdit';
+  State.selectedCell=null;State.selectedTool=null;closeInspectorSheet();renderScreen();schedulePuzzleIntro(puzzle);
+}
 function deleteCurrentSolution(){
   const solution=getCurrentSolution();
   if(solution.id==='BLANK'){alert('This new solution has not been saved yet, so there is nothing to delete.');return;}
@@ -4445,20 +4717,25 @@ function deleteCurrentSolution(){
 function chooseBoardTool(value){
   const p=getCurrentPuzzle();
   cancelPiecePreview(true);
-  const actions=['setup','deletePuzzle','clonePuzzle','importPuzzle','exportPuzzle','setupSolution','deleteSolution','cloneSolution','importSolution','exportSolution','goDesign'];
+  const actions=['tryPuzzle','setup','deletePuzzle','clonePuzzle','copyPuzzle','exportPuzzle','newSolution','setupSolution','deleteSolution','cloneSolution','copySolution','exportSolution','goDesign'];
   if(value!=='cloneElement'||State.selectedTool!=='cloneElement'){
     State.cloneSource=null;State.cloneSourceCell=null;
   }
   if(actions.includes(value)){State.selectedTool=null;syncBoardToolControls();}
+  if(value==='tryPuzzle'){
+    State.selectedTool=null;setActiveMode('solve');warnIfStrictPacketTotalsMismatch(p);State.currentSolutionId='BLANK';
+    State.selectedCell=null;State.screen='solutionEdit';renderScreen();schedulePuzzleIntro(p);return;
+  }
   if(value==='setup'){ State.selectedTool=null; showPuzzleSetupDialog(p); return; }
   if(value==='deletePuzzle'){State.selectedTool=null;deleteCurrentPuzzle();return;}
   if(value==='clonePuzzle'){State.selectedTool=null;cloneCurrentPuzzle();return;}
-  if(value==='importPuzzle'){State.selectedTool=null;triggerImport({kind:'replacePuzzle',puzzleId:p.id});return;}
+  if(value==='copyPuzzle'){State.selectedTool=null;copyLightyardData(puzzleExportData(p),'Puzzle');return;}
   if(value==='exportPuzzle'){State.selectedTool=null;exportPuzzle(p);return;}
+  if(value==='newSolution'){State.selectedTool=null;newBlankSolution();return;}
   if(value==='setupSolution'){State.selectedTool=null;showSolutionSetupSheet();return;}
   if(value==='deleteSolution'){State.selectedTool=null;deleteCurrentSolution();return;}
   if(value==='cloneSolution'){State.selectedTool=null;cloneCurrentSolution();return;}
-  if(value==='importSolution'){ State.selectedTool=null; triggerImport({kind:'puzzleSolutions',puzzleId:p.id,returnToBoard:true}); return; }
+  if(value==='copySolution'){State.selectedTool=null;copyCurrentSolution();return;}
   if(value==='exportSolution'){ State.selectedTool=null; exportCurrentSolution(); return; }
   if(value==='goDesign'){
     State.running=false;setActiveMode('create');State.currentSolutionId=null;State.selectedCell=null;State.selectedTool=null;
@@ -4472,13 +4749,14 @@ function renderPuzzleEditScreen(){
   const row=document.createElement('div'); row.className='board-row';
   const title=document.createElement('button'); title.type='button'; title.className='board-title editable'; title.textContent=p.name; title.title='Edit puzzle setup';
   title.addEventListener('click',()=>showPuzzleSetupDialog(p)); row.appendChild(title);
-  row.appendChild(actionButton('Try It Now','solid',()=>{
-    setActiveMode('solve'); warnIfStrictPacketTotalsMismatch(p); State.currentSolutionId='BLANK';State.selectedCell=null;State.selectedTool=null;State.screen='solutionEdit';renderScreen();schedulePuzzleIntro(p);
-  }));
+  row.appendChild(makeBoardMoreMenu([
+    ['tryPuzzle','Try It Now'],['setup','Setup'],['clonePuzzle','Clone Puzzle'],['copyPuzzle','Copy Puzzle'],
+    ['exportPuzzle','Export Puzzle'],['deletePuzzle','Delete Puzzle']
+  ],true));
   boardChrome.appendChild(row);
   boardChrome.appendChild(makeMobileToolStrip(
     [['emitter','Emitter'],['receiver','Receiver'],['crystal','Crystal'],['transformer','Transform'],['mirrorHalf','Half-Mirror'],['prism','Prism'],['cloneElement','Clone'],['eraser','Eraser']],
-    [['setup','Setup'],['deletePuzzle','Delete Puzzle'],['clonePuzzle','Clone Puzzle'],['importPuzzle','Import Puzzle'],['exportPuzzle','Export Puzzle']],
+    [],
     'puzzle-tools'
   ));
   if(State.selectedCell){renderInspector();openInspectorSheet();} else closeInspectorSheet();
@@ -4487,13 +4765,17 @@ function renderSolutionEditScreen(){
   const p=getCurrentPuzzle(),s=getCurrentSolution(); boardChrome.innerHTML='';
   const row=document.createElement('div');row.className='board-row';
   const title=document.createElement('button');title.type='button';title.className='board-title editable';title.textContent=`${p.name} — ${s.name}`;title.title='Rename solution';title.addEventListener('click',showSolutionSetupSheet);row.appendChild(title);
+  row.appendChild(makeBoardMoreMenu([
+    ['newSolution','New Solution'],['setupSolution','Rename Solution'],['cloneSolution','Clone Solution'],['copySolution','Copy Solution'],
+    ['exportSolution','Export Solution'],['goDesign','Go to Puzzle Design'],['deleteSolution','Delete Solution']
+  ],true));
   boardChrome.appendChild(row);
   const playRow=document.createElement('div');playRow.className='board-row';playRow.appendChild(runbar);boardChrome.appendChild(playRow);
   const mobilePrimary=[['mirrorDiag','Mirror']];
   if(!p.noHalfMirrors)mobilePrimary.push(['mirrorHalf','Half-Mirror']);
   if(!p.noPrisms)mobilePrimary.push(['prism','Prism']);
   mobilePrimary.push(['cloneElement','Clone'],['eraser','Eraser']);
-  boardChrome.appendChild(makeMobileToolStrip(mobilePrimary,[['setupSolution','Setup'],['deleteSolution','Delete Solution'],['cloneSolution','Clone Solution'],['importSolution','Import Solution'],['exportSolution','Export Solution'],['goDesign','Go to Design']]));
+  boardChrome.appendChild(makeMobileToolStrip(mobilePrimary,[]));
   runbar.style.display='flex';
   speedSlider.value=State.speed;speedVal.textContent=State.speed;elementCountEl.textContent=(s.elements||[]).length;tickCountEl.textContent=State.tick;playBtn.textContent=State.running?'⏸':'▶';
   if(State.selectedCell){renderInspector();openInspectorSheet();} else closeInspectorSheet();
@@ -4982,9 +5264,34 @@ function showSolvedCelebration(){
     message.appendChild(document.createTextNode('Way to go,'));
     const name=document.createElement('span');name.className='victory-name';name.textContent=State.playerName+'!';message.appendChild(name);
   }else message.textContent='Way to go!';
+  const solution=getCurrentSolution();
+  const elementCount=(solution.elements||[]).length;
+  const tickCount=Number.isFinite(Number(solution.ticksToSolve))?Math.floor(Number(solution.ticksToSolve)):State.tick;
+  const goal=embeddedPuzzleGoal(getCurrentPuzzle());
+  const elementResult=goal?(elementCount<goal.elements?'better':elementCount===goal.elements?'equal':null):null;
+  const tickResult=goal?(tickCount<goal.ticks?'better':tickCount===goal.ticks?'equal':null):null;
+  const stats=document.createElement('div');stats.className='victory-stats';
+  const elements=document.createElement('div');elements.className='victory-stat elements'+(elementResult?' '+elementResult:'');elements.textContent=`${elementCount} element${elementCount!==1?'s':''}`;
+  const ticks=document.createElement('div');ticks.className='victory-stat ticks'+(tickResult?' '+tickResult:'');ticks.textContent=`${tickCount} tick${tickCount!==1?'s':''}`;
+  stats.appendChild(elements);stats.appendChild(ticks);
+  const callouts=document.createElement('div');callouts.className='victory-callouts';
+  if(elementResult){
+    const line=document.createElement('div');line.className='victory-callout elements '+elementResult;
+    line.textContent=elementResult==='better'
+      ? `Fantastic—you beat the element goal by ${goal.elements-elementCount}!`
+      : `Great—you matched the ${goal.elements}-element goal!`;
+    callouts.appendChild(line);
+  }
+  if(tickResult){
+    const line=document.createElement('div');line.className='victory-callout ticks '+tickResult;
+    line.textContent=tickResult==='better'
+      ? `Fantastic—you beat the tick goal by ${goal.ticks-tickCount}!`
+      : `Great—you matched the ${goal.ticks}-tick goal!`;
+    callouts.appendChild(line);
+  }
   const close=document.createElement('button');close.type='button';close.className='btn solid';close.textContent='Continue';
   layer.addEventListener('click',dismissCelebration);
-  dialog.appendChild(message);dialog.appendChild(close);layer.appendChild(dialog);document.body.appendChild(layer);
+  dialog.appendChild(message);dialog.appendChild(stats);if(callouts.children.length)dialog.appendChild(callouts);dialog.appendChild(close);layer.appendChild(dialog);document.body.appendChild(layer);
   setTimeout(()=>close.focus(),0);
   setTimeout(()=>layer.querySelectorAll('.confetti-piece').forEach(piece=>piece.remove()),4700);
 }
@@ -5268,43 +5575,44 @@ Crystals can have a durability factor: every arriving packet decreases the durab
 <p>Failure is permanent for that run, but it does not stop playback. Each failed packet is marked at its failure point, receiver successes continue to be checked off, and later packets can independently succeed or fail.</p>
 
 <h3>Solving</h3>
-<p>If none of the above happens and every receiver gets its full correct sequence of colored packets, congratulations, you solved the puzzle! The solution locks, and its element and tick counts appear with it in the solution list.</p>
+<p>If none of the above happens and every receiver gets its full correct sequence of colored packets, congratulations, you solved the puzzle! The solution locks, and its element and tick counts appear with it in the solution list and congratulations display. Saved web apps can include an element and tick goal beside each puzzle name. Matching a goal is highlighted with a faded color; beating it uses the full packet Blue for elements or packet Red for ticks. The puzzle's gold star receives the same right-side goal accents.</p>
+<p>On the Solve Puzzles list, the kebab beside <strong>Local</strong> manages all solutions. Each set and puzzle has its own solution kebab immediately before its expand/collapse chevron.</p>
 <p>Use the <strong>Preferences</strong> gear to add or change the player name used in the solved-puzzle celebration. Preferences also includes a colorblind option that labels moving packets and colored crystals with letters, and an optional Sound setting for packet interactions and the solved-puzzle celebration. Emitter and receiver sequences show color letters when their configuration is open.</p>
 
 <h3>Solving controls</h3>
 <p>The solution workspace keeps navigation, playback, and piece placement above the board. On a narrow screen, swipe the piece row sideways to reach any button that does not fit.</p>
 <div class="help-ui-shot" role="img" aria-label="Annotated Solve workspace showing navigation, playback, piece tools, More, and the puzzle board">
   <div class="help-ui-top"><span class="help-ui-title">Lightyard</span><span class="help-ui-pill">List</span><span class="help-ui-pill">‹ Puzzle</span><span class="help-ui-pill">Puzzle ›</span><span class="help-ui-pill">⚙</span><span class="help-ui-pill">?</span></div>
-  <div class="help-ui-top"><span class="help-ui-title">Color Crossing — Solution 1</span></div>
+  <div class="help-ui-top"><span class="help-ui-title">Color Crossing — Solution 1</span><span class="help-ui-pill">⋮</span></div>
   <div class="help-ui-play"><span class="help-ui-pill">Elements: 3</span><span class="help-ui-pill">tick 7</span><span class="help-ui-meter"></span><span class="help-ui-pill">⏭</span><span class="help-ui-pill primary">▶</span><span class="help-ui-pill">↺</span></div>
-  <div class="help-ui-tools"><span class="help-ui-tool">╱<br>Mirror</span><span class="help-ui-tool">◩<br>Half</span><span class="help-ui-tool">△<br>Prism</span><span class="help-ui-tool">⧉<br>Clone</span><span class="help-ui-tool">⌫<br>Eraser</span><span class="help-ui-tool">•••<br>More</span></div>
+  <div class="help-ui-tools"><span class="help-ui-tool">╱<br>Mirror</span><span class="help-ui-tool">◩<br>Half</span><span class="help-ui-tool">△<br>Prism</span><span class="help-ui-tool">⧉<br>Clone</span><span class="help-ui-tool">⌫<br>Eraser</span></div>
   <div class="help-ui-board"><span class="help-ui-piece-dot fixed" style="left:7%;top:50%"></span><span class="help-ui-piece-dot mirror" style="left:50%;top:50%"></span><span class="help-ui-piece-dot" style="left:79%;top:36%"></span><span class="help-ui-piece-dot fixed" style="left:93%;top:64%"></span></div>
-  <span class="help-ui-label" style="left:5px;top:5px">1</span><span class="help-ui-label" style="left:5px;top:70px">2</span><span class="help-ui-label" style="left:5px;top:110px">3</span><span class="help-ui-label" style="right:6px;top:110px">4</span><span class="help-ui-label" style="right:8px;top:164px">5</span>
+  <span class="help-ui-label" style="left:5px;top:5px">1</span><span class="help-ui-label" style="left:5px;top:70px">2</span><span class="help-ui-label" style="left:5px;top:110px">3</span><span class="help-ui-label" style="right:6px;top:42px">4</span><span class="help-ui-label" style="right:8px;top:164px">5</span>
 </div>
 <ol class="help-ui-legend">
   <li><strong>Navigation and solution name:</strong> List returns to the puzzle list; Previous Puzzle and Next Puzzle move to the next available puzzle, continuing across sets and skipping empty sets. Select the title below the header to rename the solution.</li>
   <li><strong>Playback:</strong> Elements shows how many solver pieces are in use; tick shows elapsed steps. The slider changes playback speed. Step advances one square, Play pauses or resumes, and Reset returns to the beginning. After success or failure, Play restarts automatically.</li>
   <li><strong>Piece tools:</strong> Select Mirror, Half-Mirror, or Prism, then select an empty square to place it. Clone copies an existing solver piece; Eraser removes solver pieces. Fixed puzzle pieces cannot be changed.</li>
-  <li><strong>More:</strong> Opens Setup, solution-level Clone/Delete/Import/Export, and Go to Design. The More button is part of the same horizontally scrolling tool row.</li>
+  <li><strong>More:</strong> The kebab beside the solution name opens New Solution, Rename Solution, Clone Solution, Copy Solution, Export Solution, Go to Puzzle Design, and Delete Solution.</li>
   <li><strong>Board:</strong> Click an empty square to place a piece, or a piece to select it for cloning, or to delete it, or to see a preview of its sequence. Click a second time to see the piece's configuration.</li>
 </ol>
 
 <h3>Creating Puzzles</h3>
-<p>In <strong>Create Puzzles</strong> mode, puzzles are organized into sets. Expand any combination of sets, create or import puzzles, and use the drag handles to reorder sets and puzzles or move a puzzle into another set.</p>
+<p>In <strong>Create Puzzles</strong> mode, puzzles are organized into sets. The kebab beside <strong>Local</strong> creates sets and copies, pastes, imports, or exports the complete puzzle collection. Imported sets are added as new sets; loose puzzles are placed in a new <strong>Added Puzzles</strong> set. Each set has its own kebab beside its name. <strong>Paste Puzzles</strong> and <strong>Import Puzzles</strong> add every puzzle found to that set without replacing anything. Use the drag handles to reorder sets and puzzles or move a puzzle into another set.</p>
 
 <h4>The design workspace</h4>
 <div class="help-ui-shot" role="img" aria-label="Annotated Create Puzzles workspace showing navigation, puzzle name, test control, fixed-piece tools, More, and the design board">
   <div class="help-ui-top"><span class="help-ui-title">Lightyard</span><span class="help-ui-pill">List</span><span class="help-ui-pill">‹ Puzzle</span><span class="help-ui-pill">Puzzle ›</span><span class="help-ui-pill">⚙</span><span class="help-ui-pill">?</span></div>
-  <div class="help-ui-top"><span class="help-ui-title">Color Crossing</span><span class="help-ui-pill primary">Try It Now</span></div>
-  <div class="help-ui-tools"><span class="help-ui-tool">●→<br>Emitter</span><span class="help-ui-tool">→□<br>Receiver</span><span class="help-ui-tool">◆<br>Crystal</span><span class="help-ui-tool">≋<br>Transform</span><span class="help-ui-tool">◩<br>Half-Mirror</span><span class="help-ui-tool">△<br>Prism</span><span class="help-ui-tool">⧉<br>Clone</span><span class="help-ui-tool">⌫<br>Eraser</span><span class="help-ui-tool">•••<br>More</span></div>
+  <div class="help-ui-top"><span class="help-ui-title">Color Crossing</span><span class="help-ui-pill">⋮</span></div>
+  <div class="help-ui-tools"><span class="help-ui-tool">●→<br>Emitter</span><span class="help-ui-tool">→□<br>Receiver</span><span class="help-ui-tool">◆<br>Crystal</span><span class="help-ui-tool">≋<br>Transform</span><span class="help-ui-tool">◩<br>Half-Mirror</span><span class="help-ui-tool">△<br>Prism</span><span class="help-ui-tool">⧉<br>Clone</span><span class="help-ui-tool">⌫<br>Eraser</span></div>
   <div class="help-ui-board"><span class="help-ui-piece-dot fixed" style="left:7%;top:50%"></span><span class="help-ui-piece-dot fixed" style="left:36%;top:36%;border-color:#9fd8ff"></span><span class="help-ui-piece-dot fixed" style="left:64%;top:64%;border-color:#ff9d4d"></span><span class="help-ui-piece-dot fixed" style="left:93%;top:50%;border-color:#e0a6ff"></span></div>
   <span class="help-ui-label" style="left:5px;top:5px">1</span><span class="help-ui-label" style="right:6px;top:38px">2</span><span class="help-ui-label" style="left:5px;top:78px">3</span><span class="help-ui-label" style="right:6px;top:78px">4</span><span class="help-ui-label" style="right:8px;top:126px">5</span>
 </div>
 <ol class="help-ui-legend">
   <li><strong>Navigation and puzzle name:</strong> List returns to the set list; Previous Puzzle and Next Puzzle move to the next available puzzle, continuing across sets and skipping empty sets. Select the puzzle name below the header to open Setup.</li>
-  <li><strong>Try It Now:</strong> Opens a fresh solution on this puzzle so you can test it immediately.</li>
+  <li><strong>Try It Now:</strong> The first item in the kebab opens a fresh solution on this puzzle so you can test it immediately.</li>
   <li><strong>Fixed-piece tools:</strong> Select a component—including a Half-Mirror or Prism—and then an empty square to place it. Clone copies a selected component; Eraser removes one.</li>
-  <li><strong>More:</strong> Opens Setup and puzzle-level Clone/Delete/Import/Export.</li>
+  <li><strong>More:</strong> The kebab beside the puzzle name opens Try It Now, Setup, Clone Puzzle, Copy Puzzle, Export Puzzle, and Delete Puzzle.</li>
   <li><strong>Design board:</strong> Fixed components can be dragged to new squares. Select one to configure it.</li>
 </ol>
 
@@ -5328,10 +5636,10 @@ Crystals can have a durability factor: every arriving packet decreases the durab
 </ul>
 
 <h4>Testing and organizing</h4>
-<p>Use <strong>Try It Now</strong> whenever you want to test the current design. Built-in puzzles are read-only; clone a puzzle or set to Local before editing it. Local sets and individual puzzles can be imported, exported, renamed, cloned, reordered, moved, or deleted. <strong>Save as Web App</strong> downloads a standalone copy containing the current built-in and local puzzle sets, player name, colorblind preference, and sound preference, but no saved solutions.</p>
+<p>Use <strong>Try It Now</strong> whenever you want to test the current design. Built-in puzzles are read-only; clone a puzzle or set to Local before editing it. Local sets and individual puzzles can be copied or pasted through the clipboard, imported or exported as files, renamed, cloned, reordered, moved, or deleted. <strong>Save as Web App</strong> downloads a standalone copy containing the current built-in and local puzzle sets, player name, colorblind preference, sound preference, and the best element and tick goals from solved puzzles—but no saved solutions.</p>
 
 <h3>Sharing puzzles &amp; solutions</h3>
-<p>Local puzzles, changes, and solutions are stored in your browser; built-in puzzles remain embedded in the app file. You can export or import:</p>
+<p>Local puzzles, changes, and solutions are stored in your browser; built-in puzzles remain embedded in the app file. The same sharing scopes are available through Copy/Paste using the clipboard or Export/Import using files:</p>
 <ul>
   <li>A single solution</li>
   <li>All the solutions for a puzzle</li>
@@ -5341,7 +5649,7 @@ Crystals can have a durability factor: every arriving packet decreases the durab
   <li>All the puzzles in a set</li>
   <li>All of the puzzles in all of the sets</li>
 </ul>
-<p>To share the whole game with someone, send them this app file plus the relevant export—they can open the app and import it straight in. Puzzle designers can also use <strong>Save as Web App</strong> to download a standalone copy with the current sets, puzzles, player name, colorblind preference, and sound preference built in; saved solutions are not included. Personal settings can be changed at any time with the gear button.</p>
+<p>To share the whole game with someone, send them this app file plus the relevant export—they can open the app and import it straight in. Puzzle designers can also use <strong>Save as Web App</strong> to download a standalone copy with the current sets, puzzles, player name, colorblind preference, sound preference, and solved-puzzle goals built in; saved solutions themselves are not included. Personal settings can be changed at any time with the gear button.</p>
 `;
 }
 function showHelp(){
