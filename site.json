@@ -1,0 +1,27 @@
+{
+  "name": "geoffcanyon",
+  "domain": "https://www.geoffcanyon.com",
+  "tagline": "Product, code, puzzles, and whatever else won't fit in a PRD.",
+  "email": "gcanyon@gmail.com",
+  "linkedin": "https://www.linkedin.com/in/geoffcanyon",
+  "github": "https://github.com/gcanyon",
+  "resume": "/geoff_canyon_resume.pdf",
+  "headshot": "/img/geoff_headshot.jpg",
+  "home_max": 5,
+  "bio": "I build AI-powered investment research tools at Arch Labs. Before that: experimentation tooling at Agoda, community systems at Answers.com, and a stint at HBO I still bring up too often. This is where I write about product, code, puzzles, and whatever else won't fit in a PRD.",
+  "status": "Currently: open to new PM roles · debugging a puzzle game called Lightyard · a few chapters behind on a novella.",
+  "topics": [
+    {"slug": "ai", "name": "AI", "nav": "AI", "description": "Where I actually use these tools, what breaks, and what I've changed my mind about.", "subtopics": []},
+    {"slug": "coding", "name": "Coding", "nav": "Coding", "description": "A PM who still ships code. Scripts, side projects, the occasional production PR.", "subtopics": []},
+    {"slug": "product", "name": "Product Management", "nav": "Product", "description": "0→1 bets, the tradeoffs that don't make the PRD, and three years of building AIR.", "subtopics": []},
+    {"slug": "people", "name": "People Management", "nav": "People", "description": "Coaching PMs, running rooms, and the parts of managing people nobody puts in a handbook.", "subtopics": []},
+    {"slug": "games", "name": "Games & Puzzles", "nav": "Games", "description": "Lightyard, a puzzle game I'm building, plus crossword nonsense.", "subtopics": []},
+    {"slug": "fiction", "name": "Fiction", "nav": "Fiction", "description": "Old School — a hard science fiction novella, posted as I write it.", "subtopics": []}
+  ],
+  "jobs": [
+    {"company": "Arch Labs", "role": "Product Manager, Arch Investment Research (AIR)", "dates": "[Dates]", "line": "[One line on what you built and what changed because of it.]"},
+    {"company": "Agoda", "role": "Product Manager, experimentation platform", "dates": "[Dates]", "line": "[One line on scope and impact.]"},
+    {"company": "Answers.com", "role": "[Title], quality and community", "dates": "[Dates]", "line": "[One line on scope and impact.]"},
+    {"company": "HBO", "role": "[Title]", "dates": "[Dates]", "line": "[One line.]"}
+  ]
+}

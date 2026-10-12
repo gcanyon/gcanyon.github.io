@@ -1,77 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Geoff Canyon</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geoffcanyon</title>
+<meta name="description" content="Product, code, puzzles, and whatever else won&#x27;t fit in a PRD.">
+<link rel="canonical" href="https://www.geoffcanyon.com/">
+<link rel="alternate" type="application/rss+xml" title="geoffcanyon" href="/feed.xml">
+<meta property="og:title" content="geoffcanyon"><meta property="og:description" content="Product, code, puzzles, and whatever else won&#x27;t fit in a PRD."><meta property="og:url" content="https://www.geoffcanyon.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
-  <div class="container">
-    <div class="main">
-      <div class="card">
-        <a href="articleswithclaude.html">
-          <div class="card-image">
-            <img src="img/article_transform_claude.jpg" alt="Article Transform with Claude">
-          </div>
-          <h2>Article Transmogrification With Claude</h2>
-        </a>
-        <p>LLMs are adept at summarization, categorization, and text generation. So, can Claude:</p>
-        <ol>
-            <li>Fact-extract a group of articles</li>
-            <li>Mix and match the facts, organizing them by (new) topics</li>
-            <li>Produce new articles based on the new fact combinations</li>
-        </ol>
-        <a href="articleswithclaude.html">Read More</a>
-      </div>
-      <div class="card">
-        <a href="googlevsopenai.html">
-          <div class="card-image">
-            <img src="img/gvso.jpg" alt="Google vs. OpenAI Image">
-          </div>
-          <h2>Is it possible to use ChatGPT to replace Google?</h2>
-        </a>
-        <p>Google is the overwhelmingly dominant leader in search. But "search" isn't necessarily the problem people are trying to solve, any more than elevator riders have the goal of "stand still in a metal box for a minute." Search is a tool for finding information. In this instance, I'm looking at the sub-use-case of "find the answer to a question," along with a somewhat "find information on the web" question</p>
-        <p>tl;dr -- Microsoft thinks that LLMs can disrupt search -- based on a few tests, I think they're onto something.</p>
-        <a href="googlevsopenai.html">Read More</a>
-      </div>
-      <div class="card">
-        <a href="livecodewgpt.html">
-          <div class="card-image">
-            <img src="img/livecode.png" alt="LiveCode Image">
-          </div>
-          <h2>Using ChatGPT to generate code in an obscure language</h2>
-        </a>
-        <p>I experimented with generating <a href="https://livecode.com">LiveCode</a> using <a href="https://openai.com/blog/chatgpt">ChatGPT</a>. LiveCode is fairly obscure, so ChatGPT has much less training data to work with than e.g. for Python.</p>
-        <p>tl;dr -- Despite the limited training data, ChatGPT does a good job of generating LiveCode and an excellent job taking direction. And some of its code was better than mine...</p>
-        <a href="livecodewgpt.html">Read More</a>
-      </div>
-      <div class="card">
-        <a href="https://www.liveperson.com/blog/improving-named-entity-recognition/">
-          <div class="card-image">
-            <img src="img/bert.jpg" alt="BERT Image">
-          </div>
-          <h2>How implementing a BERT-based model improved precision and recall in recognizing global entities at LivePerson</h2>
-        </a>
-        <p>Entities are the things, and their attributes, referred to in conversations. Some are recognized using a list: models of cars, for example. Machine-learning is useful for recognizing entities that aren't easily enumerated, like numbers, dates, times, places, currency, and people's names. The model that is trained on a large amount of data that has been labeled with the desired entities.</p>
-        <p>tl;dr -- implementing a BERT-based model enabled LivePerson to add new entity types while also improving F1 from 42% to 89%, doubling performance.</p>
-        <a href="https://www.liveperson.com/blog/improving-named-entity-recognition/">Read More</a>
-      </div>
-      <!-- Additional cards can be added in a similar fashion -->
-    </div>
-    <div class="right-column">
-      <img class="profile-image" src="img/geoff_headshot_small.jpg" alt="Geoff Canyon Image">
-      <p>I'm <strong>Geoff Canyon</strong>, a product manager with fifteen years of experience in a variety of companies. For several years I led the excellent team responsible for <a href="http://answers.com">Answers.com</a>. </p>
-      <p>Over the past six years I've developed a strong interest in machine learning, and in particular natural language understanding. If you have hard problems to solve, I'd love to help: reach out at gcanyon @ gmail.com.</p>
-      <div class="social-icons">
-        <a href="https://www.linkedin.com/in/geoffcanyon" target="_blank">
-          <img src="img/linkedin.png" alt="LinkedIn">
-        </a>
-        <a href="https://github.com/gcanyon" target="_blank">
-          <img src="img/github.png" alt="GitHub">
-        </a>
-      </div>
-    </div>
-  </div>
+<div class="wrap">
+<div class="mast"><a class="logo" href="/">geoffcanyon</a><nav><a href="/ai/">AI</a><span class="sep">·</span><a href="/coding/">Coding</a><span class="sep">·</span><a href="/product/">Product</a><span class="sep">·</span><a href="/people/">People</a><span class="sep">·</span><a href="/games/">Games</a><span class="sep">·</span><a href="/fiction/">Fiction</a><span class="sep">·</span><a href="/archive/">Archive</a></nav></div>
+<div class="intro"><div class="text"><p>I build AI-powered investment research tools at Arch Labs. Before that: experimentation tooling at Agoda, community systems at Answers.com, and a stint at HBO I still bring up too often. This is where I write about product, code, puzzles, and whatever else won&#x27;t fit in a PRD.</p><p class="status">Currently: open to new PM roles · debugging a puzzle game called Lightyard · a few chapters behind on a novella. <a href="/about/">More about me &rarr;</a></p></div><img class="shot" src="/img/geoff_headshot.jpg" alt="Geoff Canyon"></div>
+<div class="label">Latest</div>
+<a class="row lead" href="/posts/introducing-lightyard/" data-topic="games"><div class="body"><div class="meta"><span>Pinned</span><span class="sep">·</span><span>Games</span><span class="sep">·</span><span class="d">Oct 12, 2026</span></div><h4>Introducing Lightyard</h4><p>A Trainyard-inspired puzzle game, built as a single self-contained HTML file. [one-line description]</p></div></a>
+<div class="label" id="explore">Explore by topic</div>
+<div class="topics">
+<a href="/ai/"><div class="hd"><h3>AI</h3><span class="go">&rarr;</span></div><p>Where I actually use these tools, what breaks, and what I&#x27;ve changed my mind about.</p></a>
+<a href="/coding/"><div class="hd"><h3>Coding</h3><span class="go">&rarr;</span></div><p>A PM who still ships code. Scripts, side projects, the occasional production PR.</p></a>
+<a href="/product/"><div class="hd"><h3>Product Management</h3><span class="go">&rarr;</span></div><p>0→1 bets, the tradeoffs that don&#x27;t make the PRD, and three years of building AIR.</p></a>
+<a href="/people/"><div class="hd"><h3>People Management</h3><span class="go">&rarr;</span></div><p>Coaching PMs, running rooms, and the parts of managing people nobody puts in a handbook.</p></a>
+<a href="/games/"><div class="hd"><h3>Games &amp; Puzzles</h3><span class="go">&rarr;</span></div><p>Lightyard, a puzzle game I&#x27;m building, plus crossword nonsense.</p></a>
+<a href="/fiction/"><div class="hd"><h3>Fiction</h3><span class="go">&rarr;</span></div><p>Old School — a hard science fiction novella, posted as I write it.</p></a>
+</div>
+<div class="label">More recent</div>
+<a class="row" href="/articleswithclaude.html" data-topic="ai"><img class="thumb" src="/img/article_transform_claude.jpg" alt=""><div class="body"><div class="meta"><span>AI</span><span class="sep">·</span><span class="d">May 26, 2023</span></div><h4>Article Transmogrification With Claude</h4><p>LLMs are adept at summarization, categorization, and text generation. So, can Claude transform an article into something new?</p></div></a>
+<a class="row" href="/googlevsopenai.html" data-topic="ai"><img class="thumb" src="/img/gvso.jpg" alt=""><div class="body"><div class="meta"><span>AI</span><span class="sep">·</span><span class="d">Apr 15, 2023</span></div><h4>Is it possible to use ChatGPT to replace Google?</h4><p>Microsoft thinks LLMs can disrupt search. Based on a few tests, I think they&#x27;re onto something.</p></div></a>
+<a class="row" href="/livecodewgpt.html" data-topic="coding"><img class="thumb" src="/img/livecode.png" alt=""><div class="body"><div class="meta"><span>Coding</span><span class="sep">·</span><span class="d">Apr 15, 2023</span></div><h4>Using ChatGPT to generate code in an obscure language</h4><p>Despite the limited training data, ChatGPT does a good job of generating LiveCode and an excellent job taking direction.</p></div></a>
+<a class="row" href="https://www.liveperson.com/blog/improving-named-entity-recognition/" target="_blank" rel="noopener" data-topic="ai"><img class="thumb" src="/img/bert.jpg" alt=""><div class="body"><div class="meta"><span>AI</span><span class="sep">·</span><span class="d">Jun 1, 2022</span></div><h4><span class="ext">How a BERT-based model improved precision and recall in recognizing global entities at LivePerson</span></h4><p>Implementing a BERT-based model let LivePerson add new entity types while lifting F1 from 42% to 89%.</p></div></a>
+<div class="foot"><span>geoffcanyon.com</span><span><a href="/about/">About</a> · <a href="mailto:gcanyon@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/geoffcanyon">LinkedIn</a> · <a href="/feed.xml">RSS</a></span></div>
+</div>
+<script src="/assets/site.js"></script>
 </body>
 </html>
