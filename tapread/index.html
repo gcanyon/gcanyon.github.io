@@ -698,11 +698,12 @@ const SystemVoice = {
 };
 
 // Kokoro-82M via kokoro-js, in a module worker so synthesis never blocks the page.
-// Two modes, measured on an M-series Mac:
-//   GPU: fp16 weights (~165 MB) on WebGPU — ~0.3 s per word
-//   CPU: q8 weights  (~90 MB)  on WASM    — ~2.5 s per word (single-threaded on GitHub Pages)
-// GPU is tried first when the browser has WebGPU; any failure falls back to CPU.
-// fp16 returns garbage on its very first run, so we warm it up, and every clip is checked.
+// Measured on an M-series Mac in Chrome (intelligibility checked by transcribing the output):
+//   GPU: fp32 weights (~326 MB) on WebGPU — ~0.5 s per word, clean
+//   GPU: fp16 weights — fast but badly garbled ("The vendor says it is"), so not used
+//   CPU: q8 weights  (~92 MB)  on WASM    — ~2.5 s per word, clean
+// GPU is tried first when the browser has WebGPU; failure falls back to CPU. If CPU mode is
+// too slow to be usable (Safari), loading fails with a clear message and the device voice stays.
 const KOKORO_VOICES = { af_heart: 'Heart (US, warm)', af_bella: 'Bella (US)', af_nicole: 'Nicole (US, soft)', am_michael: 'Michael (US)', am_fenrir: 'Fenrir (US)', bf_emma: 'Emma (UK)', bm_george: 'George (UK)' };
 const KOKORO_WORKER = `
   import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
@@ -719,10 +720,10 @@ const KOKORO_WORKER = `
           { dtype: m.dtype, device: m.device, progress_callback: p => self.postMessage({ type: 'progress', p }) });
         self.postMessage({ type: 'stage' });
         // Warm up, and make sure this mode actually produces sound on this device.
-        let ok = false;
+        let ok = false; const t0 = performance.now();
         for (let i = 0; i < 3 && !ok; i++) ok = !bad((await tts.generate('Hello.', { voice: 'af_heart' })).audio);
         if (!ok) throw new Error('Kokoro produced no sound in ' + m.device + ' mode');
-        self.postMessage({ type: 'ready' });
+        self.postMessage({ type: 'ready', warmup: (performance.now() - t0) / 1000 });
       } else if (m.type === 'gen') {
         let a;
         for (let i = 0; i < 2; i++) { a = await tts.generate(m.text, { voice: m.voice, speed: m.speed }); if (!bad(a.audio)) break; a = null; }
@@ -738,13 +739,12 @@ const Kokoro = {
   // Anyone (e.g. the Settings page) can watch progress, including for a load already under way.
   onStatus(fn) { this.listeners.add(fn); fn(this.status); return () => this.listeners.delete(fn); },
   emit(frac, label) { this.status = { frac, label }; for (const fn of this.listeners) try { fn(this.status); } catch {} },
-  // Only try GPU mode where it can work: WebGPU with 16-bit float shaders. Safari, for one,
-  // may lack shader-f16. A failure is remembered so we don't re-download 165 MB every visit.
+  // A GPU failure is remembered so we don't re-download 326 MB on every visit.
   async gpuUsable() {
     try {
-      if (!('gpu' in navigator) || localStorage.getItem('tapread.kokoroGpuFailed')) return false;
+      if (!('gpu' in navigator) || localStorage.getItem('tapread.kokoroGpuFailed2')) return false;
       const ad = await Promise.race([navigator.gpu.requestAdapter(), sleep(4000).then(() => null)]);
-      return !!ad && ad.features.has('shader-f16');
+      return !!ad;
     } catch { return false; }
   },
   load(onProgress) {
@@ -754,7 +754,7 @@ const Kokoro = {
     const attempt = (device, dtype, label) => new Promise((resolve, reject) => {
       let w, stall;
       // Give up if nothing at all happens for a while (downloads report progress constantly).
-      const watchdog = ms => { clearTimeout(stall); stall = setTimeout(() => { w?.terminate(); reject(new Error(`${label}: no progress for ${ms / 1000}s`)); }, ms); };
+      const watchdog = ms => { clearTimeout(stall); stall = setTimeout(() => { w?.terminate(); reject(new Error(`${label} stopped responding after ${ms / 1000} s — this browser can’t run it`)); }, ms); };
       try { w = new Worker(URL.createObjectURL(new Blob([KOKORO_WORKER], { type: 'text/javascript' })), { type: 'module' }); }
       catch (e) { return reject(e); }
       const files = {};
@@ -767,8 +767,12 @@ const Kokoro = {
           if (p.file && p.total) files[p.file] = [p.loaded || 0, p.total];
           const tot = Object.values(files).reduce((a, [, t]) => a + t, 0), got = Object.values(files).reduce((a, [l]) => a + l, 0);
           if (tot) this.emit(got / tot, `Downloading ${label} — ${Math.round(got / 1e6)} of ${Math.round(tot / 1e6)} MB`);
-        } else if (m.type === 'stage') { watchdog(60000); this.emit(1, `Warming up ${label}…`); }
-        else if (m.type === 'ready') { clearTimeout(stall); w.onmessage = msg => this.onMessage(msg.data); resolve(w); }
+        } else if (m.type === 'stage') { watchdog(30000); this.emit(1, `Downloaded. Test-speaking a word (${label})…`); }
+        else if (m.type === 'ready') {
+          clearTimeout(stall);
+          if (device === 'wasm' && m.warmup > 12) { w.terminate(); return reject(new Error(`too slow in this browser (${Math.round(m.warmup)} s for one word)`)); }
+          w.onmessage = msg => this.onMessage(msg.data); resolve(w);
+        }
         else if (m.type === 'error') { clearTimeout(stall); w.terminate(); reject(new Error(m.error)); }
       };
       w.onerror = e => { e.preventDefault?.(); clearTimeout(stall); w.terminate(); reject(new Error(e.message || 'Kokoro worker failed to start')); };
@@ -776,10 +780,10 @@ const Kokoro = {
     });
     this.loading = (async () => {
       if (await this.gpuUsable()) {
-        try { this.worker = await attempt('webgpu', 'fp16', 'fast mode'); this.mode = 'gpu'; }
+        try { this.worker = await attempt('webgpu', 'fp32', 'fast mode'); this.mode = 'gpu'; }
         catch (e) {
           console.warn('Kokoro GPU mode failed, using CPU', e);
-          try { localStorage.setItem('tapread.kokoroGpuFailed', String(e.message || e)); } catch {}
+          try { localStorage.setItem('tapread.kokoroGpuFailed2', String(e.message || e)); } catch {}
         }
       }
       if (!this.worker) { this.worker = await attempt('wasm', 'q8', 'standard mode'); this.mode = 'cpu'; }
@@ -793,7 +797,7 @@ const Kokoro = {
     this.waiters.delete(m.id);
     m.type === 'audio' ? w.resolve({ audio: m.audio, sr: m.sr }) : w.reject(new Error(m.error));
   },
-  key(text) { return `k|${S.kokoroVoice}|${text}`; },
+  key(text) { return `k2|${S.kokoroVoice}|${text}`; },
   // Priority queue: taps jump ahead of background pre-warming.
   get(text, urgent = false) {
     const key = this.key(text);
@@ -893,12 +897,13 @@ const TTS = {
     try { await Player.play(clip); return true; }
     catch (e) { console.warn('Audio playback blocked, using device voice', e); return false; }
   },
-  async say(text, { word = false } = {}) {
+  // wait: for deliberate voice tests in Settings, wait for Kokoro instead of falling back.
+  async say(text, { word = false, wait = false } = {}) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     let t = speakable(text).trim(); if (!t) return;
     if (this.usingKokoro()) {
       if (word && !/[.!?]$/.test(t)) t += '.';
-      if (await this.kokoroPlay(t, my, 1200)) return;
+      if (await this.kokoroPlay(t, my, wait ? 30000 : 1200)) return;
     }
     if (my === this.token) await SystemVoice.speak(speakable(text).trim());
   },
@@ -1970,7 +1975,7 @@ async function renderSettingsTab(body, reader, readers) {
   body.innerHTML = `
   <div class="panel"><h3>Voice</h3>
     <div class="row"><label>Speech engine</label>
-      <select class="field" id="sEngine"><option value="system" ${S.engine === 'system' ? 'selected' : ''}>Device voice (instant, no download)</option><option value="kokoro" ${S.engine === 'kokoro' ? 'selected' : ''}>Kokoro (better voice, 90–165 MB once)</option></select></div>
+      <select class="field" id="sEngine"><option value="system" ${S.engine === 'system' ? 'selected' : ''}>Device voice (instant, no download)</option><option value="kokoro" ${S.engine === 'kokoro' ? 'selected' : ''}>Kokoro (better voice, 90–330 MB once)</option></select></div>
     <div id="sysBox" class="${S.engine === 'system' ? '' : 'hidden'}">
       <div class="row"><label>Device voice</label><select class="field" id="sVoice"><option value="">Automatic (best available)</option>${sysVoices.map(v => `<option value="${esc(v.voiceURI)}" ${v.voiceURI === S.sysVoice ? 'selected' : ''}>${esc(v.name)} (${v.lang})${v.localService ? '' : ' · online'}</option>`).join('')}</select></div>
       <div class="row"><label>Speed</label><input type="range" id="sRate" min="0.6" max="1.2" step="0.05" value="${S.rate}"><span id="sRateV">${S.rate}</span></div>
@@ -1980,7 +1985,7 @@ async function renderSettingsTab(body, reader, readers) {
       <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready || Kokoro.loading || /^Failed/.test(Kokoro.status.label) ? esc(Kokoro.status.label) : 'Not loaded'}</span>${Kokoro.ready || Kokoro.loading ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}${Kokoro.mode === 'cpu' ? ' <button class="btn small ghost" id="kGpuRetry" title="Try the graphics chip again">Retry fast mode</button>' : ''}</div>
       <div class="row ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBarRow"><label></label><div class="bar-prog" id="kBar"><i></i></div></div>
       <div class="row"><label>Kokoro voice</label><select class="field" id="kVoice">${Object.entries(KOKORO_VOICES).map(([k, v]) => `<option value="${k}" ${k === S.kokoroVoice ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-      <p class="note">Runs on this device. With a graphics chip that supports WebGPU it downloads ~165 MB and makes a word in about a third of a second; otherwise ~90 MB and a couple of seconds per word. Each word is saved once made, and opening a page prepares its words in the background. If a tapped word isn’t ready within a second or so, the device voice says it that time.</p>
+      <p class="note">Runs on this device. With WebGPU (Chrome, Edge) it downloads ~330 MB and makes a word in about half a second; otherwise ~90 MB and a couple of seconds per word. Some browsers (Safari so far) can’t run it fast enough; they keep the device voice. Each word is saved once made, and opening a page prepares its words in the background. If a tapped word isn’t ready within a second or so, the device voice says it that time.</p>
       <div class="row"><button class="btn small" id="kClear">Clear saved audio</button></div>
     </div>
     <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="btn small" id="sTryBtn">🔊</button></div>
@@ -2009,10 +2014,10 @@ async function renderSettingsTab(body, reader, readers) {
   const kl = $('#kLoad', body);
   if (kl) kl.onclick = () => startKokoro(body, reader, readers);
   if (Kokoro.loading && !Kokoro.ready) { watchKokoro(); Kokoro.loading.then(() => renderSettingsTab(body, reader, readers)).catch(() => renderSettingsTab(body, reader, readers)); }
-  $('#kGpuRetry', body) && ($('#kGpuRetry', body).onclick = () => { try { localStorage.removeItem('tapread.kokoroGpuFailed'); } catch {} location.reload(); });
-  $('#kVoice', body).onchange = e => { S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); TTS.say('Hello! Let’s read a story.'); };
+  $('#kGpuRetry', body) && ($('#kGpuRetry', body).onclick = () => { try { localStorage.removeItem('tapread.kokoroGpuFailed2'); } catch {} location.reload(); });
+  $('#kVoice', body).onchange = e => { S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); toast('Preparing voice…'); TTS.say('Hello! Let’s read a story.', { wait: true }); };
   $('#kClear', body).onclick = async () => { await DB.clear('audio'); Kokoro.mem.clear(); toast('Saved audio cleared'); };
-  $('#sTryBtn', body).onclick = () => TTS.say($('#sTry', body).value);
+  $('#sTryBtn', body).onclick = () => { if (TTS.usingKokoro()) toast('Preparing…', 1200); TTS.say($('#sTry', body).value, { wait: true }); };
   $('#ovAdd', body).onclick = () => { const w = normWord($('#ovW', body).value.trim()), s = $('#ovS', body).value.trim(); if (!w || !s) return; S.overrides[w] = s; saveSettings(); Kokoro.mem.clear(); renderSettingsTab(body, reader, readers); };
   $$('[data-ovrm]', body).forEach(b => b.onclick = () => { delete S.overrides[b.dataset.ovrm]; saveSettings(); renderSettingsTab(body, reader, readers); });
   $$('[data-ovsay]', body).forEach(b => b.onclick = () => TTS.say(b.dataset.ovsay, { word: true }));
@@ -2036,7 +2041,7 @@ async function renderSettingsTab(body, reader, readers) {
   function startKokoro() {
     kl && (kl.disabled = true);
     Kokoro.load()
-      .then(() => { S.kokoroWanted = true; saveSettings(); toast('Kokoro voice ready'); renderSettingsTab(body, reader, readers); TTS.say('Hello! Let’s read a story.'); })
+      .then(() => { S.kokoroWanted = true; saveSettings(); toast('Kokoro voice ready'); renderSettingsTab(body, reader, readers); TTS.say('Hello! Let’s read a story.', { wait: true }); })
       .catch(err => { console.error(err); kl && (kl.disabled = false); });
     watchKokoro();
   }
@@ -2179,6 +2184,8 @@ document.addEventListener('click', e => {
   try { await DB.open(); }
   catch (e) { document.body.innerHTML = `<p style="padding:24px;font-family:sans-serif">This browser is blocking storage (private mode?), so Tap &amp; Read can’t save progress. Please open it in a normal window.</p>`; return; }
   await loadSettings();
+  // Clips from the fp16 build were garbled; drop them (cache keys now start with "k2|").
+  DB.tx('audio', 'readwrite', st => st.delete(IDBKeyRange.bound('k|', 'k|\uffff'))).catch(() => {});
   SystemVoice.init();
   navigator.storage?.persist?.().catch(() => {});
   wireBook();
