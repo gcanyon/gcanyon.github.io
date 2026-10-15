@@ -717,6 +717,7 @@ const KOKORO_WORKER = `
         }
         tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX",
           { dtype: m.dtype, device: m.device, progress_callback: p => self.postMessage({ type: 'progress', p }) });
+        self.postMessage({ type: 'stage' });
         // Warm up, and make sure this mode actually produces sound on this device.
         let ok = false;
         for (let i = 0; i < 3 && !ok; i++) ok = !bad((await tts.generate('Hello.', { voice: 'af_heart' })).audio);
@@ -733,34 +734,58 @@ const KOKORO_WORKER = `
   };`;
 const Kokoro = {
   worker: null, ready: false, loading: null, mode: null, jobs: [], busy: false, mem: new Map(), id: 0, waiters: new Map(),
+  status: { frac: 0, label: '' }, listeners: new Set(),
+  // Anyone (e.g. the Settings page) can watch progress, including for a load already under way.
+  onStatus(fn) { this.listeners.add(fn); fn(this.status); return () => this.listeners.delete(fn); },
+  emit(frac, label) { this.status = { frac, label }; for (const fn of this.listeners) try { fn(this.status); } catch {} },
+  // Only try GPU mode where it can work: WebGPU with 16-bit float shaders. Safari, for one,
+  // may lack shader-f16. A failure is remembered so we don't re-download 165 MB every visit.
+  async gpuUsable() {
+    try {
+      if (!('gpu' in navigator) || localStorage.getItem('tapread.kokoroGpuFailed')) return false;
+      const ad = await Promise.race([navigator.gpu.requestAdapter(), sleep(4000).then(() => null)]);
+      return !!ad && ad.features.has('shader-f16');
+    } catch { return false; }
+  },
   load(onProgress) {
+    if (onProgress) this.onStatus(s => onProgress(s.frac, s.label));
     if (this.ready) return Promise.resolve();
     if (this.loading) return this.loading;
-    const attempt = (device, dtype) => new Promise((resolve, reject) => {
-      let w;
+    const attempt = (device, dtype, label) => new Promise((resolve, reject) => {
+      let w, stall;
+      // Give up if nothing at all happens for a while (downloads report progress constantly).
+      const watchdog = ms => { clearTimeout(stall); stall = setTimeout(() => { w?.terminate(); reject(new Error(`${label}: no progress for ${ms / 1000}s`)); }, ms); };
       try { w = new Worker(URL.createObjectURL(new Blob([KOKORO_WORKER], { type: 'text/javascript' })), { type: 'module' }); }
       catch (e) { return reject(e); }
       const files = {};
+      watchdog(45000);
+      this.emit(0, `Starting ${label}…`);
       w.onmessage = ({ data: m }) => {
         if (m.type === 'progress') {
+          watchdog(45000);
           const p = m.p || {};
           if (p.file && p.total) files[p.file] = [p.loaded || 0, p.total];
           const tot = Object.values(files).reduce((a, [, t]) => a + t, 0), got = Object.values(files).reduce((a, [l]) => a + l, 0);
-          onProgress?.(tot ? got / tot : 0, device);
-        } else if (m.type === 'ready') { w.onmessage = msg => this.onMessage(msg.data); resolve(w); }
-        else if (m.type === 'error') { w.terminate(); reject(new Error(m.error)); }
+          if (tot) this.emit(got / tot, `Downloading ${label} — ${Math.round(got / 1e6)} of ${Math.round(tot / 1e6)} MB`);
+        } else if (m.type === 'stage') { watchdog(60000); this.emit(1, `Warming up ${label}…`); }
+        else if (m.type === 'ready') { clearTimeout(stall); w.onmessage = msg => this.onMessage(msg.data); resolve(w); }
+        else if (m.type === 'error') { clearTimeout(stall); w.terminate(); reject(new Error(m.error)); }
       };
-      w.onerror = e => { e.preventDefault?.(); w.terminate(); reject(new Error(e.message || 'Kokoro worker failed to start')); };
+      w.onerror = e => { e.preventDefault?.(); clearTimeout(stall); w.terminate(); reject(new Error(e.message || 'Kokoro worker failed to start')); };
       w.postMessage({ type: 'load', device, dtype });
     });
     this.loading = (async () => {
-      if ('gpu' in navigator) {
-        try { this.worker = await attempt('webgpu', 'fp16'); this.mode = 'gpu'; }
-        catch (e) { console.warn('Kokoro GPU mode unavailable, using CPU', e); }
+      if (await this.gpuUsable()) {
+        try { this.worker = await attempt('webgpu', 'fp16', 'fast mode'); this.mode = 'gpu'; }
+        catch (e) {
+          console.warn('Kokoro GPU mode failed, using CPU', e);
+          try { localStorage.setItem('tapread.kokoroGpuFailed', String(e.message || e)); } catch {}
+        }
       }
-      if (!this.worker) { this.worker = await attempt('wasm', 'q8'); this.mode = 'cpu'; }
+      if (!this.worker) { this.worker = await attempt('wasm', 'q8', 'standard mode'); this.mode = 'cpu'; }
       this.ready = true;
-    })().catch(e => { this.loading = null; throw e; });
+      this.emit(1, this.mode === 'gpu' ? '✓ Ready — fast mode (graphics chip)' : '✓ Ready — standard mode (a couple of seconds per new word)');
+    })().catch(e => { this.loading = null; this.emit(0, 'Failed: ' + (e.message || e)); throw e; });
     return this.loading;
   },
   onMessage(m) {
@@ -825,7 +850,7 @@ const Player = {
   unlock() {
     if (this.unlocked) return;
     this.unlocked = true;
-    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+    try { if (navigator.audioSession && !Recog.stream) navigator.audioSession.type = 'playback'; } catch {}
     const el = this.element();
     el.src = URL.createObjectURL(wavBlob(new Float32Array(240), 24000));
     el.play().catch(() => { this.unlocked = false; });
@@ -1433,10 +1458,16 @@ const Recog = {
   },
   async openMic() {
     if (this.stream?.active) return this.stream;
+    // Safari: the 'playback' audio session (set so the iPhone silent switch doesn't mute
+    // the voice) blocks microphone capture. Switch to play-and-record while listening.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch {}
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
     return this.stream;
   },
-  closeMic() { this._stop?.(); this.stream?.getTracks().forEach(t => t.stop()); this.stream = null; },
+  closeMic() {
+    this._stop?.(); this.stream?.getTracks().forEach(t => t.stop()); this.stream = null;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+  },
   cancel() { this._cancelled = true; this._stop?.(); },
   stopEarly() { this._stop?.(); },
   // Record until the speaker goes quiet (after having spoken), or maxMs.
@@ -1946,7 +1977,8 @@ async function renderSettingsTab(body, reader, readers) {
       ${sysVoices.length ? '' : '<p class="note">No English device voices found yet. Try reloading, or switch to Kokoro.</p>'}
     </div>
     <div id="kokBox" class="${S.engine === 'kokoro' ? '' : 'hidden'}">
-      <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready ? (Kokoro.mode === 'gpu' ? '✓ Ready — fast mode (graphics chip)' : '✓ Ready — standard mode (slower; this browser has no usable WebGPU)') : 'Not loaded'}</span>${Kokoro.ready ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}<div class="bar-prog ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBar"><i></i></div></div>
+      <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready || Kokoro.loading || /^Failed/.test(Kokoro.status.label) ? esc(Kokoro.status.label) : 'Not loaded'}</span>${Kokoro.ready || Kokoro.loading ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}${Kokoro.mode === 'cpu' ? ' <button class="btn small ghost" id="kGpuRetry" title="Try the graphics chip again">Retry fast mode</button>' : ''}</div>
+      <div class="row ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBarRow"><label></label><div class="bar-prog" id="kBar"><i></i></div></div>
       <div class="row"><label>Kokoro voice</label><select class="field" id="kVoice">${Object.entries(KOKORO_VOICES).map(([k, v]) => `<option value="${k}" ${k === S.kokoroVoice ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
       <p class="note">Runs on this device. With a graphics chip that supports WebGPU it downloads ~165 MB and makes a word in about a third of a second; otherwise ~90 MB and a couple of seconds per word. Each word is saved once made, and opening a page prepares its words in the background. If a tapped word isn’t ready within a second or so, the device voice says it that time.</p>
       <div class="row"><button class="btn small" id="kClear">Clear saved audio</button></div>
@@ -1976,7 +2008,8 @@ async function renderSettingsTab(body, reader, readers) {
   $('#sRate', body) && ($('#sRate', body).oninput = e => { S.rate = +e.target.value; $('#sRateV', body).textContent = S.rate; saveSettings(); });
   const kl = $('#kLoad', body);
   if (kl) kl.onclick = () => startKokoro(body, reader, readers);
-  if (Kokoro.loading && !Kokoro.ready) Kokoro.loading.then(() => renderSettingsTab(body, reader, readers)).catch(() => {});
+  if (Kokoro.loading && !Kokoro.ready) { watchKokoro(); Kokoro.loading.then(() => renderSettingsTab(body, reader, readers)).catch(() => renderSettingsTab(body, reader, readers)); }
+  $('#kGpuRetry', body) && ($('#kGpuRetry', body).onclick = () => { try { localStorage.removeItem('tapread.kokoroGpuFailed'); } catch {} location.reload(); });
   $('#kVoice', body).onchange = e => { S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); TTS.say('Hello! Let’s read a story.'); };
   $('#kClear', body).onclick = async () => { await DB.clear('audio'); Kokoro.mem.clear(); toast('Saved audio cleared'); };
   $('#sTryBtn', body).onclick = () => TTS.say($('#sTry', body).value);
@@ -2001,11 +2034,21 @@ async function renderSettingsTab(body, reader, readers) {
   $('#bImp', body).onclick = () => $('#bFile', body).click();
   $('#bFile', body).onchange = async e => { const f = e.target.files[0]; if (!f) return; try { await importBackup(JSON.parse(await f.text())); $('#bMsg', body).textContent = 'Restored.'; renderParent(); } catch (err) { $('#bMsg', body).textContent = 'Could not restore: ' + err.message; } };
   function startKokoro() {
-    kBar.classList.remove('hidden'); $('#kStatus', body).textContent = 'Downloading…'; kl && (kl.disabled = true);
-    Kokoro.load(p => { kBar.firstElementChild.style.width = Math.round(p * 100) + '%'; })
+    kl && (kl.disabled = true);
+    Kokoro.load()
       .then(() => { S.kokoroWanted = true; saveSettings(); toast('Kokoro voice ready'); renderSettingsTab(body, reader, readers); TTS.say('Hello! Let’s read a story.'); })
-      .catch(err => { console.error(err); $('#kStatus', body).textContent = 'Failed: ' + (err.message || err); kl && (kl.disabled = false); });
+      .catch(err => { console.error(err); kl && (kl.disabled = false); });
+    watchKokoro();
   }
+  function watchKokoro() {
+    $('#kBarRow', body)?.classList.remove('hidden');
+    const off = Kokoro.onStatus(st => {
+      if (!document.body.contains(kBar)) return off();
+      kBar.firstElementChild.style.width = Math.round(st.frac * 100) + '%';
+      const el = $('#kStatus', body); if (el) el.textContent = st.label || 'Starting…';
+    });
+  }
+
 }
 
 async function exportBackup() {
