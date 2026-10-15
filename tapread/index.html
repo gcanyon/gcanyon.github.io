@@ -779,36 +779,81 @@ const Kokoro = {
   },
 };
 
+// Kokoro clips play through one <audio> element rather than Web Audio:
+//  - Safari only lets Web Audio start inside certain gestures, and our clips are
+//    usually ready after the gesture has passed, so they were silently never played;
+//  - on iPhone/iPad the ringer switch mutes Web Audio but not <audio>.
+// The element is "unlocked" by playing a blank clip during the first tap or key press.
+function wavBlob(samples, sr) {
+  const n = samples.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const str = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true);
+  v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, samples[i])); v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true); }
+  return new Blob([buf], { type: 'audio/wav' });
+}
 const Player = {
-  src: null,
-  play({ audio, sr }) {
-    this.stop();
-    const ctx = audioCtx(), buf = ctx.createBuffer(1, audio.length, sr);
-    buf.copyToChannel(audio, 0);
-    const s = ctx.createBufferSource(); s.buffer = buf; s.connect(ctx.destination);
-    this.src = s;
-    return new Promise(res => { s.onended = () => { if (this.src === s) this.src = null; res(); }; s.start(); });
+  el: null, url: null, done: null, unlocked: false,
+  element() {
+    if (!this.el) { this.el = new Audio(); this.el.preload = 'auto'; this.el.setAttribute('playsinline', ''); }
+    return this.el;
   },
-  stop() { try { this.src?.stop(); } catch {} this.src = null; },
+  unlock() {
+    if (this.unlocked) return;
+    this.unlocked = true;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+    const el = this.element();
+    el.src = URL.createObjectURL(wavBlob(new Float32Array(240), 24000));
+    el.play().catch(() => { this.unlocked = false; });
+    audioCtx();
+  },
+  // Resolves when playback ends; rejects if the browser refuses to start it.
+  async play({ audio, sr }) {
+    this.stop();
+    const el = this.element();
+    this.url = URL.createObjectURL(wavBlob(audio, sr));
+    el.src = this.url;
+    const ended = new Promise(res => { this.done = res; el.onended = () => res(); el.onerror = () => res(); });
+    await el.play();                                   // throws NotAllowedError if blocked
+    const guard = setTimeout(() => this.done?.(), (audio.length / sr) * 1000 + 1500);
+    await ended; clearTimeout(guard);
+  },
+  stop() {
+    const el = this.el; if (!el) return;
+    try { el.pause(); } catch {}
+    this.done?.(); this.done = null;
+    if (this.url) { URL.revokeObjectURL(this.url); this.url = null; }
+  },
 };
+for (const ev of ['click', 'touchend', 'keydown']) addEventListener(ev, () => Player.unlock(), { capture: true, passive: true });
+
+const withTimeout = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(undefined), ms))]);
 
 // Unified speech API ---------------------------------------------------------
+// Kokoro takes ~2–3 s to generate a word it hasn't seen before (single-threaded WASM),
+// then it's cached for good. If a clip isn't ready quickly, the device voice says it
+// now and the Kokoro clip is kept for next time — a tap is never silent.
 const TTS = {
   token: 0,
   usingKokoro() { return S.engine === 'kokoro' && Kokoro.ready; },
   stop() { this.token++; SystemVoice.stop(); Player.stop(); },
-  // Speak a word or a short phrase. Single words get a period for falling intonation.
+  async kokoroPlay(text, my, waitMs) {
+    let clip;
+    try { clip = await withTimeout(Kokoro.get(text, true), waitMs); } catch (e) { console.warn('Kokoro failed', e); return false; }
+    if (!clip || my !== this.token) return my !== this.token;   // not ready: fall back
+    try { await Player.play(clip); return true; }
+    catch (e) { console.warn('Audio playback blocked, using device voice', e); return false; }
+  },
   async say(text, { word = false } = {}) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     let t = speakable(text).trim(); if (!t) return;
     if (this.usingKokoro()) {
       if (word && !/[.!?]$/.test(t)) t += '.';
-      try { const clip = await Kokoro.get(t, true); if (clip && my === this.token) await Player.play(clip); return; }
-      catch (e) { console.warn('Kokoro failed, using system voice', e); }
+      if (await this.kokoroPlay(t, my, 1200)) return;
     }
-    if (my === this.token) await SystemVoice.speak(t);
+    if (my === this.token) await SystemVoice.speak(speakable(text).trim());
   },
-  // Speak a list of sentences in order; onSentence(i) fires as each begins.
   async sayAll(sentences, onSentence) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     for (let i = 0; i < sentences.length; i++) {
@@ -816,8 +861,10 @@ const TTS = {
       onSentence?.(i);
       const t = speakable(sentences[i]).trim(); if (!t) continue;
       if (this.usingKokoro()) {
-        try { if (i + 1 < sentences.length) Kokoro.get(speakable(sentences[i + 1]).trim(), true); const clip = await Kokoro.get(t, true); if (my !== this.token) return false; if (clip) { await Player.play(clip); continue; } } catch {}
+        if (i + 1 < sentences.length) Kokoro.get(speakable(sentences[i + 1]).trim(), true).catch(() => {});
+        if (await this.kokoroPlay(t, my, 2500)) continue;
       }
+      if (my !== this.token) return false;
       await SystemVoice.speak(t);
     }
     return my === this.token;
@@ -1302,7 +1349,7 @@ async function sayRound() {
     <div class="row"><button class="btn small" id="help">🔊 Help me</button><button class="btn small ghost" id="skip">Skip ›</button></div>`;
   if (g.i === 0 && !g.tries) TTS.say('Tap the microphone and say the word.');
   $('#help').onclick = () => { TTS.say(target.display, { word: true }); };
-  $('#skip').onclick = () => { g.i++; g.tries = 0; sayRound(); };
+  $('#skip').onclick = () => { g.i++; g.tries = 0; g.close = 0; sayRound(); };
   $('#mic').onclick = async () => {
     const mic = $('#mic'); if (mic.classList.contains('rec')) { Recog.stopEarly(); return; }
     TTS.stop(); mic.classList.add('rec'); $('#fb').textContent = 'Listening…';
@@ -1314,23 +1361,29 @@ async function sayRound() {
     let res = null;
     try { res = rec.speech ? await Recog.transcribe(rec) : null; } catch (e) { console.warn(e); }
     if (!g.alive) return;
-    const v = judgeWord(target.word, res);
+    let v = judgeWord(target.word, res);
+    // A second "almost" on the same word counts: the recognizer is the likelier culprit.
+    if (v.verdict === 'close') { g.close = (g.close || 0) + 1; if (g.close >= 2) v = { ...v, verdict: 'right', lenient: true }; }
     if (v.verdict === 'right') {
       chime('good'); const r = mic.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top);
       if (!g.tries) addStar();
-      recordAnswer(target.word, 'say-right', { game: 'say', heard: v.heard, p: v.p });
+      recordAnswer(target.word, v.lenient ? 'say-close' : 'say-right', { game: 'say', heard: v.heard, p: v.p, variants: v.variantText });
       $('#fb').textContent = praise(); await TTS.say($('#fb').textContent);
-      g.i++; g.tries = 0; await sleep(300); sayRound();
+      g.i++; g.tries = 0; g.close = 0; await sleep(300); sayRound();
+    } else if (v.verdict === 'close') {
+      recordAnswer(target.word, 'say-unclear', { game: 'say', heard: v.heard, close: true, variants: v.variantText });
+      $('#fb').textContent = 'Almost! Say it one more time?';
+      await TTS.say('Almost! Say it one more time?');
     } else if (v.verdict === 'unclear') {
-      recordAnswer(target.word, 'say-unclear', { game: 'say', heard: v.heard });
+      recordAnswer(target.word, 'say-unclear', { game: 'say', heard: v.heard, variants: v.variantText });
       $('#fb').textContent = 'I didn’t quite catch that. Try again?';
       await TTS.say('I didn’t quite catch that. Try again?');
     } else {
       g.tries++;
-      if (g.tries === 1) recordAnswer(target.word, 'say-wrong', { game: 'say', heard: v.heard, p: v.p });
+      if (g.tries === 1) recordAnswer(target.word, 'say-wrong', { game: 'say', heard: v.heard, p: v.p, variants: v.variantText });
       $('#fb').textContent = 'Let’s hear it together…';
       await TTS.say('Listen.'); await TTS.say(target.display, { word: true });
-      if (g.tries >= 2) { $('#fb').textContent = 'Good try! Let’s do the next one.'; await TTS.say('Good try!'); g.i++; g.tries = 0; await sleep(400); sayRound(); }
+      if (g.tries >= 2) { $('#fb').textContent = 'Good try! Let’s do the next one.'; await TTS.say('Good try!'); g.i++; g.tries = 0; g.close = 0; await sleep(400); sayRound(); }
       else $('#fb').textContent = 'Now you try!';
     }
   };
@@ -1394,8 +1447,21 @@ const Recog = {
       };
     });
   },
-  async transcribe(rec) {
-    return this.whistle.transcribe({ samples: rec.samples, sampleRate: rec.sampleRate }, { language: 'en', wordTimestamps: true });
+  // Whistle is deterministic (beam search, no sampling): the same clip always gives the
+  // same answer, so re-running it is pointless. Instead we run differently pitched copies.
+  // Declaring a lower sample rate than the real one plays the clip lower and slower, which
+  // moves a child's higher pitch and formants toward the adult speech Whistle was trained on.
+  // In testing, raising adult speech 25–40% broke recognition, and a 0.8 shift recovered it.
+  SHIFTS: [1, 0.9, 0.8, 0.72],
+  async transcribe(rec, shifts = this.SHIFTS) {
+    const out = [];
+    for (const f of shifts) {
+      const r = await this.whistle.transcribe({ samples: rec.samples, sampleRate: Math.round(rec.sampleRate * f) }, { language: 'en', wordTimestamps: true });
+      r.shift = f;
+      if (r.words) for (const w of r.words) { if (w.start != null) w.start *= f; if (w.end != null) w.end *= f; }  // back to real time
+      out.push(r);
+    }
+    return out;
   },
 };
 
@@ -1405,17 +1471,46 @@ function resultWords(res) {
   return ws.flatMap(w => (String(w.word).match(WORD_RE) || []).map(t => ({ w: normWord(t), start: w.start, end: w.end, p: w.probability ?? 1 })));
 }
 
-// Single word check. No keyword biasing: biasing toward the target would make it
-// "hear" the right word even when the child said something else.
-function judgeWord(target, res) {
-  const ws = resultWords(res);
-  const heard = ws.map(w => w.w).join(' ');
-  if (!ws.length) return { verdict: 'unclear', heard };
-  const hit = ws.find(w => sameWord(w.w, target));
-  if (hit) return { verdict: 'right', heard, p: hit.p };
-  const top = Math.max(...ws.map(w => w.p));
-  if (top < 0.45) return { verdict: 'unclear', heard, p: top };
-  return { verdict: 'different', heard, p: top };
+// Rough sound-alike key: enough to tell "sad"/"said" or "brans"/"branch" are near misses,
+// and "house"/"horse" are not the same word.
+function soundKey(w) {
+  let k = normWord(w).replace(/[^a-z]/g, '');
+  k = k.replace(/^kn|^gn|^wr/, m => m[1]).replace(/ph/g, 'f').replace(/ck|q/g, 'k').replace(/tch/g, 'ch').replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k')
+       .replace(/x/g, 'ks').replace(/z/g, 's').replace(/wh/g, 'w').replace(/gh/g, '').replace(/dg/g, 'j').replace(/sh|ch/g, 'X').replace(/th/g, 'T');
+  return k[0] + k.slice(1).replace(/[aeiouyhw]/g, '').replace(/(.)\1+/g, '$1');
+}
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function soundsClose(target, heard) {
+  const a = soundKey(target), b = soundKey(heard);
+  if (!a || !b) return false;
+  return a === b || (a.length >= 4 && a[0] === b[0] && editDistance(a, b) <= 1);
+}
+
+// Single word check over all pitch variants. No keyword biasing: biasing toward the target
+// would make it "hear" the right word even when the child said something else.
+//   right     – the target appears in any variant
+//   close     – something that sounds close (child probably said it; ask to try again)
+//   different – a clearly different word, heard with confidence
+//   unclear   – nothing usable
+function judgeWord(target, results) {
+  results = (Array.isArray(results) ? results : [results]).filter(Boolean);
+  const variants = results.map(r => resultWords(r));
+  const heard = variants[0]?.map(w => w.w).join(' ') || '';
+  const all = variants.flat();
+  const variantText = results.map(r => (r.shift ?? 1) + ':' + (resultWords(r).map(w => w.w).join(' ') || '∅')).join(' | ');
+  if (!all.length) return { verdict: 'unclear', heard, variantText };
+  const hitIdx = variants.findIndex(ws => ws.some(w => sameWord(w.w, target)));
+  if (hitIdx >= 0) { const hit = variants[hitIdx].find(w => sameWord(w.w, target)); return { verdict: 'right', heard: hit.w, p: hit.p, shift: results[hitIdx].shift, variantText }; }
+  const near = all.find(w => soundsClose(target, w.w));
+  if (near) return { verdict: 'close', heard: near.w, p: near.p, variantText };
+  const top = Math.max(...all.map(w => w.p), 0);
+  if (top < 0.45) return { verdict: 'unclear', heard, p: top, variantText };
+  return { verdict: 'different', heard, p: top, variantText };
 }
 
 // Word alignment of what was read (hyp) against the page text (ref).
@@ -1447,18 +1542,29 @@ function alignReading(ref, hyp) {
   return out;
 }
 
-// Turn alignment + timestamps into per-word results.
-function scoreReading(ref, res) {
-  const hyp = resultWords(res);
-  const al = alignReading(ref, hyp);
+// Turn alignment + timestamps into per-word results. With several pitch variants,
+// a word counts as read if any variant heard it; pauses come from the unshifted pass.
+function scoreReading(ref, results) {
+  results = (Array.isArray(results) ? results : [results]).filter(Boolean);
+  const runs = results.map(res => { const hyp = resultWords(res); return { hyp, al: alignReading(ref, hyp) }; });
+  const base = runs[0];
+  const al = base.al.map((a, k) => {
+    if (a.status === 'ok') return a;
+    const better = runs.slice(1).map(r => r.al[k]).find(x => x.status === 'ok');
+    return better ? { ...a, status: 'ok', viaShift: true } : a;
+  });
+  const hyp = base.hyp;
   const gaps = [];
-  for (const a of al) if (a.j > 0 && hyp[a.j].start != null && hyp[a.j - 1].end != null) gaps.push(hyp[a.j].start - hyp[a.j - 1].end);
+  for (const a of al) if (!a.viaShift && a.j > 0 && hyp[a.j]?.start != null && hyp[a.j - 1]?.end != null) gaps.push(hyp[a.j].start - hyp[a.j - 1].end);
   const med = gaps.length ? [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 0.2;
   const hesLimit = Math.max(1.0, med * 3);
   for (const a of al) {
-    if (a.j > 0 && hyp[a.j].start != null && hyp[a.j - 1].end != null) a.gap = hyp[a.j].start - hyp[a.j - 1].end;
+    if (!a.viaShift && a.j > 0 && hyp[a.j]?.start != null && hyp[a.j - 1]?.end != null) a.gap = hyp[a.j].start - hyp[a.j - 1].end;
     a.hes = (a.status === 'ok' || a.status === 'sub') && ((a.gap || 0) > hesLimit || a.insBefore >= 2);
   }
+  // "unreached" uses the furthest point any variant got to
+  const reachedIdx = Math.max(...runs.map(r => r.al.reduce((m, x, k) => x.status !== 'unreached' ? k : m, -1)));
+  al.forEach((a, k) => { if (k <= reachedIdx && a.status === 'unreached') a.status = 'skip'; });
   const reached = al.filter(a => a.status !== 'unreached');
   const ok = reached.filter(a => a.status === 'ok').length;
   return { al, hyp, reached: reached.length, ok, ratio: reached.length ? ok / reached.length : 0, hesLimit };
@@ -1500,16 +1606,16 @@ async function readAloud() {
   catch { bar.remove(); toast('Microphone not available'); return; }
   bar.querySelector('span').textContent = '⭐ Checking…'; bar.querySelector('button').remove();
   let res = null;
-  try { if (rec.speech) res = await Recog.transcribe(rec); } catch (e) { console.warn(e); }
+  try { if (rec.speech) res = [].concat(await Recog.transcribe(rec)); } catch (e) { console.warn(e); }
   bar.remove(); Recog.closeMic();
-  if (!res || !resultWords(res).length) { toast('I didn’t hear any reading. Try again!'); return; }
+  if (!res || !res.some(r => resultWords(r).length)) { toast('I didn’t hear any reading. Try again!'); return; }
   const sc = scoreReading(ref, res);
   const stars = sc.ratio >= 0.9 ? 3 : sc.ratio >= 0.7 ? 2 : 1;
   const missed = [], hes = [];
   sc.al.forEach((a, k) => {
     if (a.status === 'unreached') return;
     const w = spans[k].textContent;
-    if (a.status === 'skip' || a.status === 'sub') { missed.push(normWord(w)); recordAnswer(w, 'read-miss', { storyId: story.id, page, heard: a.j >= 0 ? sc.hyp[a.j].w : '' }); }
+    if (a.status === 'skip' || a.status === 'sub') { missed.push(normWord(w)); recordAnswer(w, 'read-miss', { storyId: story.id, page, heard: a.j >= 0 ? sc.hyp[a.j]?.w || '' : '' }); }
     else if (a.hes) { hes.push(normWord(w)); recordAnswer(w, 'read-hes', { storyId: story.id, page, gap: a.gap }); }
   });
   logEvent({ type: 'readaloud', storyId: story.id, page, reached: sc.reached, ok: sc.ok, missed, hes, heard: sc.hyp.map(h => h.w).join(' ') });
@@ -1819,7 +1925,7 @@ async function renderSettingsTab(body, reader, readers) {
     <div id="kokBox" class="${S.engine === 'kokoro' ? '' : 'hidden'}">
       <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready ? '✓ Ready' : 'Not loaded'}</span>${Kokoro.ready ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}<div class="bar-prog ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBar"><i></i></div></div>
       <div class="row"><label>Kokoro voice</label><select class="field" id="kVoice">${Object.entries(KOKORO_VOICES).map(([k, v]) => `<option value="${k}" ${k === S.kokoroVoice ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-      <p class="note">Runs on this device in the background. Each word is generated once and then saved, so taps get faster as the library is used. Until it finishes loading, the device voice is used.</p>
+      <p class="note">Runs on this device. A new word takes a couple of seconds to generate, then it’s saved for good. Opening a page prepares that page’s words in the background; if a tapped word isn’t ready yet, the device voice says it this time.</p>
       <div class="row"><button class="btn small" id="kClear">Clear saved audio</button></div>
     </div>
     <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="btn small" id="sTryBtn">🔊</button></div>
@@ -1898,13 +2004,20 @@ async function importBackup(data) {
 // ---------- Speech lab: measure recognition accuracy on this child ----------
 // Grown-up chooses whether the next attempt will be said correctly or deliberately
 // mispronounced; the reader says the word; we record what the recognizer decided.
-let LAB = { trials: null, word: null, clips: [] };
+let LAB = { trials: null, word: null };
+// Store lab recordings at 16 kHz (what Whistle uses) to keep them small.
+function to16k(rec) {
+  const ratio = rec.sampleRate / 16000; if (ratio <= 1) return { samples: rec.samples.slice(), sampleRate: rec.sampleRate };
+  const n = Math.floor(rec.samples.length / ratio), out = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const a = Math.floor(i * ratio), b = Math.min(rec.samples.length, Math.floor((i + 1) * ratio)); let sum = 0; for (let j = a; j < b; j++) sum += rec.samples[j]; out[i] = sum / Math.max(1, b - a); }
+  return { samples: out, sampleRate: 16000, speech: true };
+}
 async function renderLab(body, reader) {
   if (!LAB.trials) LAB.trials = (await KV.get('labTrials')) || [];
   const t = LAB.trials.filter(x => !reader || x.readerId === reader.id);
   const good = t.filter(x => x.intent === 'correct'), bad = t.filter(x => x.intent === 'wrong');
   const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
-  const frr = good.filter(x => x.verdict === 'different').length, unclear = good.filter(x => x.verdict === 'unclear').length;
+  const frr = good.filter(x => x.verdict === 'different').length, unclear = good.filter(x => x.verdict === 'unclear').length, almost = good.filter(x => x.verdict === 'close').length;
   const far = bad.filter(x => x.verdict === 'right').length;
   if (!LAB.word) LAB.word = await labNextWord();
   body.innerHTML = `
@@ -1922,14 +2035,17 @@ async function renderLab(body, reader) {
   <div class="cards">
     <div class="card"><div class="n">${t.length}</div><div class="l">tries${reader ? ' for ' + esc(reader.name) : ''}</div></div>
     <div class="card"><div class="n">${pct(frr, good.length)}</div><div class="l">correct readings marked wrong (${frr}/${good.length})</div></div>
+    <div class="card"><div class="n">${pct(almost, good.length)}</div><div class="l">correct readings “almost, try again” (${almost}/${good.length})</div></div>
     <div class="card"><div class="n">${pct(unclear, good.length)}</div><div class="l">correct readings “didn’t catch that”</div></div>
     <div class="card"><div class="n">${pct(far, bad.length)}</div><div class="l">wrong readings accepted (${far}/${bad.length})</div></div>
   </div>
   <div class="panel"><h3>How to read this</h3><p class="note">The first number matters most: if correct readings are marked wrong more than about 1 in 10 times, the Say It game will frustrate a young reader — keep it off and use read-aloud only as a quiet hint for you. A high “wrong readings accepted” rate just means the game is lenient, which is the safer failure.</p></div>
+  <div class="panel"><h3>Compare methods</h3><p class="note">Re-runs every saved recording through a single pass and through the four pitch-shifted passes (100%, 90%, 80%, 72%), so you can see whether the extra passes help with this reader. Recordings are saved in this browser (only tries made after this update).</p>
+    <div class="row"><button class="btn small teal" id="labCmp" ${Recog.ready ? '' : 'disabled'}>Compare on ${t.filter(x => x.saved).length} saved recordings</button><span class="muted" id="labCmpMsg"></span></div><div id="labCmpOut"></div></div>
   <div class="panel"><h3>Tries</h3><div class="row"><button class="btn small" id="labCsv">⬇️ Export CSV</button><button class="btn small ghost" id="labClr">Clear</button></div>
-    <div class="table-wrap"><table><thead><tr><th>When</th><th>Word</th><th>Intended</th><th>Heard</th><th>Decision</th><th>Confidence</th><th></th></tr></thead><tbody>
-    ${t.slice().reverse().slice(0, 100).map((x, k) => `<tr><td class="muted">${new Date(x.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</td><td class="wd">${esc(x.word)}</td><td>${x.intent === 'correct' ? 'correct' : '<b>wrong</b>'}</td><td>${esc(x.heard || '∅')}</td>
-      <td>${x.verdict === 'right' ? '✓ right' : x.verdict === 'unclear' ? '? unclear' : '✗ different'}</td><td>${x.p != null ? x.p.toFixed(2) : ''}</td><td>${LAB.clips[x.ts] ? `<button class="btn small ghost" data-play="${x.ts}">▶︎</button>` : ''}</td></tr>`).join('')}</tbody></table></div></div>`;
+    <div class="table-wrap"><table><thead><tr><th>When</th><th>Word</th><th>Intended</th><th>Heard (pitch: text)</th><th>Decision</th><th>Confidence</th><th></th></tr></thead><tbody>
+    ${t.slice().reverse().slice(0, 100).map((x, k) => `<tr><td class="muted">${new Date(x.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</td><td class="wd">${esc(x.word)}</td><td>${x.intent === 'correct' ? 'correct' : '<b>wrong</b>'}</td><td>${esc(x.heard || '∅')}${x.variants ? `<div class="muted" style="font-size:12px">${esc(x.variants)}</div>` : ''}</td>
+      <td>${x.verdict === 'right' ? '✓ right' : x.verdict === 'close' ? '~ almost' : x.verdict === 'unclear' ? '? unclear' : '✗ different'}</td><td>${x.p != null ? x.p.toFixed(2) : ''}</td><td>${x.saved ? `<button class="btn small ghost" data-play="${x.ts}">▶︎</button>` : ''}</td></tr>`).join('')}</tbody></table></div></div>`;
   $('#labLoad', body) && ($('#labLoad', body).onclick = async () => { if (await loadRecogWithModal()) renderLab(body, reader); });
   $('#labNext', body) && ($('#labNext', body).onclick = async () => { LAB.word = await labNextWord(); renderLab(body, reader); });
   $('#labHear', body) && ($('#labHear', body).onclick = () => TTS.say(LAB.word, { word: true }));
@@ -1941,19 +2057,37 @@ async function renderLab(body, reader) {
       $('#labOut', body).textContent = 'Thinking…';
       const res = rec.speech ? await Recog.transcribe(rec) : null;
       const v = judgeWord(LAB.word, res);
-      const trial = { ts: Date.now(), readerId: reader?.id, word: LAB.word, intent: b.dataset.intent, verdict: v.verdict, heard: v.heard, p: v.p };
-      LAB.clips[trial.ts] = rec; LAB.trials.push(trial); await KV.set('labTrials', LAB.trials);
+      const trial = { ts: Date.now(), readerId: reader?.id, word: LAB.word, intent: b.dataset.intent, verdict: v.verdict, heard: v.heard, p: v.p, variants: v.variantText };
+      if (rec.speech) { await DB.put('audio', to16k(rec), 'lab|' + trial.ts); trial.saved = true; }
+      LAB.trials.push(trial); await KV.set('labTrials', LAB.trials);
       LAB.word = await labNextWord();
     } catch (e) { $('#labOut', body).textContent = 'Microphone error: ' + (e.message || e); return; }
     finally { Recog.closeMic(); }
     renderLab(body, reader);
   });
-  $$('[data-play]', body).forEach(b => b.onclick = () => { const r = LAB.clips[b.dataset.play]; Player.play({ audio: r.samples, sr: r.sampleRate }); });
+  $$('[data-play]', body).forEach(b => b.onclick = async () => { const r = await DB.get('audio', 'lab|' + b.dataset.play); if (r) Player.play({ audio: r.samples, sr: r.sampleRate }).catch(() => {}); });
+  $('#labCmp', body).onclick = async () => {
+    const saved = t.filter(x => x.saved); if (!saved.length) return;
+    const methods = { 'Single pass': [1], 'Four pitch passes': Recog.SHIFTS };
+    const tally = {}; for (const m in methods) tally[m] = { correct: { right: 0, close: 0, unclear: 0, different: 0 }, wrong: { right: 0, close: 0, unclear: 0, different: 0 } };
+    let k = 0;
+    for (const x of saved) {
+      const rec = await DB.get('audio', 'lab|' + x.ts); k++; if (!rec) continue;
+      $('#labCmpMsg', body).textContent = `${k} / ${saved.length}…`;
+      const res = await Recog.transcribe(rec);
+      for (const [m, shifts] of Object.entries(methods)) tally[m][x.intent][judgeWord(x.word, res.filter(r => shifts.includes(r.shift))).verdict]++;
+    }
+    $('#labCmpMsg', body).textContent = '';
+    const row = (m, c, w) => { const n = c.right + c.close + c.unclear + c.different, nw = w.right + w.close + w.unclear + w.different;
+      return `<tr><td><b>${m}</b></td><td>${pct(c.right, n)}</td><td>${pct(c.close, n)}</td><td>${pct(c.unclear, n)}</td><td>${pct(c.different, n)}</td><td>${pct(w.right, nw)}</td></tr>`; };
+    $('#labCmpOut', body).innerHTML = `<div class="table-wrap"><table><thead><tr><th></th><th>Correct → right</th><th>→ almost</th><th>→ didn’t catch</th><th>→ marked wrong</th><th>Wrong → accepted</th></tr></thead><tbody>${Object.keys(methods).map(m => row(m, tally[m].correct, tally[m].wrong)).join('')}</tbody></table></div>
+      <p class="note">In the Say It game, a second “almost” on the same word is accepted.</p>`;
+  };
   $('#labCsv', body).onclick = () => {
-    const rows = [['time', 'reader', 'word', 'intended', 'heard', 'decision', 'confidence'], ...t.map(x => [new Date(x.ts).toISOString(), x.readerId || '', x.word, x.intent, x.heard || '', x.verdict, x.p ?? ''])];
+    const rows = [['time', 'reader', 'word', 'intended', 'heard', 'decision', 'confidence', 'by pitch'], ...t.map(x => [new Date(x.ts).toISOString(), x.readerId || '', x.word, x.intent, x.heard || '', x.verdict, x.p ?? '', x.variants || ''])];
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv' })); a.download = 'speech-lab.csv'; a.click();
   };
-  $('#labClr', body).onclick = async () => { if (!confirm('Clear all lab results?')) return; LAB.trials = LAB.trials.filter(x => reader && x.readerId !== reader.id); await KV.set('labTrials', LAB.trials); renderLab(body, reader); };
+  $('#labClr', body).onclick = async () => { if (!confirm('Clear all lab results?')) return; for (const x of t) if (x.saved) await DB.del('audio', 'lab|' + x.ts); LAB.trials = LAB.trials.filter(x => reader && x.readerId !== reader.id); await KV.set('labTrials', LAB.trials); renderLab(body, reader); };
 }
 async function labNextWord() {
   const pw = await practiceWords(20);
