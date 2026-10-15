@@ -697,53 +697,76 @@ const SystemVoice = {
   stop() { if ('speechSynthesis' in window) speechSynthesis.cancel(); },
 };
 
-// Kokoro-82M via kokoro-js, loaded from jsDelivr inside a module worker so
-// synthesis never blocks the page. Weights (~90 MB, q8) come from Hugging Face
-// and are cached by the browser after the first download.
+// Kokoro-82M via kokoro-js, in a module worker so synthesis never blocks the page.
+// Two modes, measured on an M-series Mac:
+//   GPU: fp16 weights (~165 MB) on WebGPU — ~0.3 s per word
+//   CPU: q8 weights  (~90 MB)  on WASM    — ~2.5 s per word (single-threaded on GitHub Pages)
+// GPU is tried first when the browser has WebGPU; any failure falls back to CPU.
+// fp16 returns garbage on its very first run, so we warm it up, and every clip is checked.
 const KOKORO_VOICES = { af_heart: 'Heart (US, warm)', af_bella: 'Bella (US)', af_nicole: 'Nicole (US, soft)', am_michael: 'Michael (US)', am_fenrir: 'Fenrir (US)', bf_emma: 'Emma (UK)', bm_george: 'George (UK)' };
+const KOKORO_WORKER = `
+  import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
+  let tts;
+  const bad = a => { let mx = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; if (v !== v) return true; const x = v < 0 ? -v : v; if (x > mx) mx = x; } return mx < 0.01; };
+  self.onmessage = async ({ data: m }) => {
+    try {
+      if (m.type === 'load') {
+        if (m.device === 'webgpu') {
+          const ad = await navigator.gpu?.requestAdapter();
+          if (!ad) throw new Error('No WebGPU adapter');
+        }
+        tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX",
+          { dtype: m.dtype, device: m.device, progress_callback: p => self.postMessage({ type: 'progress', p }) });
+        // Warm up, and make sure this mode actually produces sound on this device.
+        let ok = false;
+        for (let i = 0; i < 3 && !ok; i++) ok = !bad((await tts.generate('Hello.', { voice: 'af_heart' })).audio);
+        if (!ok) throw new Error('Kokoro produced no sound in ' + m.device + ' mode');
+        self.postMessage({ type: 'ready' });
+      } else if (m.type === 'gen') {
+        let a;
+        for (let i = 0; i < 2; i++) { a = await tts.generate(m.text, { voice: m.voice, speed: m.speed }); if (!bad(a.audio)) break; a = null; }
+        if (!a) throw new Error('bad audio');
+        const audio = Float32Array.from(a.audio);
+        self.postMessage({ type: 'audio', id: m.id, audio, sr: a.sampling_rate }, [audio.buffer]);
+      }
+    } catch (err) { self.postMessage({ type: 'error', id: m.id, error: String(err && err.message || err) }); }
+  };`;
 const Kokoro = {
-  worker: null, ready: false, loading: null, jobs: [], busy: false, mem: new Map(), id: 0, waiters: new Map(),
+  worker: null, ready: false, loading: null, mode: null, jobs: [], busy: false, mem: new Map(), id: 0, waiters: new Map(),
   load(onProgress) {
     if (this.ready) return Promise.resolve();
     if (this.loading) return this.loading;
-    const src = `
-      import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
-      let tts;
-      self.onmessage = async ({ data: m }) => {
-        try {
-          if (m.type === 'load') {
-            tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX",
-              { dtype: "q8", device: "wasm", progress_callback: p => self.postMessage({ type: 'progress', p }) });
-            self.postMessage({ type: 'ready' });
-          } else if (m.type === 'gen') {
-            const a = await tts.generate(m.text, { voice: m.voice, speed: m.speed });
-            const audio = a.audio instanceof Float32Array ? a.audio : Float32Array.from(a.audio);
-            self.postMessage({ type: 'audio', id: m.id, audio, sr: a.sampling_rate }, [audio.buffer]);
-          }
-        } catch (err) { self.postMessage({ type: 'error', id: m.id, error: String(err && err.message || err) }); }
-      };`;
-    this.loading = new Promise((resolve, reject) => {
-      try {
-        this.worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })), { type: 'module' });
-      } catch (e) { this.loading = null; return reject(e); }
+    const attempt = (device, dtype) => new Promise((resolve, reject) => {
+      let w;
+      try { w = new Worker(URL.createObjectURL(new Blob([KOKORO_WORKER], { type: 'text/javascript' })), { type: 'module' }); }
+      catch (e) { return reject(e); }
       const files = {};
-      this.worker.onmessage = ({ data: m }) => {
+      w.onmessage = ({ data: m }) => {
         if (m.type === 'progress') {
           const p = m.p || {};
           if (p.file && p.total) files[p.file] = [p.loaded || 0, p.total];
           const tot = Object.values(files).reduce((a, [, t]) => a + t, 0), got = Object.values(files).reduce((a, [l]) => a + l, 0);
-          onProgress?.(tot ? got / tot : 0, p.status);
-        } else if (m.type === 'ready') { this.ready = true; resolve(); }
-        else if (m.type === 'audio' || m.type === 'error') {
-          const w = this.waiters.get(m.id);
-          if (w) { this.waiters.delete(m.id); m.type === 'audio' ? w.resolve({ audio: m.audio, sr: m.sr }) : w.reject(new Error(m.error)); }
-          else if (m.type === 'error' && !this.ready) { this.loading = null; reject(new Error(m.error)); }
-        }
+          onProgress?.(tot ? got / tot : 0, device);
+        } else if (m.type === 'ready') { w.onmessage = msg => this.onMessage(msg.data); resolve(w); }
+        else if (m.type === 'error') { w.terminate(); reject(new Error(m.error)); }
       };
-      this.worker.onerror = e => { e.preventDefault?.(); this.loading = null; reject(new Error(e.message || 'Kokoro worker failed to start')); };
-      this.worker.postMessage({ type: 'load' });
+      w.onerror = e => { e.preventDefault?.(); w.terminate(); reject(new Error(e.message || 'Kokoro worker failed to start')); };
+      w.postMessage({ type: 'load', device, dtype });
     });
+    this.loading = (async () => {
+      if ('gpu' in navigator) {
+        try { this.worker = await attempt('webgpu', 'fp16'); this.mode = 'gpu'; }
+        catch (e) { console.warn('Kokoro GPU mode unavailable, using CPU', e); }
+      }
+      if (!this.worker) { this.worker = await attempt('wasm', 'q8'); this.mode = 'cpu'; }
+      this.ready = true;
+    })().catch(e => { this.loading = null; throw e; });
     return this.loading;
+  },
+  onMessage(m) {
+    const w = this.waiters.get(m.id); if (!w) return;
+    this.waiters.delete(m.id);
+    m.type === 'audio' ? w.resolve({ audio: m.audio, sr: m.sr }) : w.reject(new Error(m.error));
   },
   key(text) { return `k|${S.kokoroVoice}|${text}`; },
   // Priority queue: taps jump ahead of background pre-warming.
@@ -1916,16 +1939,16 @@ async function renderSettingsTab(body, reader, readers) {
   body.innerHTML = `
   <div class="panel"><h3>Voice</h3>
     <div class="row"><label>Speech engine</label>
-      <select class="field" id="sEngine"><option value="system" ${S.engine === 'system' ? 'selected' : ''}>Device voice (instant, no download)</option><option value="kokoro" ${S.engine === 'kokoro' ? 'selected' : ''}>Kokoro (better voice, ~90 MB once)</option></select></div>
+      <select class="field" id="sEngine"><option value="system" ${S.engine === 'system' ? 'selected' : ''}>Device voice (instant, no download)</option><option value="kokoro" ${S.engine === 'kokoro' ? 'selected' : ''}>Kokoro (better voice, 90–165 MB once)</option></select></div>
     <div id="sysBox" class="${S.engine === 'system' ? '' : 'hidden'}">
       <div class="row"><label>Device voice</label><select class="field" id="sVoice"><option value="">Automatic (best available)</option>${sysVoices.map(v => `<option value="${esc(v.voiceURI)}" ${v.voiceURI === S.sysVoice ? 'selected' : ''}>${esc(v.name)} (${v.lang})${v.localService ? '' : ' · online'}</option>`).join('')}</select></div>
       <div class="row"><label>Speed</label><input type="range" id="sRate" min="0.6" max="1.2" step="0.05" value="${S.rate}"><span id="sRateV">${S.rate}</span></div>
       ${sysVoices.length ? '' : '<p class="note">No English device voices found yet. Try reloading, or switch to Kokoro.</p>'}
     </div>
     <div id="kokBox" class="${S.engine === 'kokoro' ? '' : 'hidden'}">
-      <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready ? '✓ Ready' : 'Not loaded'}</span>${Kokoro.ready ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}<div class="bar-prog ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBar"><i></i></div></div>
+      <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready ? (Kokoro.mode === 'gpu' ? '✓ Ready — fast mode (graphics chip)' : '✓ Ready — standard mode (slower; this browser has no usable WebGPU)') : 'Not loaded'}</span>${Kokoro.ready ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}<div class="bar-prog ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBar"><i></i></div></div>
       <div class="row"><label>Kokoro voice</label><select class="field" id="kVoice">${Object.entries(KOKORO_VOICES).map(([k, v]) => `<option value="${k}" ${k === S.kokoroVoice ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-      <p class="note">Runs on this device. A new word takes a couple of seconds to generate, then it’s saved for good. Opening a page prepares that page’s words in the background; if a tapped word isn’t ready yet, the device voice says it this time.</p>
+      <p class="note">Runs on this device. With a graphics chip that supports WebGPU it downloads ~165 MB and makes a word in about a third of a second; otherwise ~90 MB and a couple of seconds per word. Each word is saved once made, and opening a page prepares its words in the background. If a tapped word isn’t ready within a second or so, the device voice says it that time.</p>
       <div class="row"><button class="btn small" id="kClear">Clear saved audio</button></div>
     </div>
     <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="btn small" id="sTryBtn">🔊</button></div>
