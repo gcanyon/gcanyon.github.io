@@ -1,0 +1,116 @@
+{
+  "name": "cactus-needle",
+  "version": "0.3.0",
+  "description": "Local Needle tool calling and Whistle speech transcription for browsers and Node.js, standalone or with Vercel AI SDK.",
+  "homepage": "https://github.com/afshinm/cactus-needle#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afshinm/cactus-needle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/afshinm/cactus-needle/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "browser": {
+        "types": "./dist/browser/index.d.ts",
+        "default": "./dist/browser/index.js"
+      },
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser/index.d.ts",
+      "default": "./dist/browser/index.js"
+    },
+    "./ai-sdk": {
+      "browser": {
+        "types": "./dist/ai-sdk/browser.d.ts",
+        "default": "./dist/ai-sdk/browser.js"
+      },
+      "types": "./dist/ai-sdk/index.d.ts",
+      "default": "./dist/ai-sdk/index.js"
+    },
+    "./ai-sdk/browser": {
+      "types": "./dist/ai-sdk/browser.d.ts",
+      "default": "./dist/ai-sdk/browser.js"
+    },
+    "./browser/worker.js": "./dist/browser/worker.js",
+    "./browser/needle.wasm": "./vendor/needle.wasm",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "vendor",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "demo": "pnpm build && vite --config demo/vite.config.ts",
+    "demo:build": "pnpm build && vite build --config demo/vite.config.ts",
+    "demo:preview": "vite preview --config demo/vite.config.ts",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc -p tsconfig.json && tsc -p test/tsconfig.json && tsc -p test/browser/tsconfig.json && tsc -p demo/tsconfig.json",
+    "check": "pnpm lint && pnpm typecheck",
+    "test": "node --test test/*.test.mjs",
+    "test:integration": "node --test test/integration/*.test.mjs",
+    "test:browser": "node --test test/browser/*.test.mjs",
+    "test:pack": "node --test test/package/*.test.mjs",
+    "model:download": "node scripts/download-model.mjs",
+    "vendor:download": "node scripts/download-vendor.mjs",
+    "prepack": "pnpm build"
+  },
+  "keywords": [
+    "needle",
+    "whistle",
+    "local-ai",
+    "wasm",
+    "tool-calling",
+    "embeddings",
+    "speech-to-text",
+    "offline",
+    "ai-sdk",
+    "vercel"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@ai-sdk/provider": "^3.0.18",
+    "@types/json-schema": "^7.0.15"
+  },
+  "peerDependencies": {
+    "ai": "^6.0.0 || ^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.20.5",
+    "ai": "^7.0.136",
+    "ai-v6": "npm:ai@^6.0.302",
+    "playwright": "^1.64.0",
+    "publint": "^0.3.25",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.4",
+    "zod": "^4.6.5"
+  },
+  "packageManager": "pnpm@10.27.0"
+}
