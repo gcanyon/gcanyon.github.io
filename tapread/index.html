@@ -96,6 +96,9 @@ input,select,textarea{font:inherit;color:inherit}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
 .pageno{text-align:center;margin-top:1em;font-size:.65em;color:var(--ink-2)}
 .book-tools{display:flex;gap:10px;align-items:center;justify-content:center;padding:4px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));flex-wrap:wrap}
+.voice-prep{text-align:center;font-size:13px;color:var(--ink-2);min-height:20px;padding:0 12px 3px}
+.read-along{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 12px}
+.read-along span{font-size:15px}
 .progress-line{height:6px;background:var(--line);border-radius:3px;flex:1;max-width:340px;overflow:hidden}
 .progress-line i{display:block;height:100%;background:var(--tomato);transition:width .3s}
 .listen-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--page);box-shadow:var(--shadow);border-radius:999px;padding:10px 12px 10px 20px;display:flex;align-items:center;gap:14px;z-index:30;font-size:18px}
@@ -130,6 +133,13 @@ input,select,textarea{font:inherit;color:inherit}
 .mem.done .f{background:var(--teal-2)}
 @keyframes flip{0%{transform:scaleX(1)}50%{transform:scaleX(.05)}100%{transform:scaleX(1)}}
 .feedback{font-size:24px;min-height:34px;text-align:center;font-weight:500}
+.fall-sky{position:relative;isolation:isolate;width:min(100%,800px);height:clamp(300px,55dvh,570px);overflow:hidden;border-radius:24px;background:linear-gradient(var(--sky-2),var(--page));border:2px solid var(--line)}
+.fall-sky::after{content:'✦     ·     ✧     ·     ✦';position:absolute;inset:8px 0 auto;text-align:center;color:var(--sky);font-size:24px;pointer-events:none}
+.fall-word{position:absolute;top:0;left:0;max-width:46%;font:700 clamp(22px,4vw,34px)/1.3 var(--read);padding:8px 14px;border-radius:18px;background:var(--page);box-shadow:var(--shadow);white-space:nowrap;will-change:transform;z-index:1}
+.fall-sparkle{position:absolute;font-size:42px;pointer-events:none;z-index:2;animation:sparkle .8s ease-out forwards}
+@keyframes sparkle{to{transform:translateY(-50px) scale(1.8) rotate(25deg);opacity:0}}
+.game-area:has(.fall-sky){gap:12px;padding-bottom:16px}
+@media(prefers-reduced-motion:reduce){.fall-sparkle,.confetti{animation-duration:.1s}.w{transition:none}}
 .confetti{position:fixed;pointer-events:none;font-size:30px;z-index:60;animation:fly 1.1s ease-out forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
 
@@ -212,7 +222,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   <div class="topbar">
     <button class="icon-btn" data-act="library" title="Back to books">🏠</button>
     <h2 id="bookTitle"></h2>
-    <button class="icon-btn" id="readPageBtn" title="Read this page to me">🔊</button>
+    <button class="btn small" id="readPageBtn" title="Read aloud and follow each word">🔊 Read along</button>
     <button class="icon-btn hidden" id="readAloudBtn" title="I'll read it!">🎤</button>
   </div>
   <div class="book-stage">
@@ -220,6 +230,8 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
     <article class="page" id="page"><div class="page-inner reading" id="pageInner"></div></article>
     <button class="nav" id="nextBtn" aria-label="Next page">›</button>
   </div>
+  <div class="read-along hidden" id="readAlongControls"><span id="readAlongStatus" role="status"></span><button class="btn small primary" id="readAlongToggle">⏹ Stop</button><button class="btn small" id="readAlongEnd">Done</button></div>
+  <div class="voice-prep hidden" id="voicePrep" role="status"></div>
   <div class="book-tools">
     <button class="btn small" id="prevBtn2">‹ Back</button>
     <div class="progress-line"><i id="bookProg"></i></div>
@@ -494,17 +506,24 @@ const DB = {
   db: null,
   open() {
     return new Promise((res, rej) => {
-      const r = indexedDB.open('tapread', 1);
+      const r = indexedDB.open('tapread', 2);
       r.onupgradeneeded = () => {
         const d = r.result;
+        if (!d.objectStoreNames.contains('kv')) {
         d.createObjectStore('kv');
         d.createObjectStore('readers', { keyPath: 'id' });
         d.createObjectStore('stories', { keyPath: 'id' });
         d.createObjectStore('events', { keyPath: 'id', autoIncrement: true }).createIndex('reader', 'readerId');
         d.createObjectStore('words', { keyPath: 'key' }).createIndex('reader', 'readerId');
         d.createObjectStore('audio');
+        }
+        const meta = d.createObjectStore('audioMeta', { keyPath: 'key' });
+        // Index older clips without loading the whole audio cache into memory.
+        const cursor = r.transaction.objectStore('audio').openCursor();
+        cursor.onsuccess = () => { const c = cursor.result; if (c) { meta.put({ key: c.key, bytes: c.value.audio?.byteLength || 0, used: Date.now() }); c.continue(); } };
       };
-      r.onsuccess = () => { this.db = r.result; res(); };
+      r.onsuccess = () => { this.db = r.result; this.db.onversionchange = () => this.db.close(); res(); };
+      r.onblocked = () => toast('Close other Tap & Read tabs to finish updating.', 6000);
       r.onerror = () => rej(r.error);
     });
   },
@@ -530,6 +549,59 @@ const DB = {
   },
 };
 const KV = { get: k => DB.get('kv', k), set: (k, v) => DB.put('kv', v, k) };
+
+// Audio only: models and reading records have separate storage. Save PCM at 16 bit
+// (48 KB/second at 24 kHz), with an LRU disk budget shared by all neural voices.
+const AudioCache = {
+  diskLimit: 128 * 1024 * 1024, memoryLimit: 24 * 1024 * 1024, tail: Promise.resolve(),
+  remember(engine, key, clip) {
+    engine.mem.delete(key); engine.mem.set(key, clip);
+    let bytes = [...engine.mem.values()].reduce((n, c) => n + c.audio.byteLength, 0);
+    for (const [k, c] of engine.mem) { if (bytes <= this.memoryLimit) break; engine.mem.delete(k); bytes -= c.audio.byteLength; }
+    return clip;
+  },
+  async get(key) {
+    const clip = await DB.get('audio', key); if (!clip) return null;
+    DB.put('audioMeta', { key, bytes: clip.audio.byteLength, used: Date.now() }).catch(() => {});
+    if (clip.pcm16) {
+      const audio = new Float32Array(clip.audio.length);
+      for (let i = 0; i < audio.length; i++) audio[i] = clip.audio[i] / 32768;
+      return { audio, sr: clip.sr };
+    }
+    return clip;
+  },
+  put(key, clip) {
+    const audio = new Int16Array(clip.audio.length);
+    for (let i = 0; i < audio.length; i++) audio[i] = Math.round(Math.max(-1, Math.min(1, clip.audio[i])) * 32767);
+    const packed = { audio, sr: clip.sr, pcm16: true };
+    const save = async () => {
+      await DB.put('audio', packed, key);
+      await DB.put('audioMeta', { key, bytes: audio.byteLength, used: Date.now() });
+      await this.trim();
+    };
+    this.tail = this.tail.catch(() => {}).then(save);
+    return this.tail;
+  },
+  async trim() {
+    const entries = (await DB.all('audioMeta')).sort((a, b) => a.used - b.used);
+    let bytes = entries.reduce((n, e) => n + e.bytes, 0);
+    if (bytes <= this.diskLimit) return;
+    const remove = [];
+    for (const e of entries) { if (bytes <= this.diskLimit) break; remove.push(e.key); bytes -= e.bytes; }
+    await this.remove(remove);
+  },
+  remove(keys) {
+    return new Promise((resolve, reject) => {
+      const tx = DB.db.transaction(['audio', 'audioMeta'], 'readwrite');
+      for (const key of keys) { tx.objectStore('audio').delete(key); tx.objectStore('audioMeta').delete(key); }
+      tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error);
+    });
+  },
+  async clear(prefix) {
+    await this.tail.catch(() => {});
+    await this.remove((await DB.all('audioMeta')).filter(e => e.key.startsWith(prefix)).map(e => e.key));
+  },
+};
 
 // ---------- settings -------------------------------------------------------
 const DEFAULT_SETTINGS = {
@@ -680,18 +752,19 @@ const SystemVoice = {
       (/compact|eloquence|novelty|whisper|bells|bad news|albert|zarvox|trinoids|bubbles|boing|cellos|organ|jester|superstar|wobble/i.test(v.name) ? -10 : 0);
     return [...this.voices].sort((a, b) => score(b) - score(a))[0] || null;
   },
-  speak(text, { onBoundary } = {}) {
+  speak(text, { onBoundary, onStart } = {}) {
     return new Promise(resolve => {
-      if (!('speechSynthesis' in window)) return resolve();
+      if (!('speechSynthesis' in window)) return resolve(false);
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       const v = this.pick(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
       u.rate = S.rate; u.pitch = 1.05;
-      const done = () => { clearTimeout(t); resolve(); };
-      u.onend = done; u.onerror = done;
+      const done = ok => { clearTimeout(t); resolve(ok); };
+      u.onend = () => done(true); u.onerror = () => done(false);
+      u.onstart = () => onStart?.();
       if (onBoundary) u.onboundary = e => { if (e.name !== 'sentence') onBoundary(e.charIndex); };
       // Some engines never fire onend; don't hang forever.
-      const t = setTimeout(done, 1500 + text.length * 120);
+      const t = setTimeout(() => done(false), 1500 + text.length * 120);
       speechSynthesis.speak(u);
     });
   },
@@ -908,12 +981,12 @@ const Kokoro = {
       const job = this.jobs.shift(); this.inflight = job;
       try {
         if (job.operation) { job.resolve(await this.execute(job)); continue; }
-        let clip = await DB.get('audio', job.key);
+        let clip = await AudioCache.get(job.key);
         if (!clip) {
           clip = await this.generate(job);
-          DB.put('audio', clip, job.key).catch(() => {});
+          AudioCache.put(job.key, clip).catch(() => {});
         }
-        this.mem.set(job.key, clip); if (this.mem.size > 400) this.mem.delete(this.mem.keys().next().value);
+        AudioCache.remember(this, job.key, clip);
         job.resolve(clip);
       } catch (e) { job.reject(e); }
     }
@@ -1054,8 +1127,15 @@ const Player = {
     audioCtx();
   },
   // Resolves when playback ends; rejects if the browser refuses to start it.
-  async play({ audio, sr }) {
+  async play({ audio, sr }, { onStart, compact = false } = {}) {
     this.stop();
+    if (compact) {
+      let a = 0, b = audio.length - 1;
+      while (a < b && Math.abs(audio[a]) < .002) a++;
+      while (b > a && Math.abs(audio[b]) < .002) b--;
+      const pad = Math.round(sr * .025);
+      audio = audio.subarray(Math.max(0, a - pad), Math.min(audio.length, b + pad + 1));
+    }
     const el = this.element();
     this.url = URL.createObjectURL(wavBlob(audio, sr));
     el.src = this.url;
@@ -1063,7 +1143,7 @@ const Player = {
     let finish;
     const ended = new Promise((res, rej) => { finish = this.done = res; el.onended = res; el.onerror = () => rej(new Error('Audio playback failed')); });
     const guard = setTimeout(finish, (audio.length / sr) * 1000 + 1500);
-    try { await Promise.all([el.play(), ended]); }
+    try { await Promise.all([el.play().then(() => { if (this.url === url) onStart?.(); }), ended]); }
     finally { clearTimeout(guard); if (this.url === url) this.stop(); }
   },
   stop() {
@@ -1087,14 +1167,14 @@ const TTS = {
     return t;
   },
   stop() { this.token++; SystemVoice.stop(); Player.stop(); },
-  async neuralPlay(text, my, engine) {
+  async neuralPlay(text, my, engine, options = {}) {
     let hint;
     try {
       hint = setTimeout(() => { if (my === this.token) toast('Preparing voice…', 3000); }, 1800);
       // A saved clip needs no model at all, including after a reload or while offline.
       const key = engine.key(text);
       let clip = engine.mem.get(key);
-      if (!clip) { try { clip = await DB.get('audio', key); } catch {} }
+      if (!clip) { try { clip = await AudioCache.get(key); } catch {} }
       if (my !== this.token) return false;
       if (!clip) {
         if (!engine.ready) await engine.load();
@@ -1102,8 +1182,9 @@ const TTS = {
         clip = await engine.get(text, true);
       }
       if (!clip || my !== this.token) return false;
+      AudioCache.remember(engine, key, clip);
       clearTimeout(hint);
-      await Player.play(clip);
+      await Player.play(clip, options);
       return my === this.token;
     } catch (e) {
       console.warn('Selected voice could not play', e);
@@ -1111,13 +1192,14 @@ const TTS = {
       return false;
     } finally { clearTimeout(hint); }
   },
-  async say(text, { word = false, engine: engineName = S.engine } = {}) {
+  async say(text, { word = false, engine: engineName = S.engine, onStart, compact = false } = {}) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     const t = this.text(text, word); if (!t) return false;
     const engine = this.engine(engineName);
-    if (engine) return this.neuralPlay(t, my, engine);
-    await SystemVoice.speak(speakable(text).trim());
-    return my === this.token;
+    const started = () => { if (my === this.token) onStart?.(); };
+    if (engine) return this.neuralPlay(t, my, engine, { onStart: started, compact });
+    const played = await SystemVoice.speak(speakable(text).trim(), { onStart: started });
+    return played !== false && my === this.token;
   },
   async sayAll(sentences, onSentence) {
     const engine = this.engine();
@@ -1128,22 +1210,41 @@ const TTS = {
       const t = this.text(sentences[i]); if (!t) continue;
       if (engine) {
         if (!await this.neuralPlay(t, my, engine)) return false;
-      } else await SystemVoice.speak(t);
+      } else if (await SystemVoice.speak(t) === false) return false;
     }
     return my === this.token;
   },
-  async prewarm(words = [], phrases = []) {
-    const version = ++this.preparation, engine = this.engine(), name = S.engine;
+  async prewarm(words = [], phrases = [], { append = false, afterWords = [], afterPhrases = [], onProgress, onComplete } = {}) {
+    const version = append ? this.preparation : ++this.preparation, engine = this.engine(), name = S.engine;
     if (!engine) return;
     const voice = engine.voice();
+    const active = () => version === this.preparation && name === S.engine && voice === engine.voice();
+    const current = new Set(words.map(w => this.text(w, true)).filter(Boolean));
+    const wordClips = [...current], ready = new Set();
+    const clips = [...new Set([...wordClips.slice(0, 8), ...phrases.map(t => this.text(t)), ...wordClips.slice(8), ...afterWords.map(w => this.text(w, true)), ...afterPhrases.map(t => this.text(t))].filter(Boolean))];
     try {
-      if (!engine.ready) await engine.load();
-      if (version !== this.preparation || name !== S.engine || voice !== engine.voice()) return;
-      engine.dropBackground();
-      const clips = [...new Set([...words.map(w => this.text(w, true)), ...phrases.map(t => this.text(t))].filter(Boolean))];
-      // Attach rejection handlers immediately; these jobs may be dropped on navigation.
-      for (const text of clips) engine.get(text, false).catch(e => console.warn('Could not prepare speech', e));
-    } catch (e) { console.warn('Could not prepare speech', e); }
+      if (!append) engine.dropBackground();
+      onProgress?.(0, current.size);
+      // Keep just one background job pending per preparation pass. Foreground taps
+      // take priority, and a new page stops this pass without discarding saved clips.
+      for (const text of clips) {
+        if (!active()) return;
+        const key = engine.key(text);
+        let clip = engine.mem.get(key) || await AudioCache.get(key).catch(() => null);
+        if (!active()) return;
+        if (!clip) {
+          if (!engine.ready) await engine.load();
+          if (!active()) return;
+          clip = await engine.get(text, false);
+        }
+        if (!active()) return;
+        if (clip) {
+          AudioCache.remember(engine, key, clip);
+          if (current.has(text)) { ready.add(text); onProgress?.(ready.size, current.size); }
+        }
+      }
+      if (active()) onComplete?.();
+    } catch (e) { if (active()) onProgress?.(ready.size, current.size, e); console.warn('Could not prepare speech', e); }
   },
 };
 
@@ -1273,7 +1374,9 @@ const COLORS = ['#fbe1d7', '#d6f0ec', '#fdf0cf', '#ece5f6', '#dcebfa', '#fde2ef'
 
 function show(id) {
   cancelParentRecording?.();
-  if (id !== 'game' && GAME?.alive) { GAME.alive = false; Recog.closeMic(); }
+  ReadAlong.reset();
+  if (id !== 'game' && GAME?.alive) { GAME.alive = false; GAME.cleanup?.(); Recog.closeMic(); }
+  TTS.preparation++; TTS.engine()?.dropBackground();
   TTS.stop(); Recog.cancel?.();
   $$('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-' + id));
   document.body.dataset.screen = id;
@@ -1364,6 +1467,48 @@ async function renderLibrary() {
 
 // ---------- book reader -------------------------------------------------------
 const B = { story: null, page: 0, sentences: [] };
+const ReadAlong = {
+  version: 0, active: false, paused: false, cursor: 0,
+  controls(message = '') {
+    $('#readAlongControls').classList.toggle('hidden', !this.active);
+    $('#readPageBtn').classList.toggle('hidden', this.active);
+    $('#readAlongToggle').textContent = this.paused ? '▶ Resume' : '⏹ Stop';
+    $('#readAlongStatus').textContent = message || (this.paused ? 'Stopped — ready when you are.' : 'Follow the highlighted word.');
+  },
+  reset() { this.version++; this.active = false; this.paused = false; this.cursor = 0; TTS.stop(); clearHighlights(); this.controls(); },
+  pause(message) {
+    if (!this.active) return;
+    this.version++; this.paused = true; TTS.stop(); clearHighlights(); this.controls(message);
+  },
+  start() {
+    audioCtx(); Recog.cancel(); Recog.closeMic();
+    if (!this.active) { this.cursor = 0; this.active = true; logEvent({ type: 'readpage', storyId: B.story.id, page: B.page }); }
+    this.paused = false; this.controls(); this.run(++this.version);
+  },
+  async run(version) {
+    const active = () => version === this.version && this.active && !this.paused && document.body.dataset.screen === 'book';
+    while (active()) {
+      const spans = $$('#pageInner .w[data-i]');
+      if (this.cursor >= spans.length) {
+        if (B.page + 1 >= B.story.pages.length) { this.reset(); finishBook(); return; }
+        B.page++; this.cursor = 0; renderPage(1); continue;
+      }
+      const el = spans[this.cursor], gap = B.wordGaps[this.cursor] || 65;
+      this.controls('Getting the next word ready…');
+      const played = await TTS.say(el.textContent, { word: true, compact: true, onStart: () => {
+        if (!active()) return;
+        clearHighlights(); el.classList.add('say'); this.controls();
+        const box = el.getBoundingClientRect(), page = $('#page').getBoundingClientRect();
+        if (box.top < page.top + 20 || box.bottom > page.bottom - 20) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } });
+      if (!active()) return;
+      if (!played) { this.pause('Voice paused. Tap Resume to retry.'); return; }
+      clearHighlights(); this.cursor++;
+      await sleep(gap);
+    }
+  },
+};
+document.addEventListener('visibilitychange', () => { if (document.hidden && ReadAlong.active && !ReadAlong.paused) ReadAlong.pause(); });
 const ABBREV = /^(Mr|Mrs|Ms|Dr|St|Jr|Sr|Mt|Prof|Capt|Gen|Lt|Col|Sgt|vs|etc)$/i;
 async function openStory(id, page) {
   const s = (await allStories()).find(s => s.id === id); if (!s) return;
@@ -1382,7 +1527,7 @@ function renderPage(dir) {
   const fs = { 1: 44, 2: 32, 3: 24 }[s.level] || 28;
   const inner = $('#pageInner');
   inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
-  B.sentences = []; B.pageWords = [];
+  B.sentences = []; B.pageWords = []; B.wordGaps = [];
   let html = '';
   const addText = (text) => {
     let out = '', cur = '', si = B.sentences.length, startOfSentence = true;
@@ -1393,6 +1538,7 @@ function renderPage(dir) {
         B.pageWords.push(tk.v); cur += tk.v; startOfSentence = false;
       } else {
         out += esc(tk.v); cur += tk.v;
+        if (B.pageWords.length && /[,.!?;:]/.test(tk.v)) B.wordGaps[B.pageWords.length - 1] = /[.!?]/.test(tk.v) ? 280 : 150;
         const prev = B.pageWords[B.pageWords.length - 1] || '';
         if (/[.!?]/.test(tk.v) && !(/^\./.test(tk.v.trim()) && ABBREV.test(prev))) { B.sentences[si] = cur.trim(); cur = ''; si++; startOfSentence = true; }
       }
@@ -1421,9 +1567,15 @@ function renderPage(dir) {
   $('#nextBtn2').textContent = B.page === last ? 'The end ✓' : 'Next ›';
   $('#bookProg').style.width = ((B.page + 1) / s.pages.length * 100) + '%';
   saveProgress();
-  // Pre-generate audio for this page and the next so taps play instantly with Kokoro.
+  // Start immediately, in reading order; repeated words share one saved clip.
   const next = (s.pages[B.page + 1] || []).filter(b => b.text && b.t !== 'pic').flatMap(b => b.text.match(WORD_RE) || []);
-  TTS.prewarm([...new Set([...B.pageWords, String(B.page + 1), ...next])], [...B.sentences, ...(s.pages[B.page + 1] || []).filter(b => b.text && ['p', 'h'].includes(b.t)).flatMap(b => b.text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || []), `The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!']);
+  const prep = $('#voicePrep'), story = B.story, page = B.page;
+  prep.classList.toggle('hidden', !TTS.engine());
+  TTS.prewarm([...B.pageWords, String(page + 1)], [`The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!'], {
+    afterWords: next, afterPhrases: B.sentences,
+    onProgress: (ready, total, error) => { if (B.story === story && B.page === page && document.body.dataset.screen === 'book') prep.textContent = error ? 'Voice preparation paused. Tap a word to retry.' : ready === total ? 'Page words ready · preparing ahead' : `Preparing page words: ${ready} of ${total}`; },
+    onComplete: () => { if (B.story === story && B.page === page && document.body.dataset.screen === 'book') prep.textContent = 'Page words ready'; },
+  });
 }
 async function saveProgress() {
   const key = 'progress:' + READER.id, prog = (await KV.get(key)) || {};
@@ -1435,7 +1587,7 @@ async function saveProgress() {
 }
 function turn(d) {
   const n = B.page + d, last = B.story.pages.length - 1;
-  TTS.stop(); clearHighlights();
+  ReadAlong.reset(); TTS.stop(); clearHighlights();
   if (n < 0) return;
   if (n > last) { finishBook(); return; }
   B.page = n; renderPage(d);
@@ -1475,6 +1627,8 @@ function wireBook() {
   $('#prevBtn').onclick = $('#prevBtn2').onclick = () => turn(-1);
   $('#nextBtn').onclick = $('#nextBtn2').onclick = () => turn(1);
   $('#readPageBtn').onclick = () => readPage();
+  $('#readAlongToggle').onclick = () => ReadAlong.paused ? ReadAlong.start() : ReadAlong.pause();
+  $('#readAlongEnd').onclick = () => ReadAlong.reset();
   $('#readAloudBtn').onclick = () => readAloud();
   // Swipe to turn pages.
   let sx = null, sy = 0;
@@ -1489,12 +1643,14 @@ function wireBook() {
   });
 }
 function tapWord(el) {
+  ReadAlong.pause();
   el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); clearTimeout(el._hit); el._hit = setTimeout(() => el.classList.remove('hit'), 1200);
   const display = el.dataset.num || el.textContent;
   TTS.say(display, { word: true });
   recordTap(display, { storyId: B.story.id, page: B.page, properNoun: el.dataset.p === '1', how: el.closest('.title,h2') ? 'title' : el.dataset.num ? 'pageno' : 'tap' });
 }
 async function saySentence(el) {
+  ReadAlong.pause();
   const si = +el.dataset.s; if (si < 0) return tapWord(el);
   clearHighlights();
   const spans = $$(`#pageInner .w[data-s="${si}"]`); spans.forEach(s => s.classList.add('sent'));
@@ -1503,16 +1659,7 @@ async function saySentence(el) {
   await TTS.say(B.sentences[si] || '');
   spans.forEach(s => s.classList.remove('sent')); el.classList.remove('say');
 }
-async function readPage() {
-  audioCtx();
-  const btn = $('#readPageBtn');
-  if (btn.dataset.on) { TTS.stop(); clearHighlights(); delete btn.dataset.on; btn.textContent = '🔊'; return; }
-  btn.dataset.on = 1; btn.textContent = '⏹';
-  logEvent({ type: 'readpage', storyId: B.story.id, page: B.page });
-  const sents = B.sentences.map((t, i) => ({ t, i })).filter(x => x.t);
-  await TTS.sayAll(sents.map(x => x.t), k => { clearHighlights(); $$(`#pageInner .w[data-s="${sents[k].i}"]`).forEach(s => s.classList.add('sent')); });
-  clearHighlights(); delete btn.dataset.on; btn.textContent = '🔊';
-}
+function readPage() { ReadAlong.start(); }
 
 // ===========================================================================
 // Games — all built from the reader's weighted practice list
@@ -1537,35 +1684,39 @@ async function renderGames() {
   const tiles = [
     { id: 'find', e: '👂', t: 'Listen & Find', d: 'Hear a word, tap the right one.', c: 'lvl2' },
     { id: 'match', e: '🃏', t: 'Memory Match', d: 'Match each word to its sound.', c: 'lvl3' },
+    { id: 'fall', e: '✨', t: 'Falling Words', d: 'Say any floating word. Make it sparkle and earn a star!', c: 'lvl2' },
   ];
   if (S.recog) tiles.push({ id: 'say', e: '🎤', t: 'Say It!', d: Recog.ready ? 'Say a word, hear it, and earn a star.' : 'Needs speech recognition — tap to load it.', c: 'lvl1' });
   $('#gameTiles').innerHTML = tiles.map(g => `<button class="game-tile ${g.c}" data-g="${g.id}"><span class="e">${g.e}</span><b>${g.t}</b><span class="muted">${g.d}</span></button>`).join('');
   $$('#gameTiles [data-g]').forEach(b => b.onclick = () => startGame(b.dataset.g));
   show('games');
+  TTS.prewarm(words.map(w => w.display), gamePhrases());
 }
 
+function gamePhrases() { return [...PRAISE, `Great listening, ${READER.name}!`, 'You matched them all!', `Great practicing, ${READER.name}!`, `You did it, ${READER.name}!`, 'You’ve practiced all your current words!']; }
+
 async function startGame(kind) {
-  if (GAME) GAME.alive = false;
+  if (GAME) { GAME.alive = false; GAME.cleanup?.(); }
   TTS.stop(); Recog.cancel(); Recog.closeMic();
   audioCtx();
-  if (kind === 'say' && !Recog.ready) {
+  if (['say', 'fall'].includes(kind) && !Recog.ready) {
     const ok = await loadRecogWithModal(); if (!ok) return;
   }
   const { words } = await gameWords(kind === 'match' ? 6 : 8);
   GAME = { kind, words: shuffle(words), i: 0, stars: 0, firstTry: true, pool: await vocabPool(), alive: true, readerId: READER.id, round: 0 };
-  TTS.prewarm(words.map(w => w.display), [...PRAISE, `Great listening, ${READER.name}!`, 'You matched them all!', `Great practicing, ${READER.name}!`, `You did it, ${READER.name}!`]);
-  $('#gameTitle').textContent = { find: 'Listen & Find', match: 'Memory Match', say: 'Say It!' }[kind];
+  $('#gameTitle').textContent = { find: 'Listen & Find', match: 'Memory Match', say: 'Say It!', fall: 'Falling Words' }[kind];
   $('#gameStars').textContent = '';
   logEvent({ type: 'game', game: kind });
   show('game');
+  TTS.prewarm(words.map(w => w.display), gamePhrases());
   if (!words.length) return endGame('You’ve practiced all your current words!');
-  if (kind === 'find') findRound(); else if (kind === 'match') matchGame(); else sayRound();
+  if (kind === 'find') findRound(); else if (kind === 'match') matchGame(); else if (kind === 'fall') fallingGame(); else sayRound();
 }
-function addStar() { GAME.stars++; $('#gameStars').textContent = '⭐'.repeat(Math.min(GAME.stars, 10)); }
+function addStar() { GAME.stars++; $('#gameStars').textContent = GAME.kind === 'fall' ? `⭐ ${GAME.stars} / 10` : '⭐'.repeat(Math.min(GAME.stars, 10)); }
 function endGame(msg) {
-  if (!GAME) return; GAME.alive = false; chime('win'); confetti(innerWidth / 2, innerHeight / 2, 24);
+  if (!GAME) return; GAME.alive = false; GAME.cleanup?.(); Recog.cancel(); Recog.closeMic(); chime('win'); confetti(innerWidth / 2, innerHeight / 2, 24);
   TTS.say(msg || `You did it, ${READER.name}!`);
-  $('#gameArea').innerHTML = `<div style="font-size:80px">🏆</div><div class="feedback">${esc(msg || 'You did it!')}</div><div class="stars">${'⭐'.repeat(GAME.kind === 'say' ? GAME.stars : Math.max(1, GAME.stars))}</div>
+  $('#gameArea').innerHTML = `<div style="font-size:80px">🏆</div><div class="feedback">${esc(msg || 'You did it!')}</div><div class="stars">${'⭐'.repeat(['say', 'fall'].includes(GAME.kind) ? GAME.stars : Math.max(1, GAME.stars))}</div>
     <div class="row"><button class="btn teal" id="again">Play again</button><button class="btn" id="toGames">More games</button></div>`;
   $('#again').onclick = () => startGame(GAME.kind); $('#toGames').onclick = renderGames;
 }
@@ -1580,7 +1731,7 @@ function findRound() {
     <div class="feedback" id="fb">Which word did you hear?</div>
     <div class="choices">${opts.map(o => `<button class="choice" data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div>
     <div class="muted">${g.i + 1} of ${g.words.length}</div>`;
-  TTS.prewarm([target.display, ...opts], [...PRAISE, `Great listening, ${READER.name}!`]);
+  TTS.prewarm([target.display, ...opts], [...PRAISE, `Great listening, ${READER.name}!`], { append: true });
   const hear = () => { if (g === GAME && g.alive) return TTS.say(target.display, { word: true }); };
   $('#hear').onclick = hear; setTimeout(hear, 350);
   $$('.choice').forEach(b => b.onclick = async () => {
@@ -1692,21 +1843,165 @@ async function sayRound() {
   await sleep(400); if (active()) listen();
 }
 
-$('#gameQuit').onclick = () => { if (GAME) GAME.alive = false; TTS.stop(); Recog.cancel(); Recog.closeMic(); renderGames(); };
+// ---- Falling Words: choose any visible word; there are no lost lives or misses. ----
+function fallingGame() {
+  const g = GAME, active = () => GAME === g && g.alive;
+  $('#gameArea').innerHTML = `<div class="feedback" id="fallFeedback" role="status">Say any word you see!</div>
+    <div class="fall-sky" id="fallSky" aria-label="Slowly falling practice words"></div>
+    <div class="row"><span id="fallMic" class="muted">🎤 Getting ready…</span><div class="meter"><i id="fallLevel"></i></div></div>
+    <div class="row"><button class="btn small" id="fallPause">⏸ Pause</button><button class="btn small ghost" id="fallDone">Done practicing</button></div>
+    <div class="muted">Words come back around. Take your time. · 10 stars to finish</div>`;
+  const sky = $('#fallSky');
+  Object.assign(g, { falling: new Map(), clock: 0, spawnAt: 0, sequence: 0, paused: false, processing: false, hearing: false, listenVersion: 0 });
+  let raf, last = performance.now();
+  const spawn = () => {
+    const available = g.words.filter(w => ![...g.falling.values()].some(f => sameWord(f.word, w.word)));
+    if (!available.length) return;
+    const w = available[g.sequence % available.length], id = ++g.sequence;
+    const el = document.createElement('div'); el.className = 'fall-word'; el.textContent = w.display;
+    el.dataset.id = id; sky.appendChild(el);
+    const lane = id % 2, x = sky.clientWidth * (lane ? .52 : .03);
+    let font = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > sky.clientWidth * .45 && font > 16) el.style.fontSize = (--font) + 'px';
+    g.falling.set(id, { ...w, id, el, born: g.clock, x, y: 16 });
+    g.spawnAt = g.clock + 3200;
+  };
+  const frame = now => {
+    if (!active()) return;
+    const dt = Math.min(100, now - last); last = now;
+    if (!g.paused && !g.processing && !g.hearing && !document.hidden) {
+      g.clock += dt;
+      if (g.clock >= g.spawnAt && g.falling.size < 4) spawn();
+      for (const f of g.falling.values()) {
+        const p = (g.clock - f.born) / 26000;
+        if (p >= 1) { f.el.remove(); g.falling.delete(f.id); continue; }
+        f.x = sky.clientWidth * (f.id % 2 ? .52 : .03);
+        f.y = 16 + p * Math.max(100, sky.clientHeight - f.el.offsetHeight - 24);
+        f.el.style.transform = `translate(${f.x}px,${f.y}px)`;
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  };
+  const pause = (message = 'Paused — take your time.') => {
+    g.paused = true; g.listenVersion++; Recog.cancel(); Recog.closeMic(); g.hearing = false; g.processing = false;
+    $('#fallPause').textContent = '▶ Resume'; $('#fallMic').textContent = '🎤 Paused'; $('#fallFeedback').textContent = message;
+    $('#fallLevel').style.width = '0%';
+  };
+  const visibility = () => { if (document.hidden && active()) pause(); };
+  document.addEventListener('visibilitychange', visibility);
+  g.cleanup = () => { cancelAnimationFrame(raf); g.listenVersion++; Recog.cancel(); Recog.closeMic(); document.removeEventListener('visibilitychange', visibility); };
+  $('#fallPause').onclick = () => {
+    if (!g.paused) return pause();
+    g.paused = false; $('#fallPause').textContent = '⏸ Pause'; $('#fallFeedback').textContent = 'Say any word you see!'; listen();
+  };
+  $('#fallDone').onclick = () => { if (active()) endGame(`Great practicing, ${READER.name}!`); };
+  async function listen() {
+    const version = ++g.listenVersion, listening = () => active() && !g.paused && version === g.listenVersion;
+    while (listening()) {
+      $('#fallMic').textContent = '🎤 Listening…';
+      const candidates = new Map(g.falling);
+      let rec;
+      try {
+        rec = await Recog.record({ maxMs: 7000, silenceMs: 850, noSpeechMs: 7000, onLevel: v => {
+          if (!listening()) return;
+          $('#fallLevel').style.width = Math.min(100, v * 400) + '%';
+          if (v > .025) g.hearing = true; // Hold words still once the reader starts speaking.
+          for (const [id, f] of g.falling) candidates.set(id, f);
+        } });
+      } catch (e) { if (listening()) pause('Allow the microphone, then tap Resume.'); return; }
+      if (!listening()) return;
+      g.hearing = false; Recog.closeMic();
+      if (!rec.speech) { await sleep(120); continue; }
+      g.processing = true; $('#fallMic').textContent = '✨ Listening to your word…';
+      try {
+        const results = await Recog.transcribe(rec);
+        if (!listening()) return;
+        // One utterance earns at most one star. Match an actual displayed word,
+        // never a fuzzy sound-alike or an off-screen word from the practice list.
+        const heard = [].concat(results || []).flatMap(r => resultWords(r));
+        const hit = heard.flatMap(h => [...candidates.values()].filter(f => sameWord(h.w, f.word)))[0];
+        if (hit) {
+          g.falling.delete(hit.id); hit.el.remove();
+          const sparkle = document.createElement('span'); sparkle.className = 'fall-sparkle'; sparkle.textContent = '✨⭐✨';
+          sparkle.style.left = Math.min(hit.x, sky.clientWidth - 110) + 'px'; sparkle.style.top = hit.y + 'px'; sky.appendChild(sparkle); setTimeout(() => sparkle.remove(), 850);
+          addStar(); chime('good'); $('#fallFeedback').textContent = '⭐ Keep going!';
+          await recordPracticeAttempt(hit, judgeWord(hit.word, results), g.readerId);
+          if (!listening()) return;
+          const saved = await DB.get('words', g.readerId + '|' + normWord(hit.word));
+          if (!listening()) return;
+          if (saved?.box >= 5) g.words = g.words.filter(w => !sameWord(w.word, hit.word));
+          if (g.stars >= 10 || !g.words.length) { endGame(`Great practicing, ${READER.name}!`); return; }
+        } else $('#fallFeedback').textContent = 'Say any word you see!';
+      } catch (e) { if (listening()) { pause('Listening paused. Tap Resume to try again.'); console.warn('Falling Words recognition', e); } return; }
+      if (!listening()) return;
+      // Let the reward chime finish before opening the microphone again.
+      await sleep(450); if (!listening()) return; g.processing = false;
+    }
+  }
+  spawn(); raf = requestAnimationFrame(frame); listen();
+}
+
+$('#gameQuit').onclick = () => { if (GAME) { GAME.alive = false; GAME.cleanup?.(); } TTS.stop(); Recog.cancel(); Recog.closeMic(); renderGames(); };
 
 // ===========================================================================
 // Speech recognition (experimental): Whistle via the cactus-needle WASM build
 // ===========================================================================
-// Files live next to index.html in vendor/cactus-needle (the worker must be same-origin).
-// The 16.9 MB model downloads from Hugging Face on first use and is cached by the browser.
+// Prefer an existing local installation. The pinned browser worker also works
+// from this one HTML file; no companion app or separately installed vendor folder.
+async function browserWhistle(onProgress) {
+  const base = 'https://cdn.jsdelivr.net/npm/cactus-needle@0.3.0/';
+  const workerURL = base + 'dist/browser/worker.js';
+  let cache, response;
+  try { cache = await caches.open('tapread-whistle-runtime-0.3.0'); response = await cache.match(workerURL); } catch {}
+  if (!response) {
+    response = await fetch(workerURL); if (!response.ok) throw new Error('Could not download speech recognition');
+    try { await cache?.put(workerURL, response.clone()); } catch {}
+  }
+  // The published worker is self-contained (Apache-2.0, afshinm/cactus-needle).
+  const blob = URL.createObjectURL(new Blob([await response.text()], { type: 'text/javascript' }));
+  const worker = new Worker(blob, { type: 'module' });
+  let seq = 0, closed = false; const pending = new Map();
+  const close = (error = new Error('Speech recognition stopped')) => {
+    if (closed) return; closed = true; worker.terminate(); URL.revokeObjectURL(blob);
+    for (const p of pending.values()) { clearTimeout(p.timer); p.reject(error); } pending.clear();
+  };
+  const request = (message, ms = 120000) => new Promise((resolve, reject) => {
+    if (closed) return reject(new Error('Speech recognition stopped. Reload to retry.'));
+    const id = message.type === 'init' ? 0 : ++seq;
+    const timer = setTimeout(() => close(new Error('Speech recognition timed out. Reload to retry.')), ms);
+    pending.set(id, { resolve, reject, timer });
+    try { worker.postMessage(message.type ? message : { ...message, id }); } catch (e) { close(e); }
+  });
+  worker.onmessage = ({ data: m }) => {
+    if (m.type === 'progress') { onProgress?.((m.progress.percentage || 0) / 100); return; }
+    const id = m.type === 'ready' || m.id == null ? 0 : m.id, p = pending.get(id);
+    if (m.type === 'error' && m.id == null) { close(new Error(m.message || 'Speech recognition failed')); return; }
+    if (!p) return; clearTimeout(p.timer); pending.delete(id);
+    if (m.type === 'error') p.reject(new Error(m.message)); else p.resolve(m.value);
+  };
+  worker.onerror = e => { e.preventDefault(); close(new Error(e.message || 'Speech recognition failed')); };
+  worker.onmessageerror = () => close(new Error('Could not read speech recognition response'));
+  try {
+    await request({ type: 'init', config: {
+      modelKind: 'whistle', system: '', toolsJson: '[]', stateless: false, bufferSize: 262144,
+      model: 'https://huggingface.co/Cactus-Compute/whistle/resolve/b358ddadd89b7a713b5aa131f23032d3cca1b251/whistle.cact',
+      modelSha256: 'b6e02f048568ac5d01a2042556c658061e699acbc0aa2a1439f52f3d461dffeb', modelSize: 16919407,
+      wasmUrl: base + 'vendor/needle.wasm', cache: true, offline: false,
+    } }, 240000);
+    URL.revokeObjectURL(blob);
+    return { transcribe: (audio, settings) => request({ method: 'transcribe', audio, settings }), close };
+  } catch (e) { close(e); throw e; }
+}
 const Recog = {
   ready: false, loading: null, whistle: null, stream: null, _stop: null, _micEpoch: 0, _recordEpoch: 0, _opening: null,
   load(onProgress) {
     if (this.ready) return Promise.resolve();
     if (this.loading) return this.loading;
     this.loading = (async () => {
-      const mod = await import('./vendor/cactus-needle/dist/browser/index.js');
-      this.whistle = await mod.createWhistle({ onDownloadProgress: p => onProgress?.((p.percentage ?? 0) / 100) });
+      try {
+        const mod = await import('./vendor/cactus-needle/dist/browser/index.js');
+        this.whistle = await mod.createWhistle({ onDownloadProgress: p => onProgress?.((p.percentage ?? 0) / 100) });
+      } catch { this.whistle = await browserWhistle(onProgress); }
       this.ready = true;
     })().catch(e => { this.loading = null; throw e; });
     return this.loading;
@@ -1770,7 +2065,13 @@ const Recog = {
   // moves a child's higher pitch and formants toward the adult speech Whistle was trained on.
   // In testing, raising adult speech 25–40% broke recognition, and a 0.8 shift recovered it.
   SHIFTS: [1, 0.9, 0.8, 0.72],
-  async transcribe(rec, shifts = this.SHIFTS) {
+  transcribe(rec, shifts = this.SHIFTS) {
+    const run = () => this.transcribeSerial(rec, shifts);
+    const result = (this.transcribing || Promise.resolve()).catch(() => {}).then(run);
+    this.transcribing = result;
+    return result;
+  },
+  async transcribeSerial(rec, shifts) {
     const out = [];
     for (const f of shifts) {
       const r = await this.whistle.transcribe({ samples: rec.samples, sampleRate: Math.round(rec.sampleRate * f) }, { language: 'en', wordTimestamps: true });
@@ -1891,14 +2192,20 @@ async function loadRecogWithModal() {
   if (Recog.ready) return true;
   return new Promise(resolve => {
     modal(`<h3>Loading speech recognition…</h3><p class="note">The first time, this downloads a 17 MB speech model. Audio never leaves this device.</p>
-      <div class="row"><div class="bar-prog"><i id="rp"></i></div></div><p class="note" id="rmsg"></p>`, async (m, close) => {
+      <div class="row"><div class="bar-prog"><i id="rp"></i></div></div><p class="note" id="rmsg"></p><button class="btn small" id="rCancel">Back</button>`, async (m, close) => {
+      let settled = false;
+      const finish = ok => { if (settled) return; settled = true; close(); resolve(ok); };
+      $('#rCancel', m).onclick = () => finish(false);
+      const back = m.parentElement;
+      back.addEventListener('click', e => { if (e.target === back) finish(false); });
       try {
         await Recog.load(p => { const el = $('#rp', m); if (el) el.style.width = Math.round(p * 100) + '%'; });
-        close(); resolve(true); $('#readAloudBtn').classList.toggle('hidden', !S.recog);
+        if (settled) return;
+        finish(true); $('#readAloudBtn').classList.toggle('hidden', !S.recog);
       } catch (e) {
+        if (settled) return;
         console.error(e);
-        $('#rmsg', m).innerHTML = `Couldn’t load it: ${esc(e.message || e)}<br>Check that the <code>vendor/cactus-needle</code> folder is next to index.html and the page is served over https or localhost.`;
-        const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Close'; b.onclick = () => { close(); resolve(false); }; m.appendChild(b);
+        $('#rmsg', m).innerHTML = `Couldn’t load it: ${esc(e.message || e)}<br>Check your connection and open the app over HTTPS or localhost, then try again.`;
       }
     });
   });
@@ -1907,6 +2214,7 @@ async function loadRecogWithModal() {
 // "I'll read it!" — record the child reading the page, then score it quietly.
 // The child only ever gets encouragement; details go to the grown-ups' view.
 async function readAloud() {
+  ReadAlong.reset();
   if (!Recog.ready && !(await loadRecogWithModal())) return;
   TTS.stop(); clearHighlights();
   // Score the story text only — not the title, byline or page number.
@@ -2373,7 +2681,7 @@ async function renderSettingsTab(body, reader, readers) {
   const refresh = () => { if (PARENT.tab === 'settings' && document.body.contains(body)) renderSettingsTab(body, reader, readers); };
   $('#pLoad', body).onclick = async () => { try { await Pocket.load(); refresh(); } catch (e) { refresh(); toast(e.message, 4500); } };
   $('#pVoice', body).onchange = async e => { TTS.stop(); Pocket.dropBackground(); S.pocketVoice = e.target.value; await saveSettings(); refresh(); };
-  $('#pClear', body).onclick = async () => { TTS.stop(); Pocket.release(); await DB.tx('audio', 'readwrite', store => store.delete(IDBKeyRange.bound('p1|', 'p1|\uffff'))); Pocket.mem.clear(); toast('PocketTTS audio cleared. Parent voices are kept.'); };
+  $('#pClear', body).onclick = async () => { TTS.stop(); Pocket.release(); await AudioCache.clear('p1|'); Pocket.mem.clear(); toast('PocketTTS audio cleared. Parent voices are kept.'); };
   $('#pAddVoice', body).onclick = () => openParentVoice(refresh);
   $$('[data-delete-voice]', body).forEach(button => button.onclick = async () => {
     const id = button.dataset.deleteVoice;
@@ -2407,7 +2715,7 @@ async function renderSettingsTab(body, reader, readers) {
   if (Kokoro.loading && !Kokoro.ready) { watchKokoro(); Kokoro.loading.then(() => renderSettingsTab(body, reader, readers)).catch(() => renderSettingsTab(body, reader, readers)); }
   $('#kGpuRetry', body) && ($('#kGpuRetry', body).onclick = () => { try { localStorage.removeItem('tapread.kokoroGpuFailed2'); localStorage.setItem('tapread.kokoroForceGpu', '1'); } catch {} location.reload(); });
   $('#kVoice', body).onchange = e => { TTS.stop(); Kokoro.dropBackground(); S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); toast('Preparing voice…'); TTS.say('Hello! Let’s read a story.', { wait: true }); };
-  $('#kClear', body).onclick = async () => { TTS.stop(); Kokoro.release(); await DB.tx('audio', 'readwrite', store => store.delete(IDBKeyRange.bound('k2|', 'k2|\uffff'))); Kokoro.mem.clear(); toast('Saved audio cleared'); };
+  $('#kClear', body).onclick = async () => { TTS.stop(); Kokoro.release(); await AudioCache.clear('k2|'); Kokoro.mem.clear(); toast('Saved audio cleared'); };
   $('#sTryBtn', body).onclick = () => { if (TTS.usingKokoro()) toast('Preparing…', 1200); TTS.say($('#sTry', body).value, { wait: true }); };
   $('#ovAdd', body).onclick = () => { const w = normWord($('#ovW', body).value.trim()), s = $('#ovS', body).value.trim(); if (!w || !s) return; S.overrides[w] = s; saveSettings(); Kokoro.mem.clear(); renderSettingsTab(body, reader, readers); };
   $$('[data-ovrm]', body).forEach(b => b.onclick = () => { delete S.overrides[b.dataset.ovrm]; saveSettings(); renderSettingsTab(body, reader, readers); });
@@ -2583,6 +2891,7 @@ document.addEventListener('click', e => {
   await loadSettings();
   // Clips from the fp16 build were garbled; drop them (cache keys now start with "k2|").
   DB.tx('audio', 'readwrite', st => st.delete(IDBKeyRange.bound('k|', 'k|\uffff'))).catch(() => {});
+  AudioCache.trim().catch(() => {});
   SystemVoice.init();
   navigator.storage?.persist?.().catch(() => {});
   wireBook();
@@ -2597,7 +2906,7 @@ document.addEventListener('click', e => {
 })();
 
 // Handy for debugging from the console.
-window.tapread = { recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
+window.tapread = { ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
 </script>
 </body>
 </html>
