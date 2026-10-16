@@ -779,23 +779,31 @@ const SystemVoice = {
       (/compact|eloquence|novelty|whisper|bells|bad news|albert|zarvox|trinoids|bubbles|boing|cellos|organ|jester|superstar|wobble/i.test(v.name) ? -10 : 0);
     return [...this.voices].sort((a, b) => score(b) - score(a))[0] || null;
   },
-  speak(text, { onBoundary, onStart } = {}) {
+  speak(text, { onBoundary, onStart, onProgress, durationHint = 0 } = {}) {
+    this.stop();
     return new Promise(resolve => {
       if (!('speechSynthesis' in window)) return resolve(false);
-      speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       const v = this.pick(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
       u.rate = S.rate; u.pitch = 1.05;
-      const done = ok => { clearTimeout(t); resolve(ok); };
+      let frame, started = 0, finished = false;
+      const cancel = () => done(false);
+      const done = ok => { if (finished) return; finished = true; clearTimeout(t); cancelAnimationFrame(frame); if (this.finish === cancel) this.finish = null; resolve(ok); };
+      this.finish = cancel;
       u.onend = () => done(true); u.onerror = () => done(false);
-      u.onstart = () => onStart?.();
-      if (onBoundary) u.onboundary = e => { if (e.name !== 'sentence') onBoundary(e.charIndex); };
+      u.onstart = () => {
+        if (finished) return;
+        started = performance.now(); onStart?.({ duration: durationHint, speechStart: 0, speechEnd: Math.max(.1, durationHint - .2) });
+        const tick = () => { if (finished) return; onProgress?.((performance.now() - started) / 1000, durationHint); frame = requestAnimationFrame(tick); };
+        if (onProgress) frame = requestAnimationFrame(tick);
+      };
+      if (onBoundary) u.onboundary = e => { if (!finished && e.name !== 'sentence') onBoundary(e.charIndex); };
       // Some engines never fire onend; don't hang forever.
-      const t = setTimeout(() => done(false), 1500 + text.length * 120);
-      speechSynthesis.speak(u);
+      const t = setTimeout(() => done(false), Math.max(1500 + text.length * 120, durationHint * 2000 + 5000));
+      try { speechSynthesis.speak(u); } catch { done(false); }
     });
   },
-  stop() { if ('speechSynthesis' in window) speechSynthesis.cancel(); },
+  stop() { this.finish?.(); if ('speechSynthesis' in window) speechSynthesis.cancel(); },
 };
 
 // Kokoro-82M via kokoro-js, isolated in a worker so it can be terminated if it hangs.
@@ -1154,7 +1162,7 @@ const Player = {
     audioCtx();
   },
   // Resolves when playback ends; rejects if the browser refuses to start it.
-  async play({ audio, sr }, { onStart, compact = false } = {}) {
+  async play({ audio, sr }, { onStart, onProgress, startAt = 0, compact = false } = {}) {
     this.stop();
     if (compact) {
       let a = 0, b = audio.length - 1;
@@ -1164,14 +1172,33 @@ const Player = {
       audio = audio.subarray(Math.max(0, a - pad), Math.min(audio.length, b + pad + 1));
     }
     const el = this.element();
+    const duration = audio.length / sr;
+    let first = 0, last = audio.length - 1;
+    if (onProgress) {
+      while (first < last && Math.abs(audio[first]) < .004) first++;
+      while (last > first && Math.abs(audio[last]) < .004) last--;
+      if (first === last) { first = 0; last = audio.length - 1; }
+    }
+    const info = { duration, speechStart: Math.max(0, first / sr - .025), speechEnd: Math.min(duration, (last + 1) / sr + .025) };
     this.url = URL.createObjectURL(wavBlob(audio, sr));
     el.src = this.url;
     const url = this.url;
     let finish;
     const ended = new Promise((res, rej) => { finish = this.done = res; el.onended = res; el.onerror = () => rej(new Error('Audio playback failed')); });
-    const guard = setTimeout(finish, (audio.length / sr) * 1000 + 1500);
-    try { await Promise.all([el.play().then(() => { if (this.url === url) onStart?.(); }), ended]); }
-    finally { clearTimeout(guard); if (this.url === url) this.stop(); }
+    const guard = setTimeout(finish, Math.max(0, duration - startAt) * 1000 + 3000);
+    let frame;
+    try {
+      if (startAt > 0) {
+        // iOS can seek reliably after metadata is available, rather than before
+        // setting src. Stop also releases this wait through the ended promise.
+        await Promise.race([new Promise(resolve => { el.onloadedmetadata = resolve; if (el.readyState >= 1) resolve(); }), ended]);
+        if (this.url !== url) return;
+        el.currentTime = Math.max(0, Math.min(startAt, Math.max(0, duration - .02)));
+      }
+      const tick = () => { if (this.url !== url) return; onProgress?.(el.currentTime, duration); frame = requestAnimationFrame(tick); };
+      await Promise.all([el.play().then(() => { if (this.url === url) { onStart?.(info); if (onProgress) { tick(); } } }), ended]);
+    }
+    finally { cancelAnimationFrame(frame); clearTimeout(guard); if (this.url === url) { onProgress?.(Math.min(el.currentTime, duration), duration); this.stop(); } }
   },
   stop() {
     const el = this.el; if (!el) return;
@@ -1219,13 +1246,15 @@ const TTS = {
       return false;
     } finally { clearTimeout(hint); }
   },
-  async say(text, { word = false, engine: engineName = S.engine, onStart, compact = false } = {}) {
+  async say(text, { word = false, engine: engineName = S.engine, onStart, onProgress, onBoundary, startAt = 0, durationHint = 0, compact = false } = {}) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     const t = this.text(text, word); if (!t) return false;
     const engine = this.engine(engineName);
-    const started = () => { if (my === this.token) onStart?.(); };
-    if (engine) return this.neuralPlay(t, my, engine, { onStart: started, compact });
-    const played = await SystemVoice.speak(speakable(text).trim(), { onStart: started });
+    const started = info => { if (my === this.token) onStart?.(info); };
+    const progress = onProgress && ((time, duration) => { if (my === this.token) onProgress(time, duration); });
+    const boundary = onBoundary && (index => { if (my === this.token) onBoundary(index); });
+    if (engine) return this.neuralPlay(t, my, engine, { onStart: started, onProgress: progress, startAt, compact });
+    const played = await SystemVoice.speak(speakable(text).trim(), { onStart: started, onProgress: progress, onBoundary: boundary, durationHint });
     return played !== false && my === this.token;
   },
   async sayAll(sentences, onSentence) {
@@ -1241,14 +1270,14 @@ const TTS = {
     }
     return my === this.token;
   },
-  async prewarm(words = [], phrases = [], { append = false, afterWords = [], afterPhrases = [], onProgress, onComplete } = {}) {
+  async prewarm(words = [], phrases = [], { append = false, priorityPhrases = [], afterWords = [], afterPhrases = [], onProgress, onComplete } = {}) {
     const version = append ? this.preparation : ++this.preparation, engine = this.engine(), name = S.engine;
     if (!engine) return;
     const voice = engine.voice();
     const active = () => version === this.preparation && name === S.engine && voice === engine.voice();
     const current = new Set(words.map(w => this.text(w, true)).filter(Boolean));
     const wordClips = [...current], ready = new Set();
-    const clips = [...new Set([...wordClips.slice(0, 8), ...phrases.map(t => this.text(t)), ...wordClips.slice(8), ...afterWords.map(w => this.text(w, true)), ...afterPhrases.map(t => this.text(t))].filter(Boolean))];
+    const clips = [...new Set([...priorityPhrases.map(t => this.text(t)), ...wordClips.slice(0, 8), ...phrases.map(t => this.text(t)), ...wordClips.slice(8), ...afterWords.map(w => this.text(w, true)), ...afterPhrases.map(t => this.text(t))].filter(Boolean))];
     try {
       if (!append) engine.dropBackground();
       onProgress?.(0, current.size);
@@ -1494,23 +1523,57 @@ async function renderLibrary() {
 
 // ---------- book reader -------------------------------------------------------
 const B = { story: null, page: 0, sentences: [] };
+// Display-word positions in the actual spoken text, including pronunciation
+// overrides and numbers that expand to several spoken words.
+function readingPlan(text) {
+  text = text.trim(); let spoken = '', position = 0;
+  const words = [], matches = [...text.matchAll(WORD_RE)];
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i], part = speakable(m[0]);
+    spoken += text.slice(position, m.index);
+    const start = spoken.length; spoken += part;
+    const pieces = part.toLowerCase().match(/[a-z]+/g) || [part];
+    let weight = 0;
+    for (const piece of pieces) {
+      const vowelGroups = (piece.replace(/e$/, '').match(/[aeiouy]+/g) || []).length;
+      weight += /^(a|an|the|of|to|and|in|is|it|as|at|for|or|on|was|are)$/.test(piece) ? .85 : .65 + .8 * Math.max(1, vowelGroups) + .025 * piece.length;
+    }
+    const after = text.slice(m.index + m[0].length, matches[i + 1]?.index ?? text.length);
+    const pause = /[.!?]/.test(after) ? .6 : /[,;:—–]/.test(after) ? .4 : 0;
+    words.push({ start, end: spoken.length, original: m.index, weight: weight + pause });
+    position = m.index + m[0].length;
+  }
+  spoken += text.slice(position);
+  const total = words.reduce((sum, w) => sum + w.weight, 0);
+  let cumulative = 0;
+  for (const w of words) { w.fraction = cumulative / (total || 1); cumulative += w.weight; }
+  return { text, spoken, words, total };
+}
 const ReadAlong = {
-  version: 0, active: false, paused: false, cursor: 0,
+  version: 0, active: false, paused: false, cursor: 0, offset: 0,
   controls(message = '') {
     $('#readAlongControls').classList.toggle('hidden', !this.active);
     $('#readPageBtn').classList.toggle('hidden', this.active);
     $('#readAlongToggle').textContent = this.paused ? '▶ Resume' : '⏹ Stop';
-    $('#readAlongStatus').textContent = message || (this.paused ? 'Stopped — ready when you are.' : 'Follow the highlighted word.');
+    $('#readAlongStatus').textContent = message || (this.paused ? 'Stopped — ready when you are.' : 'Listen and follow along.');
   },
-  reset() { this.version++; this.active = false; this.paused = false; this.cursor = 0; TTS.stop(); clearHighlights(); this.controls(); },
+  reset() { this.version++; this.active = false; this.paused = false; this.cursor = 0; this.offset = 0; TTS.stop(); clearHighlights(); this.controls(); },
   pause(message) {
     if (!this.active) return;
     this.version++; this.paused = true; TTS.stop(); clearHighlights(); this.controls(message);
   },
   start() {
     audioCtx(); Recog.cancel(); Recog.closeMic();
-    if (!this.active) { this.cursor = 0; this.active = true; logEvent({ type: 'readpage', storyId: B.story.id, page: B.page }); }
-    this.paused = false; this.controls(); this.run(++this.version);
+    if (!this.active) { this.cursor = 0; this.offset = 0; this.active = true; logEvent({ type: 'readpage', storyId: B.story.id, page: B.page }); }
+    this.paused = false; this.controls(); prepareBookAudio(true); this.run(++this.version);
+  },
+  highlight(index, spans) {
+    const el = spans[index]; if (!el) return;
+    this.cursor = index;
+    if (el.classList.contains('say')) return;
+    clearHighlights(); el.classList.add('say');
+    const box = el.getBoundingClientRect(), page = $('#page').getBoundingClientRect();
+    if (box.top < page.top + 20 || box.bottom > page.bottom - 20) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
   async run(version) {
     const active = () => version === this.version && this.active && !this.paused && document.body.dataset.screen === 'book';
@@ -1518,20 +1581,48 @@ const ReadAlong = {
       const spans = $$('#pageInner .w[data-i]');
       if (this.cursor >= spans.length) {
         if (B.page + 1 >= B.story.pages.length) { this.reset(); finishBook(); return; }
-        B.page++; this.cursor = 0; renderPage(1); continue;
+        B.page++; this.cursor = 0; this.offset = 0; renderPage(1); continue;
       }
-      const el = spans[this.cursor], gap = B.wordGaps[this.cursor] || 65;
-      this.controls('Getting the next word ready…');
-      const played = await TTS.say(el.textContent, { word: true, compact: true, onStart: () => {
+      const sentence = spans[this.cursor].dataset.s;
+      let base = spans.findIndex(el => el.dataset.s === sentence);
+      let end = base; while (end < spans.length && spans[end].dataset.s === sentence) end++;
+      let text = B.sentences[+sentence] || spans.slice(base, end).map(el => el.textContent).join(' ');
+      const neural = !!TTS.engine();
+      // Neural audio resumes at the saved media time. Native speech has no seek
+      // API, so resume its remaining phrase from the last highlighted word.
+      if (!neural && this.cursor > base) {
+        text = text.slice(readingPlan(text).words[this.cursor - base]?.original || 0); base = this.cursor;
+      }
+      const plan = readingPlan(text), offset = neural ? this.offset : 0;
+      let bounds = null, nativeBoundaries = false;
+      const estimate = (time, duration) => {
         if (!active()) return;
-        clearHighlights(); el.classList.add('say'); this.controls();
-        const box = el.getBoundingClientRect(), page = $('#page').getBoundingClientRect();
-        if (box.top < page.top + 20 || box.bottom > page.bottom - 20) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      } });
+        if (neural) this.offset = time;
+        if (nativeBoundaries || !plan.words.length) return;
+        const start = bounds?.speechStart || 0, stop = bounds?.speechEnd || duration;
+        const fraction = Math.max(0, Math.min(1, (time - start) / Math.max(.01, stop - start)));
+        let word = 0; while (word + 1 < plan.words.length && plan.words[word + 1].fraction <= fraction) word++;
+        this.highlight(Math.min(end - 1, base + word), spans);
+      };
+      this.controls('Getting the next sentence ready…');
+      const played = await TTS.say(text, {
+        startAt: offset, durationHint: Math.max(.5, plan.total * .23 / S.rate + .35),
+        onStart: info => {
+          if (!active()) return;
+          bounds = info || { duration: 1, speechStart: 0, speechEnd: 1 };
+          this.controls(); estimate(offset, bounds.duration);
+        },
+        onProgress: estimate,
+        onBoundary: index => {
+          if (!active() || !plan.words.length) return;
+          nativeBoundaries = true;
+          let word = 0; while (word + 1 < plan.words.length && plan.words[word + 1].start <= index) word++;
+          this.highlight(Math.min(end - 1, base + word), spans);
+        },
+      });
       if (!active()) return;
       if (!played) { this.pause('Voice paused. Tap Resume to retry.'); return; }
-      clearHighlights(); this.cursor++;
-      await sleep(gap);
+      clearHighlights(); this.cursor = end; this.offset = 0;
     }
   },
 };
@@ -1594,16 +1685,35 @@ function renderPage(dir) {
   $('#nextBtn2').textContent = B.page === last ? 'The end ✓' : 'Next ›';
   $('#bookProg').style.width = ((B.page + 1) / s.pages.length * 100) + '%';
   saveProgress();
-  // Start immediately, in reading order; repeated words share one saved clip.
-  const next = (s.pages[B.page + 1] || []).filter(b => b.text && b.t !== 'pic').flatMap(b => b.text.match(WORD_RE) || []);
-  const prep = $('#voicePrep'), story = B.story, page = B.page;
-  prep.classList.toggle('hidden', !TTS.engine());
-  TTS.prewarm([...B.pageWords, String(page + 1)], [`The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!'], {
-    afterWords: next, afterPhrases: B.sentences,
-    onProgress: (ready, total, error) => { if (B.story === story && B.page === page && document.body.dataset.screen === 'book') prep.textContent = error ? 'Voice preparation paused. Tap a word to retry.' : ready === total ? 'Page words ready · preparing ahead' : `Preparing page words: ${ready} of ${total}`; },
-    onComplete: () => { if (B.story === story && B.page === page && document.body.dataset.screen === 'book') prep.textContent = 'Page words ready'; },
+  prepareBookAudio(ReadAlong.active && !ReadAlong.paused);
+}
+function pageSpeech(story, page) {
+  const texts = (page === 0 ? [story.title] : []).concat((story.pages[page] || []).filter(b => ['h', 'p'].includes(b.t)).map(b => b.text));
+  return texts.flatMap(text => {
+    let cur = '', prev = ''; const sentences = [];
+    for (const tk of tokenize(text)) {
+      cur += tk.v;
+      if (tk.w) prev = tk.v;
+      else if (/[.!?]/.test(tk.v) && !(/^\./.test(tk.v.trim()) && ABBREV.test(prev))) { if (cur.trim()) sentences.push(cur.trim()); cur = ''; }
+    }
+    if (cur.trim()) sentences.push(cur.trim());
+    return sentences;
   });
 }
+function prepareBookAudio(reading = false) {
+  const s = B.story, page = B.page, prep = $('#voicePrep');
+  const next = (s.pages[page + 1] || []).filter(b => ['p', 'h'].includes(b.t)).flatMap(b => b.text.match(WORD_RE) || []);
+  const nextSentences = pageSpeech(s, page + 1);
+  const currentSentence = +($$('#pageInner .w[data-i]')[ReadAlong.cursor]?.dataset.s || 0);
+  prep.classList.toggle('hidden', !TTS.engine());
+  TTS.prewarm([...B.pageWords, String(page + 1)], [`The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!'], {
+    priorityPhrases: reading ? [...B.sentences.slice(currentSentence), ...nextSentences] : B.sentences.slice(0, 1),
+    afterWords: next, afterPhrases: [...B.sentences, ...nextSentences],
+    onProgress: (ready, total, error) => { if (B.story === s && B.page === page && document.body.dataset.screen === 'book') prep.textContent = error ? 'Voice preparation paused. Tap a word to retry.' : ready === total ? 'Page words ready · preparing ahead' : reading ? 'Preparing read-along and page words…' : `Preparing page words: ${ready} of ${total}`; },
+    onComplete: () => { if (B.story === s && B.page === page && document.body.dataset.screen === 'book') prep.textContent = reading ? 'Read-along and page words ready' : 'Page words ready'; },
+  });
+}
+
 async function saveProgress() {
   const key = 'progress:' + READER.id, prog = (await KV.get(key)) || {};
   const prev = prog[B.story.id] || {};
@@ -2938,7 +3048,7 @@ document.addEventListener('click', e => {
 });
 
 // Handy for debugging from the console.
-window.tapread = { ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
+window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
 </script>
 </body>
 </html>
