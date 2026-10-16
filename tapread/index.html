@@ -1550,17 +1550,50 @@ function readingPlan(text) {
   return { text, spoken, words, total };
 }
 const ReadAlong = {
-  version: 0, active: false, paused: false, cursor: 0, offset: 0,
+  version: 0, active: false, paused: false, cursor: 0, offset: 0, gapRemaining: 0, finishGap: null,
+  highlightDelay: .35, highlightSpeed: 1.18,
+  paragraphPause: 650, chapterPause: 1750,
+  highlightFraction(time, bounds, duration) {
+    const speechStart = bounds?.speechStart || 0, speechEnd = bounds?.speechEnd || duration;
+    const span = Math.max(.01, speechEnd - speechStart);
+    // Delay the first estimate, then cover the word sequence a little faster.
+    // Short utterances use a smaller delay so the final word still fits.
+    const start = speechStart + Math.min(this.highlightDelay, span * .2);
+    const stop = Math.min(speechEnd, start + span / this.highlightSpeed);
+    if (time < start) return null;
+    return Math.max(0, Math.min(1, (time - start) / Math.max(.01, stop - start)));
+  },
+  transitionPause(previous, next, pageTurn = false, endedSentence = false) {
+    if (next?.kind === 'h' && (pageTurn || previous?.block !== next.block)) return this.chapterPause;
+    if (pageTurn) return endedSentence ? this.paragraphPause : 0;
+    if (!next) return 0;
+    return previous?.block !== next.block ? this.paragraphPause : 0;
+  },
+  waitForGap(active) {
+    if (!this.gapRemaining) return Promise.resolve(active());
+    const duration = this.gapRemaining, began = performance.now();
+    return new Promise(resolve => {
+      let timer;
+      const finish = () => {
+        clearTimeout(timer);
+        this.gapRemaining = Math.max(0, duration - (performance.now() - began));
+        if (this.finishGap === finish) this.finishGap = null;
+        resolve(active());
+      };
+      this.finishGap = finish;
+      timer = setTimeout(() => { finish(); this.gapRemaining = 0; }, duration);
+    });
+  },
   controls(message = '') {
     $('#readAlongControls').classList.toggle('hidden', !this.active);
     $('#readPageBtn').classList.toggle('hidden', this.active);
     $('#readAlongToggle').textContent = this.paused ? '▶ Resume' : '⏹ Stop';
     $('#readAlongStatus').textContent = message || (this.paused ? 'Stopped — ready when you are.' : 'Listen and follow along.');
   },
-  reset() { this.version++; this.active = false; this.paused = false; this.cursor = 0; this.offset = 0; TTS.stop(); clearHighlights(); this.controls(); },
+  reset() { this.version++; this.active = false; this.paused = false; this.cursor = 0; this.offset = 0; this.finishGap?.(); this.gapRemaining = 0; TTS.stop(); clearHighlights(); this.controls(); },
   pause(message) {
     if (!this.active) return;
-    this.version++; this.paused = true; TTS.stop(); clearHighlights(); this.controls(message);
+    this.version++; this.paused = true; this.finishGap?.(); TTS.stop(); clearHighlights(); this.controls(message);
   },
   start() {
     audioCtx(); Recog.cancel(); Recog.closeMic();
@@ -1583,6 +1616,10 @@ const ReadAlong = {
         if (B.page + 1 >= B.story.pages.length) { this.reset(); finishBook(); return; }
         B.page++; this.cursor = 0; this.offset = 0; renderPage(1); continue;
       }
+      if (this.gapRemaining) {
+        this.controls('Listen and follow along.');
+        if (!await this.waitForGap(active)) return;
+      }
       const sentence = spans[this.cursor].dataset.s;
       let base = spans.findIndex(el => el.dataset.s === sentence);
       let end = base; while (end < spans.length && spans[end].dataset.s === sentence) end++;
@@ -1599,8 +1636,8 @@ const ReadAlong = {
         if (!active()) return;
         if (neural) this.offset = time;
         if (nativeBoundaries || !plan.words.length) return;
-        const start = bounds?.speechStart || 0, stop = bounds?.speechEnd || duration;
-        const fraction = Math.max(0, Math.min(1, (time - start) / Math.max(.01, stop - start)));
+        const fraction = this.highlightFraction(time, bounds, duration);
+        if (fraction === null) return;
         let word = 0; while (word + 1 < plan.words.length && plan.words[word + 1].fraction <= fraction) word++;
         this.highlight(Math.min(end - 1, base + word), spans);
       };
@@ -1623,6 +1660,13 @@ const ReadAlong = {
       if (!active()) return;
       if (!played) { this.pause('Voice paused. Tap Resume to retry.'); return; }
       clearHighlights(); this.cursor = end; this.offset = 0;
+      const previous = B.sentenceInfo[+sentence];
+      if (end < spans.length) this.gapRemaining = this.transitionPause(previous, B.sentenceInfo[+spans[end].dataset.s]);
+      else if (B.page + 1 < B.story.pages.length) {
+        const firstBlock = B.story.pages.slice(B.page + 1).flat().find(block => ['h', 'p'].includes(block.t) && countWords(block.text));
+        const endedSentence = /[.!?][\s"'’”\)\]]*$/.test(B.sentences[+sentence] || '');
+        this.gapRemaining = this.transitionPause(previous, firstBlock && { kind: firstBlock.t }, true, endedSentence);
+      }
     }
   },
 };
@@ -1645,12 +1689,14 @@ function renderPage(dir) {
   const fs = { 1: 44, 2: 32, 3: 24 }[s.level] || 28;
   const inner = $('#pageInner');
   inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
-  B.sentences = []; B.pageWords = []; B.wordGaps = [];
-  let html = '';
-  const addText = (text) => {
+  B.sentences = []; B.pageWords = []; B.wordGaps = []; B.sentenceInfo = [];
+  let html = '', block = 0;
+  const addText = (text, kind = 'p') => {
+    const info = { block: block++, kind };
     let out = '', cur = '', si = B.sentences.length, startOfSentence = true;
     for (const tk of tokenize(text)) {
       if (tk.w) {
+        B.sentenceInfo[si] = info;
         const proper = /^\p{Lu}/u.test(tk.v) && !startOfSentence && tk.v !== 'I';
         out += `<span class="w" data-s="${si}" data-i="${B.pageWords.length}"${proper ? ' data-p="1"' : ''}>${esc(tk.v)}</span>`;
         B.pageWords.push(tk.v); cur += tk.v; startOfSentence = false;
@@ -1666,13 +1712,13 @@ function renderPage(dir) {
     return out;
   };
   if (B.page === 0) {
-    html += `<div class="title">${addText(s.title)}</div>`;
+    html += `<div class="title">${addText(s.title, 'title')}</div>`;
     if (s.author) html += `<div class="byline">${esc(s.author)}</div>`;
   }
   for (const b of blocks) {
     if (b.t === 'pic') html += `<div class="pic" aria-hidden="true">${esc(b.text)}</div>`;
     else if (b.t === 'img') html += `<img src="${b.src}" alt="${esc(b.alt || '')}">`;
-    else if (b.t === 'h') html += `<h2>${addText(b.text)}</h2>`;
+    else if (b.t === 'h') html += `<h2>${addText(b.text, 'h')}</h2>`;
     else if (b.t === 'p') html += `<p>${addText(b.text)}</p>`;
   }
   html += `<div class="pageno"><span class="w" data-num="${B.page + 1}" data-s="-1">${B.page + 1}</span></div>`;
