@@ -193,6 +193,9 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 </style>
 </head>
 <body>
+<section class="screen on" id="scr-startup">
+  <div class="hello"><h1>Tap &amp; Read</h1><p id="startupMessage" role="status">Opening your books…</p><p id="startupHelp" class="muted hidden">Close older copies of the app, then reload this page. Your reading progress has not been cleared.</p><button class="btn hidden" id="startupReload" onclick="location.reload()">Reload</button></div>
+</section>
 
 <!-- Who's reading -->
 <section class="screen" id="scr-readers">
@@ -506,7 +509,9 @@ const DB = {
   db: null,
   open() {
     return new Promise((res, rej) => {
-      const r = indexedDB.open('tapread', 2);
+      // Open the existing schema as-is. A forced version upgrade waits forever
+      // when an older app tab still holds a connection (including in Safari).
+      const r = indexedDB.open('tapread');
       r.onupgradeneeded = () => {
         const d = r.result;
         if (!d.objectStoreNames.contains('kv')) {
@@ -517,10 +522,6 @@ const DB = {
         d.createObjectStore('words', { keyPath: 'key' }).createIndex('reader', 'readerId');
         d.createObjectStore('audio');
         }
-        const meta = d.createObjectStore('audioMeta', { keyPath: 'key' });
-        // Index older clips without loading the whole audio cache into memory.
-        const cursor = r.transaction.objectStore('audio').openCursor();
-        cursor.onsuccess = () => { const c = cursor.result; if (c) { meta.put({ key: c.key, bytes: c.value.audio?.byteLength || 0, used: Date.now() }); c.continue(); } };
       };
       r.onsuccess = () => { this.db = r.result; this.db.onversionchange = () => this.db.close(); res(); };
       r.onblocked = () => toast('Close other Tap & Read tabs to finish updating.', 6000);
@@ -554,6 +555,32 @@ const KV = { get: k => DB.get('kv', k), set: (k, v) => DB.put('kv', v, k) };
 // (48 KB/second at 24 kHz), with an LRU disk budget shared by all neural voices.
 const AudioCache = {
   diskLimit: 128 * 1024 * 1024, memoryLimit: 24 * 1024 * 1024, tail: Promise.resolve(),
+  prefix: 'audio-cache-meta|', indexed: null,
+  writeMeta(entry) { return DB.put('kv', entry, this.prefix + entry.key); },
+  index() {
+    if (this.indexed) return this.indexed;
+    this.indexed = (async () => {
+      if (await KV.get('audio-cache-indexed-v1')) return;
+      // An ordinary transaction works with either old schema; no upgrade and no
+      // requirement to close other tabs. Read one legacy clip at a time.
+      await new Promise((resolve, reject) => {
+        const tx = DB.db.transaction(['audio', 'kv'], 'readwrite'), kv = tx.objectStore('kv');
+        const request = tx.objectStore('audio').openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) { kv.put(true, 'audio-cache-indexed-v1'); return; }
+          if (cursor.value?.audio?.byteLength && !String(cursor.key).startsWith('lab|')) kv.put({ key: cursor.key, bytes: cursor.value.audio.byteLength, used: Date.now() }, this.prefix + cursor.key);
+          cursor.continue();
+        };
+        tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error);
+      });
+    })().catch(e => { this.indexed = null; throw e; });
+    return this.indexed;
+  },
+  async entries() {
+    await this.index();
+    return DB.tx('kv', 'readonly', store => store.getAll(IDBKeyRange.bound(this.prefix, this.prefix + '\uffff')));
+  },
   remember(engine, key, clip) {
     engine.mem.delete(key); engine.mem.set(key, clip);
     let bytes = [...engine.mem.values()].reduce((n, c) => n + c.audio.byteLength, 0);
@@ -562,7 +589,7 @@ const AudioCache = {
   },
   async get(key) {
     const clip = await DB.get('audio', key); if (!clip) return null;
-    DB.put('audioMeta', { key, bytes: clip.audio.byteLength, used: Date.now() }).catch(() => {});
+    this.writeMeta({ key, bytes: clip.audio.byteLength, used: Date.now() }).catch(() => {});
     if (clip.pcm16) {
       const audio = new Float32Array(clip.audio.length);
       for (let i = 0; i < audio.length; i++) audio[i] = clip.audio[i] / 32768;
@@ -576,14 +603,14 @@ const AudioCache = {
     const packed = { audio, sr: clip.sr, pcm16: true };
     const save = async () => {
       await DB.put('audio', packed, key);
-      await DB.put('audioMeta', { key, bytes: audio.byteLength, used: Date.now() });
+      await this.writeMeta({ key, bytes: audio.byteLength, used: Date.now() });
       await this.trim();
     };
     this.tail = this.tail.catch(() => {}).then(save);
     return this.tail;
   },
   async trim() {
-    const entries = (await DB.all('audioMeta')).sort((a, b) => a.used - b.used);
+    const entries = (await this.entries()).sort((a, b) => a.used - b.used);
     let bytes = entries.reduce((n, e) => n + e.bytes, 0);
     if (bytes <= this.diskLimit) return;
     const remove = [];
@@ -592,14 +619,14 @@ const AudioCache = {
   },
   remove(keys) {
     return new Promise((resolve, reject) => {
-      const tx = DB.db.transaction(['audio', 'audioMeta'], 'readwrite');
-      for (const key of keys) { tx.objectStore('audio').delete(key); tx.objectStore('audioMeta').delete(key); }
+      const tx = DB.db.transaction(['audio', 'kv'], 'readwrite');
+      for (const key of keys) { tx.objectStore('audio').delete(key); tx.objectStore('kv').delete(this.prefix + key); }
       tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error);
     });
   },
   async clear(prefix) {
     await this.tail.catch(() => {});
-    await this.remove((await DB.all('audioMeta')).filter(e => e.key.startsWith(prefix)).map(e => e.key));
+    await this.remove((await this.entries()).filter(e => e.key.startsWith(prefix)).map(e => e.key));
   },
 };
 
@@ -2886,14 +2913,12 @@ document.addEventListener('click', e => {
 });
 
 (async function init() {
-  try { await DB.open(); }
-  catch (e) { document.body.innerHTML = `<p style="padding:24px;font-family:sans-serif">This browser is blocking storage (private mode?), so Tap &amp; Read can’t save progress. Please open it in a normal window.</p>`; return; }
+  await DB.open();
   await loadSettings();
   // Clips from the fp16 build were garbled; drop them (cache keys now start with "k2|").
   DB.tx('audio', 'readwrite', st => st.delete(IDBKeyRange.bound('k|', 'k|\uffff'))).catch(() => {});
-  AudioCache.trim().catch(() => {});
   SystemVoice.init();
-  navigator.storage?.persist?.().catch(() => {});
+  try { navigator.storage?.persist?.().catch(() => {}); } catch {}
   wireBook();
   if (S.engine === 'pocket') Pocket.load().catch(e => console.warn('PocketTTS unavailable', e));
   if (S.engine === 'kokoro' && S.kokoroWanted) Kokoro.load().catch(e => console.warn('Kokoro unavailable', e));
@@ -2901,9 +2926,16 @@ document.addEventListener('click', e => {
   const readers = await DB.all('readers');
   const lastId = await KV.get('lastReader');
   const last = readers.find(r => r.id === lastId);
-  if (readers.length === 1 && last) { READER = last; renderLibrary(); }
-  else renderReaders();
-})();
+  if (readers.length === 1 && last) { READER = last; await renderLibrary(); }
+  else await renderReaders();
+  // Maintenance must never hold up the first visible screen.
+  AudioCache.trim().catch(() => {});
+})().catch(e => {
+  console.error('Tap & Read startup failed', e);
+  $('#startupMessage').textContent = 'Couldn’t open your books: ' + (e.message || e);
+  $('#startupHelp').classList.remove('hidden'); $('#startupReload').classList.remove('hidden');
+  $$('.screen').forEach(screen => screen.classList.toggle('on', screen.id === 'scr-startup'));
+});
 
 // Handy for debugging from the console.
 window.tapread = { ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
