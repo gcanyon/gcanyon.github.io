@@ -768,7 +768,7 @@ const Kokoro = {
   worker: null, ready: false, loading: null, mode: null, jobs: [], busy: false, mem: new Map(), id: 0, waiters: new Map(),
   status: { frac: 0, label: '' }, listeners: new Set(), warmup: 0,
   // Timeouts live on the page, not the worker: a blocked worker cannot run its own timer.
-  startupMs: 120000, generationMs: 60000,
+  startupMs: 120000, generationMs: 120000,
   safari() { return /Safari/i.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|Android/i.test(navigator.userAgent) || /iPad|iPhone|iPod/.test(navigator.userAgent); },
   // Anyone (e.g. the Settings page) can watch progress, including for a load already under way.
   onStatus(fn) { this.listeners.add(fn); fn(this.status); return () => this.listeners.delete(fn); },
@@ -847,7 +847,7 @@ const Kokoro = {
       }
       if (!this.worker) { this.worker = await attempt('wasm', 'q8', 'standard mode'); this.mode = 'cpu'; }
       this.ready = true;
-      this.emit(1, `✓ Ready — ${this.mode === 'gpu' ? 'fast mode (graphics chip)' : 'standard mode (CPU)'}. First test: ${this.warmup.toFixed(1)} s; new words may use device voice while preparing.`);
+      this.emit(1, `✓ Ready — ${this.mode === 'gpu' ? 'fast mode (graphics chip)' : 'standard mode (CPU)'}. First test: ${this.warmup.toFixed(1)} s; new words wait for this voice.`);
     })().catch(e => { this.loading = null; this.emit(0, 'Failed: ' + (e.message || e)); throw e; });
     return this.loading;
   },
@@ -856,7 +856,7 @@ const Kokoro = {
     for (const w of this.waiters.values()) { clearTimeout(w.timer); w.reject(error); }
     this.waiters.clear();
     for (const j of this.jobs.splice(0)) j.reject(error);
-    this.emit(0, 'Failed: ' + error.message + ' Using device voice. Retry in Voice settings.');
+    this.emit(0, 'Failed: ' + error.message + ' Tap again to retry.');
   },
   onMessage(m) {
     if (m.type === 'fatal') { this.fail(new Error(m.error)); return; }
@@ -955,57 +955,64 @@ const Player = {
 };
 for (const ev of ['click', 'touchend', 'keydown']) addEventListener(ev, () => Player.unlock(), { capture: true, passive: true });
 
-const withTimeout = async (p, ms) => {
-  let timer;
-  try { return await Promise.race([p, new Promise(r => { timer = setTimeout(() => r(undefined), ms); })]); }
-  finally { clearTimeout(timer); }
-};
-
-// Unified speech API ---------------------------------------------------------
-// Kokoro takes ~2–3 s to generate a word it hasn't seen before (single-threaded WASM),
-// then it's cached for good. If a clip isn't ready quickly, the device voice says it
-// now and the Kokoro clip is kept for next time — a tap is never silent.
+// Unified speech API: keep the selected voice for every utterance.
+// Predictable clips are prepared ahead; uncached clips wait instead of changing voices.
 const TTS = {
-  token: 0,
+  token: 0, preparation: 0,
   usingKokoro() { return S.engine === 'kokoro' && Kokoro.ready; },
-  stop() { this.token++; SystemVoice.stop(); Player.stop(); },
-  async kokoroPlay(text, my, waitMs) {
-    let clip;
-    try { clip = await withTimeout(Kokoro.get(text, true), waitMs); } catch (e) { console.warn('Kokoro failed', e); return false; }
-    if (!clip || my !== this.token) return my !== this.token;   // not ready: fall back
-    try { await Player.play(clip); return true; }
-    catch (e) { console.warn('Audio playback blocked, using device voice', e); return false; }
+  text(text, word = false) {
+    let t = speakable(text).trim();
+    if (t && word && !/[.!?]$/.test(t)) t += '.';
+    return t;
   },
-  // wait: for deliberate voice tests in Settings, wait for Kokoro instead of falling back.
-  async say(text, { word = false, wait = false } = {}) {
+  stop() { this.token++; SystemVoice.stop(); Player.stop(); },
+  async kokoroPlay(text, my) {
+    let hint;
+    try {
+      hint = setTimeout(() => { if (my === this.token) toast('Preparing voice…', 3000); }, 1800);
+      if (!Kokoro.ready) await Kokoro.load();
+      if (my !== this.token || S.engine !== 'kokoro') return false;
+      const clip = await Kokoro.get(text, true);
+      if (!clip || my !== this.token || S.engine !== 'kokoro') return false;
+      clearTimeout(hint);
+      await Player.play(clip);
+      return my === this.token;
+    } catch (e) {
+      console.warn('Kokoro could not play', e);
+      if (my === this.token) toast('Voice unavailable. Tap again to retry.', 4500);
+      return false;
+    } finally { clearTimeout(hint); }
+  },
+  async say(text, { word = false } = {}) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
-    let t = speakable(text).trim(); if (!t) return;
-    if (this.usingKokoro()) {
-      if (word && !/[.!?]$/.test(t)) t += '.';
-      if (await this.kokoroPlay(t, my, wait ? 60000 : 1200)) return;
-      if (wait && my === this.token) toast('Kokoro was unavailable for this test. Playing device voice.', 4000);
-    }
-    if (my === this.token) await SystemVoice.speak(speakable(text).trim());
+    const t = this.text(text, word); if (!t) return false;
+    if (S.engine === 'kokoro') return this.kokoroPlay(t, my);
+    await SystemVoice.speak(speakable(text).trim());
+    return my === this.token;
   },
   async sayAll(sentences, onSentence) {
     const my = ++this.token; SystemVoice.stop(); Player.stop();
     for (let i = 0; i < sentences.length; i++) {
       if (my !== this.token) return false;
       onSentence?.(i);
-      const t = speakable(sentences[i]).trim(); if (!t) continue;
-      if (this.usingKokoro()) {
-        if (i + 1 < sentences.length) Kokoro.get(speakable(sentences[i + 1]).trim(), true).catch(() => {});
-        if (await this.kokoroPlay(t, my, 2500)) continue;
-      }
-      if (my !== this.token) return false;
-      await SystemVoice.speak(t);
+      const t = this.text(sentences[i]); if (!t) continue;
+      if (S.engine === 'kokoro') {
+        if (!await this.kokoroPlay(t, my)) return false;
+      } else await SystemVoice.speak(t);
     }
     return my === this.token;
   },
-  prewarm(words) {
-    if (!this.usingKokoro()) return;
-    Kokoro.dropBackground();
-    for (const w of words) { let t = speakable(w).trim(); if (t) { if (!/[.!?]$/.test(t)) t += '.'; Kokoro.get(t, false).catch(() => {}); } }
+  async prewarm(words = [], phrases = []) {
+    const version = ++this.preparation, voice = S.kokoroVoice;
+    if (S.engine !== 'kokoro') return;
+    try {
+      if (!Kokoro.ready) await Kokoro.load();
+      if (version !== this.preparation || S.engine !== 'kokoro' || voice !== S.kokoroVoice) return;
+      Kokoro.dropBackground();
+      const clips = [...new Set([...words.map(w => this.text(w, true)), ...phrases.map(t => this.text(t))].filter(Boolean))];
+      // Attach rejection handlers immediately; these jobs may be dropped on navigation.
+      for (const text of clips) Kokoro.get(text, false).catch(e => console.warn('Could not prepare speech', e));
+    } catch (e) { console.warn('Could not prepare speech', e); }
   },
 };
 
@@ -1050,15 +1057,15 @@ async function logEvent(ev) {
   if (!READER) return;
   return DB.put('events', { readerId: READER.id, ts: Date.now(), ...ev });
 }
-async function wordRec(word) {
-  const key = READER.id + '|' + word;
-  return (await DB.get('words', key)) || { key, readerId: READER.id, word, display: word, proper: false, taps: 0, tapLog: [], box: 0, due: 0, correct: 0, wrong: 0, sayRight: 0, sayWrong: 0, readMiss: 0, readHes: 0, readOk: 0, first: Date.now(), last: 0 };
+async function wordRec(word, readerId = READER.id) {
+  const key = readerId + '|' + word;
+  return (await DB.get('words', key)) || { key, readerId, word, display: word, proper: false, taps: 0, tapLog: [], box: 0, due: 0, correct: 0, wrong: 0, sayRight: 0, sayWrong: 0, readMiss: 0, readHes: 0, readOk: 0, first: Date.now(), last: 0 };
 }
 async function recordTap(display, ctx = {}) {
   if (!READER) return;
   const word = normWord(display), now = Date.now();
   const r = await wordRec(word);
-  r.taps++; r.last = now; r.box = 0; r.due = now;
+  r.taps++; r.last = now; r.box = 0; r.due = now; r.sayStreak = 0;
   r.tapLog = [...(r.tapLog || []), now].slice(-30);
   r.display = ctx.properNoun ? display : word; r.proper = !!ctx.properNoun;
   await DB.put('words', r);
@@ -1070,13 +1077,28 @@ async function recordAnswer(word, kind, extra = {}) {
   word = normWord(word);
   const r = await wordRec(word), now = Date.now();
   if (kind === 'right' || kind === 'say-right') { r.correct++; if (kind === 'say-right') r.sayRight++; r.box = Math.min(5, r.box + 1); r.due = now + BOX_DAYS[r.box] * DAY; }
-  else if (kind === 'wrong' || kind === 'say-wrong') { r.wrong++; if (kind === 'say-wrong') r.sayWrong++; r.box = 0; r.due = now; }
-  else if (kind === 'read-miss') { r.readMiss++; r.box = Math.min(r.box, 1); r.due = Math.min(r.due || now, now); }
+  else if (kind === 'wrong' || kind === 'say-wrong') { r.wrong++; if (kind === 'say-wrong') r.sayWrong++; r.sayStreak = 0; r.box = 0; r.due = now; }
+  else if (kind === 'read-miss') { r.sayStreak = 0; r.readMiss++; r.box = Math.min(r.box, 1); r.due = Math.min(r.due || now, now); }
   else if (kind === 'read-hes') { r.readHes++; }
   else if (kind === 'read-ok') { r.readOk++; }
   // Words only seen in read-aloud that were read fine don't need a record at all.
   if (r.taps || r.correct || r.wrong || r.readMiss || r.readHes || r.sayWrong) await DB.put('words', r);
   await logEvent({ type: kind, word, ...extra });
+}
+// Recognition only changes future word selection. Every spoken attempt earns a star.
+const SAY_MASTERY_STREAK = 3;
+async function recordPracticeAttempt(target, result, readerId) {
+  const word = normWord(target.word), r = await wordRec(word, readerId), now = Date.now();
+  const right = result.verdict === 'right';
+  r.display = target.display; r.sayAttempts = (r.sayAttempts || 0) + 1;
+  r.sayStreak = right ? (r.sayStreak || 0) + 1 : 0;
+  if (right) { r.correct++; r.sayRight = (r.sayRight || 0) + 1; }
+  else if (result.verdict === 'different') { r.wrong++; r.sayWrong = (r.sayWrong || 0) + 1; }
+  else r.sayUnclear = (r.sayUnclear || 0) + 1;
+  r.box = right ? (r.sayStreak >= SAY_MASTERY_STREAK ? 5 : Math.min(4, r.box + 1)) : 0;
+  r.due = right ? now + BOX_DAYS[r.box] * DAY : now;
+  await DB.put('words', r);
+  await DB.put('events', { readerId, ts: now, type: right ? 'say-right' : result.verdict === 'different' ? 'say-wrong' : 'say-unclear', word, game: 'say', practice: true, heard: result.heard, p: result.p, variants: result.variantText });
 }
 function weight(r, now = Date.now()) {
   const decayed = (r.tapLog || []).reduce((a, t) => a + Math.pow(0.5, (now - t) / HALF_LIFE), 0);
@@ -1085,7 +1107,7 @@ function weight(r, now = Date.now()) {
 async function practiceWords(n = 8) {
   if (!READER) return [];
   const now = Date.now();
-  const recs = (await DB.byReader('words', READER.id)).filter(r => r.box < 5 && (r.taps || r.wrong || r.readMiss));
+  const recs = (await DB.byReader('words', READER.id)).filter(r => r.box < 5 && (r.taps || r.wrong || r.readMiss || r.sayAttempts));
   recs.sort((a, b) => ((b.due <= now) - (a.due <= now)) || (weight(b, now) - weight(a, now)));
   return recs.slice(0, n);
 }
@@ -1119,6 +1141,7 @@ const FACES = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐯', '🐨', '
 const COLORS = ['#fbe1d7', '#d6f0ec', '#fdf0cf', '#ece5f6', '#dcebfa', '#fde2ef'];
 
 function show(id) {
+  if (id !== 'game' && GAME?.alive) { GAME.alive = false; Recog.closeMic(); }
   TTS.stop(); Recog.cancel?.();
   $$('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-' + id));
   document.body.dataset.screen = id;
@@ -1268,7 +1291,7 @@ function renderPage(dir) {
   saveProgress();
   // Pre-generate audio for this page and the next so taps play instantly with Kokoro.
   const next = (s.pages[B.page + 1] || []).filter(b => b.text && b.t !== 'pic').flatMap(b => b.text.match(WORD_RE) || []);
-  TTS.prewarm([...new Set([...B.pageWords, ...next])]);
+  TTS.prewarm([...new Set([...B.pageWords, String(B.page + 1), ...next])], [...B.sentences, ...(s.pages[B.page + 1] || []).filter(b => b.text && ['p', 'h'].includes(b.t)).flatMap(b => b.text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || []), `The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!']);
 }
 async function saveProgress() {
   const key = 'progress:' + READER.id, prog = (await KV.get(key)) || {};
@@ -1368,44 +1391,49 @@ let GAME = null;
 async function gameWords(n) {
   const recs = await practiceWords(n);
   const words = recs.map(r => ({ word: r.word, display: r.proper ? r.display : r.word }));
+  const mastered = new Set((await DB.byReader('words', READER.id)).filter(r => r.box >= 5).map(r => r.word));
   const starter = words.length < 3;
-  if (starter) for (const w of shuffle(STARTERS)) { if (words.length >= Math.min(n, 6)) break; if (!words.find(x => x.word === w)) words.push({ word: w, display: w }); }
+  if (starter) for (const w of shuffle(STARTERS)) { if (words.length >= Math.min(n, 6)) break; if (!mastered.has(w) && !words.find(x => x.word === w)) words.push({ word: w, display: w }); }
   return { words, starter };
 }
 
 async function renderGames() {
   const { words, starter } = await gameWords(12);
-  $('#gamesNote').textContent = starter
+  $('#gamesNote').textContent = !words.length ? 'You’ve practiced all your current words! Read a story to find more.' : starter
     ? 'Tap words you don’t know while reading, and they’ll show up here. For now, here are some starter words.'
     : `Playing with ${words.length} of your words: ${words.slice(0, 6).map(w => w.display).join(', ')}${words.length > 6 ? '…' : ''}`;
   const tiles = [
     { id: 'find', e: '👂', t: 'Listen & Find', d: 'Hear a word, tap the right one.', c: 'lvl2' },
     { id: 'match', e: '🃏', t: 'Memory Match', d: 'Match each word to its sound.', c: 'lvl3' },
   ];
-  if (S.recog) tiles.push({ id: 'say', e: '🎤', t: 'Say It!', d: Recog.ready ? 'See a word, say it out loud.' : 'Needs speech recognition — tap to load it.', c: 'lvl1' });
+  if (S.recog) tiles.push({ id: 'say', e: '🎤', t: 'Say It!', d: Recog.ready ? 'Say a word, hear it, and earn a star.' : 'Needs speech recognition — tap to load it.', c: 'lvl1' });
   $('#gameTiles').innerHTML = tiles.map(g => `<button class="game-tile ${g.c}" data-g="${g.id}"><span class="e">${g.e}</span><b>${g.t}</b><span class="muted">${g.d}</span></button>`).join('');
   $$('#gameTiles [data-g]').forEach(b => b.onclick = () => startGame(b.dataset.g));
   show('games');
 }
 
 async function startGame(kind) {
+  if (GAME) GAME.alive = false;
+  TTS.stop(); Recog.cancel(); Recog.closeMic();
   audioCtx();
   if (kind === 'say' && !Recog.ready) {
     const ok = await loadRecogWithModal(); if (!ok) return;
   }
   const { words } = await gameWords(kind === 'match' ? 6 : 8);
-  GAME = { kind, words: shuffle(words), i: 0, stars: 0, firstTry: true, pool: await vocabPool(), alive: true };
+  GAME = { kind, words: shuffle(words), i: 0, stars: 0, firstTry: true, pool: await vocabPool(), alive: true, readerId: READER.id, round: 0 };
+  TTS.prewarm(words.map(w => w.display), [...PRAISE, `Great listening, ${READER.name}!`, 'You matched them all!', `Great practicing, ${READER.name}!`, `You did it, ${READER.name}!`]);
   $('#gameTitle').textContent = { find: 'Listen & Find', match: 'Memory Match', say: 'Say It!' }[kind];
   $('#gameStars').textContent = '';
   logEvent({ type: 'game', game: kind });
   show('game');
+  if (!words.length) return endGame('You’ve practiced all your current words!');
   if (kind === 'find') findRound(); else if (kind === 'match') matchGame(); else sayRound();
 }
 function addStar() { GAME.stars++; $('#gameStars').textContent = '⭐'.repeat(Math.min(GAME.stars, 10)); }
 function endGame(msg) {
   if (!GAME) return; GAME.alive = false; chime('win'); confetti(innerWidth / 2, innerHeight / 2, 24);
   TTS.say(msg || `You did it, ${READER.name}!`);
-  $('#gameArea').innerHTML = `<div style="font-size:80px">🏆</div><div class="feedback">${esc(msg || 'You did it!')}</div><div class="stars">${'⭐'.repeat(Math.max(1, GAME.stars))}</div>
+  $('#gameArea').innerHTML = `<div style="font-size:80px">🏆</div><div class="feedback">${esc(msg || 'You did it!')}</div><div class="stars">${'⭐'.repeat(GAME.kind === 'say' ? GAME.stars : Math.max(1, GAME.stars))}</div>
     <div class="row"><button class="btn teal" id="again">Play again</button><button class="btn" id="toGames">More games</button></div>`;
   $('#again').onclick = () => startGame(GAME.kind); $('#toGames').onclick = renderGames;
 }
@@ -1420,7 +1448,8 @@ function findRound() {
     <div class="feedback" id="fb">Which word did you hear?</div>
     <div class="choices">${opts.map(o => `<button class="choice" data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div>
     <div class="muted">${g.i + 1} of ${g.words.length}</div>`;
-  const hear = () => TTS.say(target.display, { word: true });
+  TTS.prewarm([target.display, ...opts], [...PRAISE, `Great listening, ${READER.name}!`]);
+  const hear = () => { if (g === GAME && g.alive) return TTS.say(target.display, { word: true }); };
   $('#hear').onclick = hear; setTimeout(hear, 350);
   $$('.choice').forEach(b => b.onclick = async () => {
     if (!g.alive || b.classList.contains('wrong')) return;
@@ -1471,58 +1500,67 @@ function matchGame() {
   });
 }
 
-// ---- Say It! (Whistle) ----
+// ---- Say It! — practice without visible grading ----
 async function sayRound() {
-  const g = GAME; if (!g.alive) return;
-  if (g.i >= g.words.length) { Recog.closeMic(); return endGame(`Great talking, ${READER.name}!`); }
-  const target = g.words[g.i]; g.tries = g.tries || 0;
+  const g = GAME;
+  if (!g?.alive) return;
+  if (g.i >= g.words.length) { Recog.closeMic(); return endGame(`Great practicing, ${READER.name}!`); }
+  const target = g.words[g.i], round = ++g.round;
+  const active = () => GAME === g && g.alive && g.round === round;
+  let busy = false;
   $('#gameArea').innerHTML = `<div class="prompt-word">${esc(target.display)}</div>
-    <div class="feedback" id="fb">${g.i === 0 && !g.tries ? 'Tap the microphone and say this word.' : 'Can you say this word?'}</div>
-    <button class="mic" id="mic" title="Tap and say the word">🎤</button><div class="meter"><i id="lvl"></i></div>
-    <div class="row"><button class="btn small" id="help">🔊 Help me</button><button class="btn small ghost" id="skip">Skip ›</button></div>`;
-  if (g.i === 0 && !g.tries) TTS.say('Tap the microphone and say the word.');
-  $('#help').onclick = () => { TTS.say(target.display, { word: true }); };
-  $('#skip').onclick = () => { g.i++; g.tries = 0; g.close = 0; sayRound(); };
-  $('#mic').onclick = async () => {
-    const mic = $('#mic'); if (mic.classList.contains('rec')) { Recog.stopEarly(); return; }
-    TTS.stop(); mic.classList.add('rec'); $('#fb').textContent = 'Listening…';
-    let rec;
-    try { rec = await Recog.record({ maxMs: 5000, silenceMs: 900, onLevel: v => { const l = $('#lvl'); if (l) l.style.width = Math.min(100, v * 400) + '%'; } }); }
-    catch (e) { mic.classList.remove('rec'); $('#fb').textContent = 'I can’t use the microphone. Ask a grown-up to allow it.'; return; }
-    if (!g.alive) return;
-    mic.classList.remove('rec'); $('#fb').textContent = 'Thinking…';
-    let res = null;
-    try { res = rec.speech ? await Recog.transcribe(rec) : null; } catch (e) { console.warn(e); }
-    if (!g.alive) return;
-    let v = judgeWord(target.word, res);
-    // A second "almost" on the same word counts: the recognizer is the likelier culprit.
-    if (v.verdict === 'close') { g.close = (g.close || 0) + 1; if (g.close >= 2) v = { ...v, verdict: 'right', lenient: true }; }
-    if (v.verdict === 'right') {
-      chime('good'); const r = mic.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top);
-      if (!g.tries) addStar();
-      recordAnswer(target.word, v.lenient ? 'say-close' : 'say-right', { game: 'say', heard: v.heard, p: v.p, variants: v.variantText });
-      $('#fb').textContent = praise(); await TTS.say($('#fb').textContent);
-      g.i++; g.tries = 0; g.close = 0; await sleep(300); sayRound();
-    } else if (v.verdict === 'close') {
-      recordAnswer(target.word, 'say-unclear', { game: 'say', heard: v.heard, close: true, variants: v.variantText });
-      $('#fb').textContent = 'Almost! Say it one more time?';
-      await TTS.say('Almost! Say it one more time?');
-    } else if (v.verdict === 'unclear') {
-      recordAnswer(target.word, 'say-unclear', { game: 'say', heard: v.heard, variants: v.variantText });
-      $('#fb').textContent = 'I didn’t quite catch that. Try again?';
-      await TTS.say('I didn’t quite catch that. Try again?');
-    } else {
-      g.tries++;
-      if (g.tries === 1) recordAnswer(target.word, 'say-wrong', { game: 'say', heard: v.heard, p: v.p, variants: v.variantText });
-      $('#fb').textContent = 'Let’s hear it together…';
-      await TTS.say('Listen.'); await TTS.say(target.display, { word: true });
-      if (g.tries >= 2) { $('#fb').textContent = 'Good try! Let’s do the next one.'; await TTS.say('Good try!'); g.i++; g.tries = 0; g.close = 0; await sleep(400); sayRound(); }
-      else $('#fb').textContent = 'Now you try!';
-    }
+    <div class="feedback" id="fb" aria-live="polite">Say this word.</div>
+    <button class="mic" id="mic" title="Say the word">🎤</button><div class="meter"><i id="lvl"></i></div>
+    <div class="row"><button class="btn small hidden" id="hearPractice">🔊 Hear it again</button><button class="btn small ghost" id="skip">Next ›</button></div>
+    <div class="muted">${g.i + 1} of ${g.words.length}</div>`;
+  const mic = $('#mic'), fb = $('#fb'), hear = $('#hearPractice');
+  const next = () => {
+    if (!active()) return;
+    ++g.round; Recog.cancel(); Recog.closeMic(); TTS.stop(); g.i++; sayRound();
   };
+  $('#skip').onclick = next;
+  hear.onclick = () => { if (active() && !busy) TTS.say(target.display, { word: true }); };
+  async function listen() {
+    if (!active() || busy) return;
+    busy = true; TTS.stop(); hear.classList.add('hidden');
+    mic.classList.add('rec'); mic.title = 'Finish listening'; fb.textContent = 'Listening…';
+    let rec;
+    try { rec = await Recog.record({ maxMs: 7000, silenceMs: 1000, noSpeechMs: 7000, onLevel: v => { if (active()) $('#lvl').style.width = Math.min(100, v * 400) + '%'; } }); }
+    catch (e) {
+      if (active()) { mic.classList.remove('rec'); fb.textContent = 'Allow the microphone, then tap to try again.'; busy = false; }
+      return;
+    }
+    if (!active()) return;
+    Recog.closeMic(); mic.classList.remove('rec'); mic.disabled = true;
+    if (!rec.speech) {
+      busy = false; mic.disabled = false; fb.textContent = 'Tap the microphone when you’re ready.'; return;
+    }
+    // Award effort immediately; recognition has no effect on stars or the response.
+    addStar(); chime('good');
+    const pos = mic.getBoundingClientRect(); confetti(pos.left + pos.width / 2, pos.top, 8);
+    fb.textContent = '⭐ Keep practicing!';
+    const assessment = (async () => {
+      let result = null;
+      try { result = await Recog.transcribe(rec); } catch (e) { console.warn('Practice recognition unavailable', e); }
+      // Capture the reader identity so navigation cannot credit a different reader.
+      await recordPracticeAttempt(target, judgeWord(target.word, result), g.readerId);
+    })().catch(e => console.warn('Could not save practice attempt', e));
+    const played = await TTS.say(target.display, { word: true });
+    if (!active()) return;
+    if (!played) {
+      busy = false; hear.classList.remove('hidden'); fb.textContent = 'Tap to hear the word, or choose Next.'; return;
+    }
+    await assessment;
+    if (!active()) return;
+    fb.textContent = '⭐ One more word!';
+    await sleep(650); if (active()) next();
+  }
+  mic.onclick = () => { if (busy && mic.classList.contains('rec')) Recog.stopEarly(); else listen(); };
+  // Start listening after the word appears. Subsequent rounds need no extra taps.
+  await sleep(400); if (active()) listen();
 }
 
-$('#gameQuit').onclick = () => { if (GAME) GAME.alive = false; Recog.closeMic(); renderGames(); };
+$('#gameQuit').onclick = () => { if (GAME) GAME.alive = false; TTS.stop(); Recog.cancel(); Recog.closeMic(); renderGames(); };
 
 // ===========================================================================
 // Speech recognition (experimental): Whistle via the cactus-needle WASM build
@@ -1530,7 +1568,7 @@ $('#gameQuit').onclick = () => { if (GAME) GAME.alive = false; Recog.closeMic();
 // Files live next to index.html in vendor/cactus-needle (the worker must be same-origin).
 // The 16.9 MB model downloads from Hugging Face on first use and is cached by the browser.
 const Recog = {
-  ready: false, loading: null, whistle: null, stream: null, _stop: null,
+  ready: false, loading: null, whistle: null, stream: null, _stop: null, _micEpoch: 0, _recordEpoch: 0, _opening: null,
   load(onProgress) {
     if (this.ready) return Promise.resolve();
     if (this.loading) return this.loading;
@@ -1543,29 +1581,37 @@ const Recog = {
   },
   async openMic() {
     if (this.stream?.active) return this.stream;
-    // Safari: the 'playback' audio session (set so the iPhone silent switch doesn't mute
-    // the voice) blocks microphone capture. Switch to play-and-record while listening.
+    if (this._opening) return this._opening;
+    const epoch = this._micEpoch;
     try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch {}
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
-    return this.stream;
+    const pending = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }).then(stream => {
+      if (epoch !== this._micEpoch) { stream.getTracks().forEach(t => t.stop()); throw new Error('Recording cancelled'); }
+      this.stream = stream; return stream;
+    });
+    this._opening = pending;
+    try { return await pending; }
+    finally { if (this._opening === pending) this._opening = null; }
   },
   closeMic() {
+    this._micEpoch++; this._opening = null;
     this._stop?.(); this.stream?.getTracks().forEach(t => t.stop()); this.stream = null;
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
   },
-  cancel() { this._cancelled = true; this._stop?.(); },
+  cancel() { this._recordEpoch++; this._cancelled = true; this._stop?.(); },
   stopEarly() { this._stop?.(); },
   // Record until the speaker goes quiet (after having spoken), or maxMs.
   // Returns { samples, sampleRate, speech } at the context's native rate; Whistle resamples.
   async record({ maxMs = 5000, silenceMs = 900, noSpeechMs = 6000, onLevel } = {}) {
-    const stream = await this.openMic(); this._cancelled = false;
+    const epoch = ++this._recordEpoch, stream = await this.openMic();
+    if (epoch !== this._recordEpoch) return { samples: new Float32Array(), sampleRate: 16000, speech: false };
+    this._cancelled = false;
     const ctx = audioCtx(); const src = ctx.createMediaStreamSource(stream);
     const proc = ctx.createScriptProcessor(4096, 1, 1); const sink = ctx.createGain(); sink.gain.value = 0;
     const chunks = []; let floor = 0.006, speech = false, lastLoud = 0, started = performance.now(), calib = [];
     src.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
     return new Promise(resolve => {
       const finish = () => {
-        if (!this._stop) return; this._stop = null;
+        if (this._stop !== finish) return; this._stop = null;
         proc.disconnect(); src.disconnect(); sink.disconnect(); onLevel?.(0);
         const n = chunks.reduce((a, c) => a + c.length, 0), samples = new Float32Array(n); let o = 0;
         for (const c of chunks) { samples.set(c, o); o += c.length; }
@@ -1976,7 +2022,7 @@ async function renderOverview(body, reader) {
   const days = [...Array(14)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - 13 + i); return d.getTime(); });
   const mins = days.map(d => readingMinutes(ev.filter(e => e.ts >= d && e.ts < d + DAY)));
   const maxM = Math.max(5, ...mins);
-  const toPractice = words.filter(w => w.box < 5 && (w.taps || w.wrong || w.readMiss)).sort((a, b) => weight(b) - weight(a)).slice(0, 18);
+  const toPractice = words.filter(w => w.box < 5 && (w.taps || w.wrong || w.readMiss || w.sayAttempts)).sort((a, b) => weight(b) - weight(a)).slice(0, 18);
   const mastered = words.filter(w => w.box >= 5).sort((a, b) => b.due - a.due).slice(0, 18);
   const ra = ev.filter(e => e.type === 'readaloud');
   const raMissed = {}, raHes = {};
@@ -2010,7 +2056,7 @@ async function renderWordsTab(body, reader) {
   const keyFn = { weight: w => -weight(w), word: w => w.word, taps: w => -w.taps, last: w => -w.last, box: w => w.box, game: w => -(w.correct + w.wrong) }[PARENT.sort];
   words.sort((a, b) => { const x = keyFn(a), y = keyFn(b); return x < y ? -1 : x > y ? 1 : 0; });
   body.innerHTML = `<div class="panel"><h3>${words.length} words</h3>
-    <p class="note">A tap while reading puts a word back to step 0. Getting it right on the first try in a game moves it up a step; five steps and it’s mastered. Practice order favours words that are due and tapped often recently.</p>
+    <p class="note">A tap while reading puts a word back into practice. In Say It, three consecutive recognized correct readings retire a word; uncertain or different readings keep it in practice. Every spoken attempt earns a star. Other games use five learning steps. Practice order favours words that are due and tapped often recently.</p>
     <div class="table-wrap"><table><thead><tr>
       <th data-s="word">Word</th><th data-s="taps">Taps</th><th data-s="last">Last tapped</th><th data-s="game">Games ✓/✗</th><th>Said ✓/✗</th><th>Read-aloud</th><th data-s="box">Progress</th><th></th></tr></thead>
     <tbody>${words.map(w => `<tr><td class="wd">${esc(w.proper ? w.display : w.word)}</td><td>${w.taps}</td><td>${fmtDate(w.last)}</td><td>${w.correct}/${w.wrong}</td><td>${w.sayRight || 0}/${w.sayWrong || 0}</td>
@@ -2065,7 +2111,7 @@ async function renderSettingsTab(body, reader, readers) {
       <div class="row"><label>Status</label><span id="kStatus">${Kokoro.ready || Kokoro.loading || /^Failed/.test(Kokoro.status.label) ? esc(Kokoro.status.label) : 'Not loaded'}</span>${Kokoro.ready || Kokoro.loading ? '' : '<button class="btn small teal" id="kLoad">Download &amp; start</button>'}${Kokoro.mode === 'cpu' ? ' <button class="btn small ghost" id="kGpuRetry" title="Try the graphics chip on this device">Retry fast mode</button>' : ''}</div>
       <div class="row ${Kokoro.loading && !Kokoro.ready ? '' : 'hidden'}" id="kBarRow"><label></label><div class="bar-prog" id="kBar"><i></i></div></div>
       <div class="row"><label>Kokoro voice</label><select class="field" id="kVoice">${Object.entries(KOKORO_VOICES).map(([k, v]) => `<option value="${k}" ${k === S.kokoroVoice ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
-      <p class="note">Runs on this device. With WebGPU (Chrome, Edge) it downloads ~330 MB and makes a word in about half a second; otherwise ~90 MB and a couple of seconds per word. Safari starts in standard (CPU) mode for compatibility. The first startup can take up to two minutes per stage; later words are usually faster. If Kokoro fails, the device voice remains available. Each word is saved once made, and opening a page prepares its words in the background. If a tapped word isn’t ready within a second or so, the device voice says it that time.</p>
+      <p class="note">Runs on this device. With WebGPU (Chrome, Edge) it downloads ~330 MB and makes a word in about half a second; otherwise ~90 MB and a couple of seconds per word. Safari starts in standard (CPU) mode for compatibility. The first startup can take up to two minutes per stage; later words are usually faster. Words, sentences, and predictable game responses are prepared ahead and saved. New speech waits for the selected Kokoro voice. If it cannot play, tap again to retry; the app never switches voices automatically.</p>
       <div class="row"><button class="btn small" id="kClear">Clear saved audio</button></div>
     </div>
     <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="btn small" id="sTryBtn">🔊</button></div>
@@ -2087,7 +2133,7 @@ async function renderSettingsTab(body, reader, readers) {
 
   const kBar = $('#kBar', body);
   $('#sEngine', body).onchange = async e => {
-    S.engine = e.target.value; S.kokoroWanted = S.engine === 'kokoro'; await saveSettings(); renderSettingsTab(body, reader, readers);
+    TTS.stop(); Kokoro.dropBackground(); S.engine = e.target.value; S.kokoroWanted = S.engine === 'kokoro'; await saveSettings(); renderSettingsTab(body, reader, readers);
   };
   $('#sVoice', body) && ($('#sVoice', body).onchange = e => { S.sysVoice = e.target.value; saveSettings(); TTS.say('Hello! Let’s read a story.'); });
   $('#sRate', body) && ($('#sRate', body).oninput = e => { S.rate = +e.target.value; $('#sRateV', body).textContent = S.rate; saveSettings(); });
@@ -2095,7 +2141,7 @@ async function renderSettingsTab(body, reader, readers) {
   if (kl) kl.onclick = () => startKokoro(body, reader, readers);
   if (Kokoro.loading && !Kokoro.ready) { watchKokoro(); Kokoro.loading.then(() => renderSettingsTab(body, reader, readers)).catch(() => renderSettingsTab(body, reader, readers)); }
   $('#kGpuRetry', body) && ($('#kGpuRetry', body).onclick = () => { try { localStorage.removeItem('tapread.kokoroGpuFailed2'); localStorage.setItem('tapread.kokoroForceGpu', '1'); } catch {} location.reload(); });
-  $('#kVoice', body).onchange = e => { S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); toast('Preparing voice…'); TTS.say('Hello! Let’s read a story.', { wait: true }); };
+  $('#kVoice', body).onchange = e => { TTS.stop(); Kokoro.dropBackground(); S.kokoroVoice = e.target.value; saveSettings(); Kokoro.mem.clear(); toast('Preparing voice…'); TTS.say('Hello! Let’s read a story.', { wait: true }); };
   $('#kClear', body).onclick = async () => { await DB.clear('audio'); Kokoro.mem.clear(); toast('Saved audio cleared'); };
   $('#sTryBtn', body).onclick = () => { if (TTS.usingKokoro()) toast('Preparing…', 1200); TTS.say($('#sTry', body).value, { wait: true }); };
   $('#ovAdd', body).onclick = () => { const w = normWord($('#ovW', body).value.trim()), s = $('#ovS', body).value.trim(); if (!w || !s) return; S.overrides[w] = s; saveSettings(); Kokoro.mem.clear(); renderSettingsTab(body, reader, readers); };
@@ -2122,7 +2168,7 @@ async function renderSettingsTab(body, reader, readers) {
     kl && (kl.disabled = true);
     Kokoro.load()
       .then(() => { S.kokoroWanted = true; saveSettings(); toast('Kokoro voice ready'); renderSettingsTab(body, reader, readers); TTS.say('Hello! Let’s read a story.', { wait: true }); })
-      .catch(err => { console.error(err); renderSettingsTab(body, reader, readers); toast('Kokoro could not start. Device voice is still available.', 4000); });
+      .catch(err => { console.error(err); renderSettingsTab(body, reader, readers); toast('Kokoro could not start. Tap Download & start to retry.', 4000); });
     watchKokoro();
   }
   function watchKokoro() {
@@ -2190,7 +2236,7 @@ async function renderLab(body, reader) {
     <div class="card"><div class="n">${pct(unclear, good.length)}</div><div class="l">correct readings “didn’t catch that”</div></div>
     <div class="card"><div class="n">${pct(far, bad.length)}</div><div class="l">wrong readings accepted (${far}/${bad.length})</div></div>
   </div>
-  <div class="panel"><h3>How to read this</h3><p class="note">The first number matters most: if correct readings are marked wrong more than about 1 in 10 times, the Say It game will frustrate a young reader — keep it off and use read-aloud only as a quiet hint for you. A high “wrong readings accepted” rate just means the game is lenient, which is the safer failure.</p></div>
+  <div class="panel"><h3>How to read this</h3><p class="note">The first number matters most: missed recognitions can keep familiar words in practice longer. Say It never shows a grade or withholds a star. False acceptances can retire a word too soon, so use these results as a guide.</p></div>
   <div class="panel"><h3>Compare methods</h3><p class="note">Re-runs every saved recording through a single pass and through the four pitch-shifted passes (100%, 90%, 80%, 72%), so you can see whether the extra passes help with this reader. Recordings are saved in this browser (only tries made after this update).</p>
     <div class="row"><button class="btn small teal" id="labCmp" ${Recog.ready ? '' : 'disabled'}>Compare on ${t.filter(x => x.saved).length} saved recordings</button><span class="muted" id="labCmpMsg"></span></div><div id="labCmpOut"></div></div>
   <div class="panel"><h3>Tries</h3><div class="row"><button class="btn small" id="labCsv">⬇️ Export CSV</button><button class="btn small ghost" id="labClr">Clear</button></div>
@@ -2232,7 +2278,7 @@ async function renderLab(body, reader) {
     const row = (m, c, w) => { const n = c.right + c.close + c.unclear + c.different, nw = w.right + w.close + w.unclear + w.different;
       return `<tr><td><b>${m}</b></td><td>${pct(c.right, n)}</td><td>${pct(c.close, n)}</td><td>${pct(c.unclear, n)}</td><td>${pct(c.different, n)}</td><td>${pct(w.right, nw)}</td></tr>`; };
     $('#labCmpOut', body).innerHTML = `<div class="table-wrap"><table><thead><tr><th></th><th>Correct → right</th><th>→ almost</th><th>→ didn’t catch</th><th>→ marked wrong</th><th>Wrong → accepted</th></tr></thead><tbody>${Object.keys(methods).map(m => row(m, tally[m].correct, tally[m].wrong)).join('')}</tbody></table></div>
-      <p class="note">In the Say It game, a second “almost” on the same word is accepted.</p>`;
+      <p class="note">Say It gives a star for every spoken attempt and models the word afterward. Recognition only adjusts future practice; three consecutive recognized correct readings retire a word.</p>`;
   };
   $('#labCsv', body).onclick = () => {
     const rows = [['time', 'reader', 'word', 'intended', 'heard', 'decision', 'confidence', 'by pitch'], ...t.map(x => [new Date(x.ts).toISOString(), x.readerId || '', x.word, x.intent, x.heard || '', x.verdict, x.p ?? '', x.variants || ''])];
@@ -2279,7 +2325,7 @@ document.addEventListener('click', e => {
 })();
 
 // Handy for debugging from the console.
-window.tapread = { DB, get S() { return S; }, TTS, Kokoro, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
+window.tapread = { recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
 </script>
 </body>
 </html>
