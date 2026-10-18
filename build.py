@@ -82,6 +82,11 @@ def render_md(body):
 
 
 # ---------- layout ----------
+def inline(s):
+    """Escape text, then turn [label](url) into links."""
+    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', E(s))
+
+
 def fmt_date(d):
     return d.strftime("%b %-d, %Y")
 
@@ -248,12 +253,12 @@ def build_post(p, posts):
 def build_about():
     meta, body = parse(ROOT / "content/pages/about.md")
     jobs = '<div class="label" style="margin-top:56px">Where I\'ve worked</div>\n' + "".join(
-        f'<div class="job"><h3>{E(j["company"])}</h3><div class="role">{E(j["about"])}</div><p>{E(j["line"])}</p></div>\n' for j in SITE["jobs"])
+        f'<div class="job"><h3>{E(j["company"])}</h3><div class="role">{E(j["about"])}</div><p>{inline(j["line"])}</p></div>\n' for j in SITE["jobs"])
     sections = re.split(r"^## (.+)$", body, flags=re.M)
     intro, rest = sections[0], sections[1:]
     h = head("About", "About Geoff Canyon", "/about/") + masthead()
-    h += (f'<div class="intro" style="margin-top:64px"><div class="text"><div class="head" style="margin:0">'
-          f'<div class="kicker">About</div><h1>{E(meta["title"])}</h1></div>'
+    h += (f'<div class="head"><div class="kicker">About</div><h1>{E(meta["title"])}</h1></div>\n'
+          f'<div class="intro" style="margin-top:28px"><div class="text">'
           f'<div class="intro-p" style="font-size:19px;line-height:1.65">{render_md(intro)}</div></div>'
           f'<img class="shot big" src="{SITE["headshot"]}" alt="Geoff Canyon"></div>\n')
     h += f'<p class="intro status" style="margin:28px 0 0">{E(SITE["status"])}</p>\n'
