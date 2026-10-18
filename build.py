@@ -97,7 +97,6 @@ def head(title, desc, path, extra=""):
 <title>{E(full_title)}</title>
 <meta name="description" content="{E(desc)}">
 <link rel="canonical" href="{canon}">
-<link rel="alternate" type="application/rss+xml" title="{E(SITE['name'])}" href="/feed.xml">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:url" content="{canon}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
@@ -117,8 +116,8 @@ def masthead(active=""):
 
 def footer():
     return (f'<div class="foot"><span>geoffcanyon.com</span><span><a href="/about/">About</a> · '
-            f'<a href="mailto:{SITE["email"]}">Email</a> · <a href="{SITE["linkedin"]}">LinkedIn</a> · '
-            f'<a href="/feed.xml">RSS</a></span></div>\n</div>\n<script src="/assets/site.js"></script>\n</body>\n</html>\n')
+            f'<a href="mailto:{SITE["email"]}">Email</a> · <a href="{SITE["linkedin"]}">LinkedIn</a>'
+            f'</span></div>\n</div>\n<script src="/assets/site.js"></script>\n</body>\n</html>\n')
 
 
 def meta_line(p, pin=False):
@@ -214,7 +213,7 @@ def build_archive(posts):
     h += '<div class="head"><div class="kicker">Archive</div><h1>All posts</h1></div>\n'
     chips = '<button class="on" data-f="all">All</button>' + "".join(
         f'<button data-f="{t["slug"]}">{E(t["nav"])}</button>' for t in SITE["topics"])
-    h += f'<div class="chips" data-chips>{chips}<a class="rss" href="/feed.xml">RSS</a></div>\n'
+    h += f'<div class="chips" data-chips>{chips}</div>\n'
     h += grouped_list(posts)
     write("/archive/", h + footer())
 
@@ -249,8 +248,7 @@ def build_post(p, posts):
 def build_about():
     meta, body = parse(ROOT / "content/pages/about.md")
     jobs = '<div class="label" style="margin-top:56px">Where I\'ve worked</div>\n' + "".join(
-        f'<div class="job"><div class="dt">{E(j["dates"])}</div><div class="tx"><h3>{E(j["company"])}</h3>'
-        f'<div class="role">{E(j["role"])}</div><p>{E(j["line"])}</p></div></div>\n' for j in SITE["jobs"])
+        f'<div class="job"><h3>{E(j["company"])}</h3><div class="role">{E(j["about"])}</div><p>{E(j["line"])}</p></div>\n' for j in SITE["jobs"])
     sections = re.split(r"^## (.+)$", body, flags=re.M)
     intro, rest = sections[0], sections[1:]
     h = head("About", "About Geoff Canyon", "/about/") + masthead()
@@ -267,7 +265,7 @@ def build_about():
         if name == "What I do":
             h += jobs
     links = [("Email", SITE["email"], f'mailto:{SITE["email"]}'), ("LinkedIn", "linkedin.com/in/geoffcanyon", SITE["linkedin"]),
-             ("GitHub", "github.com/gcanyon", SITE["github"]), ("Resume", "PDF", SITE["resume"]), ("RSS", "Subscribe", "/feed.xml")]
+             ("GitHub", "github.com/gcanyon", SITE["github"])]
     h += '<div class="label" style="margin-top:44px">Elsewhere</div>\n' + "".join(
         f'<a class="elsewhere" href="{u}"><b>{E(n)}</b><span>{E(hint)}</span></a>\n' for n, hint, u in links)
     write("/about/", h + footer())
@@ -332,7 +330,6 @@ def main():
         if not p["legacy"]:
             build_post(p, posts)
     build_404()
-    build_feed(posts)
     build_sitemap(posts)
     probs = check(posts)
     print(f"Built {len(GENERATED)} files from {len(posts)} posts.")

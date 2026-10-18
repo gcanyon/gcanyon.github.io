@@ -1,9 +1,9 @@
 ---
-title: Introducing Lightyard
+title: Lightyard
 date: 2026-10-12
 topic: games
 pinned: true
-dek: A Trainyard-inspired puzzle game, built as a single self-contained HTML file. [one-line description]
+dek: Lightyard is a challenging puzzle game I created where you set up mirrors to get packets of light from the emitters to the receivers.
 needs_review: date, screenshot, body copy
 ---
 [Opening paragraph: what Lightyard is and why you built it.]

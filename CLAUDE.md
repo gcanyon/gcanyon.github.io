@@ -9,7 +9,7 @@ Geoff's personal site, hosted on GitHub Pages (custom domain in `CNAME`). It is 
 2. Body is Markdown. `>` quote = pull quote. `![alt](/img/x.jpg "caption")` = figure with caption. `:::play Name | one line | /url` = "Play it" callout. Put images in `img/`.
 3. Run `python3 build.py` (needs `pip install markdown`). Preview with `python3 build.py --serve`.
 4. Run `python3 build.py --strict`; it fails if any `[bracketed placeholder]` or `needs_review` field remains. Never publish with it failing.
-5. Commit the content AND the generated files (`index.html`, topic folders, `posts/`, `archive/`, `about/`, `feed.xml`, `sitemap.xml`), then push.
+5. Commit the content AND the generated files (`index.html`, topic folders, `posts/`, `archive/`, `about/`, `sitemap.xml`), then push.
 
 ## Rules
 - Work on the `redesign` branch until Geoff approves merging to `main`. Never force-push. Never merge or push to `main` without his OK.
