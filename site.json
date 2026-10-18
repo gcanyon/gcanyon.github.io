@@ -8,20 +8,94 @@
   "resume": "/geoff_canyon_resume.pdf",
   "headshot": "/img/geoff_headshot.jpg",
   "home_max": 5,
-  "bio": "I build AI-powered investment research tools at Arch Labs. Before that: experimentation tooling at Agoda, community systems at Answers.com, and a stint at HBO I still bring up too often. This is where I write about product, code, puzzles, and whatever else won't fit in a PRD.",
+  "bio": "I build AI-powered investment research tools at Arch Labs. Before that: chat design at LivePerson, experimentation tooling at Agoda, community systems at Answers.com, and a decade of building systems at HBO. This is where I write about product, code, puzzles, and whatever else won't fit in a PRD.",
   "status": "Currently: open to new PM roles · debugging a puzzle game called Lightyard · a few chapters behind on a novella.",
   "topics": [
-    {"slug": "ai", "name": "AI", "nav": "AI", "description": "Where I actually use these tools, what breaks, and what I've changed my mind about.", "subtopics": []},
-    {"slug": "coding", "name": "Coding", "nav": "Coding", "description": "A PM who still ships code. Scripts, side projects, the occasional production PR.", "subtopics": []},
-    {"slug": "product", "name": "Product Management", "nav": "Product", "description": "0→1 bets, the tradeoffs that don't make the PRD, and three years of building AIR.", "subtopics": []},
-    {"slug": "people", "name": "People Management", "nav": "People", "description": "Coaching PMs, running rooms, and the parts of managing people nobody puts in a handbook.", "subtopics": []},
-    {"slug": "games", "name": "Games & Puzzles", "nav": "Games", "description": "Lightyard, a puzzle game I'm building, plus crossword nonsense.", "subtopics": []},
-    {"slug": "fiction", "name": "Fiction", "nav": "Fiction", "description": "Old School — a hard science fiction novella, posted as I write it.", "subtopics": []}
+    {
+      "slug": "ai",
+      "name": "AI",
+      "nav": "AI",
+      "description": "Where I actually use these tools, what breaks, and what I've changed my mind about.",
+      "subtopics": []
+    },
+    {
+      "slug": "coding",
+      "name": "Coding",
+      "nav": "Coding",
+      "description": "A PM who still ships code. Scripts, side projects, the occasional production PR.",
+      "subtopics": []
+    },
+    {
+      "slug": "product",
+      "name": "Product Management",
+      "nav": "Product",
+      "description": "0→1 bets, the tradeoffs that don't make the PRD, and three years of building AIR.",
+      "subtopics": []
+    },
+    {
+      "slug": "people",
+      "name": "People Management",
+      "nav": "People",
+      "description": "Coaching PMs, running rooms, and the parts of managing people nobody puts in a handbook.",
+      "subtopics": []
+    },
+    {
+      "slug": "games",
+      "name": "Games & Puzzles",
+      "nav": "Games",
+      "description": "Lightyard, a puzzle game I'm building, plus crossword nonsense.",
+      "subtopics": []
+    },
+    {
+      "slug": "fiction",
+      "name": "Fiction",
+      "nav": "Fiction",
+      "description": "Old School — a hard science fiction novella, posted as I write it.",
+      "subtopics": []
+    }
   ],
   "jobs": [
-    {"company": "Arch Labs", "role": "Product Manager, Arch Investment Research (AIR)", "dates": "[Dates]", "line": "[One line on what you built and what changed because of it.]"},
-    {"company": "Agoda", "role": "Product Manager, experimentation platform", "dates": "[Dates]", "line": "[One line on scope and impact.]"},
-    {"company": "Answers.com", "role": "[Title], quality and community", "dates": "[Dates]", "line": "[One line on scope and impact.]"},
-    {"company": "HBO", "role": "[Title]", "dates": "[Dates]", "line": "[One line.]"}
+    {
+      "company": "Arch Labs",
+      "role": "Senior Product Manager, Arch Investment Research (AIR)",
+      "dates": "2023 – Present",
+      "line": "Took AIR from zero to launch: AI that reads complex investment documents, extracts the facts, and automates the busywork around them. Also launched a product API used by 60 partners, about 35% of revenue."
+    },
+    {
+      "company": "LivePerson",
+      "role": "Principal Product Manager",
+      "dates": "2021 – 2022",
+      "line": "Launched the platform's first commerce and marketing NLU model, adopted by 30+ major brands in year one, and lifted entity-recognition F1 by 34 points."
+    },
+    {
+      "company": "Agoda",
+      "role": "Senior Product Manager, experimentation",
+      "dates": "2019 – 2021",
+      "line": "Set experimentation methodology for 60 PMs, shipped a booking-flow change worth about 1% of annual revenue, and coached two PMs to promotion."
+    },
+    {
+      "company": "I Will Vote",
+      "role": "Founder",
+      "dates": "2016 – 2018",
+      "line": "Built a text-message voter-engagement platform that raised turnout by nearly 300% across state elections, then sold it to a competitor."
+    },
+    {
+      "company": "Answers.com",
+      "role": "Director, Product Management",
+      "dates": "2009 – 2015",
+      "line": "Led a 30-person team and launched an expert-contributor platform: 2,000 experts and 1 million answers in the first year."
+    },
+    {
+      "company": "PriceGrabber",
+      "role": "Project Manager",
+      "dates": "2007 – 2009",
+      "line": "Introduced project management, built a cost-of-goods-sold model that showed some partners were a drag on the company, and led the Yahoo! and AOL API implementations. Began the move into product with a page redesign that tripled click rate in testing."
+    },
+    {
+      "company": "HBO",
+      "role": "Project Leader",
+      "dates": "1996 – 2006",
+      "line": "Built dozens of systems, including a residuals and participation tracker."
+    }
   ]
 }
