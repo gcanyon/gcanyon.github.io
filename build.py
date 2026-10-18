@@ -187,9 +187,9 @@ def build_home(posts):
     s = sort_home(posts)[: SITE["home_max"]]
     h = head(SITE["name"], SITE["tagline"], "/")
     h += masthead()
-    h += (f'<div class="intro"><div class="text"><p>{E(SITE["bio"])}</p>'
-          f'<p class="status">{E(SITE["status"])} <a href="/about/">More about me &rarr;</a></p></div>'
-          f'<img class="shot" src="{SITE["headshot"]}" alt="Geoff Canyon"></div>\n')
+    h += (f'<div class="intro"><div class="text"><p>{E(SITE["bio"])}</p></div>'
+          f'<img class="shot" src="{SITE["headshot"]}" alt="Geoff Canyon"></div>\n'
+          f'<p class="status" style="margin:24px 0 0">{E(SITE["status"])} <a href="/about/">More about me &rarr;</a></p>\n')
     if s:
         h += '<div class="label">Latest</div>\n' + row(s[0], lead=True, pin=True)
     h += '<div class="label" id="explore">Explore by topic</div>\n<div class="topics">\n'
