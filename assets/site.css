@@ -140,3 +140,7 @@ figure.hero { margin: 44px 0 0; }
 /* footer */
 .foot { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
 .foot a:hover { color: var(--accent); }
+
+figure.video { max-width: 420px; margin: 10px auto; }
+figure.video video { width: 100%; height: auto; display: block; border-radius: 6px; background: #0d1018; }
+figure.video figcaption { text-align: center; }

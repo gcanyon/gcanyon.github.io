@@ -66,6 +66,12 @@ def render_md(body):
         return (f'<a class="play" href="{E(url)}" target="_blank" rel="noopener"><span><span class="k">Play it</span>'
                 f'<span class="n">{E(name)}</span><span class="s">{E(line)}</span></span><span class="o">Open &rarr;</span></a>')
     body = re.sub(r"^:::play (.+)$", play, body, flags=re.M)
+
+    def video(m):
+        src, poster, cap = [x.strip() for x in m.group(1).split("|")]
+        return (f'<figure class="video"><video src="{E(src)}" poster="{E(poster)}" autoplay loop muted playsinline controls preload="metadata"></video>'
+                f'<figcaption>{E(cap)}</figcaption></figure>')
+    body = re.sub(r"^:::video (.+)$", video, body, flags=re.M)
     out = markdown.markdown(body, extensions=["fenced_code", "tables", "sane_lists", "smarty"])
     # images -> figures
     def fig(m):

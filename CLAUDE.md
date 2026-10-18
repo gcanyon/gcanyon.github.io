@@ -6,7 +6,7 @@ Geoff's personal site, hosted on GitHub Pages (custom domain in `CNAME`). It is 
 1. Create `content/posts/YYYY-MM-DD-slug.md`. Front matter between `---` lines:
    `title`, `date` (ISO), `topic` (ai | coding | product | people | games | fiction), `dek` (one or two sentences), and optional `pinned: true`, `thumb`, `hero`, `hero_caption`, `signoff`, `draft: true`.
    Posts with `legacy_url` are links to old standalone pages or external articles; they have no body.
-2. Body is Markdown. `>` quote = pull quote. `![alt](/img/x.jpg "caption")` = figure with caption. `:::play Name | one line | /url` = "Play it" callout. Put images in `img/`.
+2. Body is Markdown. `>` quote = pull quote. `![alt](/img/x.jpg "caption")` = figure with caption. `:::play Name | one line | /url` = "Play it" callout. `:::video /img/x.mp4 | /img/poster.png | caption` = looping silent video (convert GIFs to MP4 with ffmpeg first; a GIF is ~50x bigger). Put images in `img/`.
 3. Run `python3 build.py` (needs `pip install markdown`). Preview with `python3 build.py --serve`.
 4. Run `python3 build.py --strict`; it fails if any `[bracketed placeholder]` or `needs_review` field remains. Never publish with it failing.
 5. Commit the content AND the generated files (`index.html`, topic folders, `posts/`, `archive/`, `about/`, `sitemap.xml`), then push.
