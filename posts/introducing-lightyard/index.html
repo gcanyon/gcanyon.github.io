@@ -14,9 +14,9 @@
 <body>
 <div class="wrap">
 <div class="mast"><a class="logo" href="/">geoffcanyon</a><nav><a href="/ai/">AI</a><span class="sep">·</span><a href="/coding/">Coding</a><span class="sep">·</span><a href="/product/">Product</a><span class="sep">·</span><a href="/people/">People</a><span class="sep">·</span><a href="/games/" class=on>Games</a><span class="sep">·</span><a href="/fiction/">Fiction</a><span class="sep">·</span><a href="/archive/">Archive</a></nav></div>
-<div class="head"><div class="meta" style="font-size:12px"><a href="/games/">Games &amp; Puzzles</a><span class="sep">·</span><span class="d">Oct 19, 2026</span><span class="sep">·</span><span class="d">1 min read</span></div><h1>Lightyard</h1><p class="dek">Lightyard is a challenging puzzle game I created where you set up mirrors to get packets of light from the emitters to the receivers.</p></div>
+<div class="head"><div class="meta" style="font-size:12px"><a href="/games/">Games &amp; Puzzles</a><span class="sep">·</span><span class="d">Oct 19, 2026</span><span class="sep">·</span><span class="d">2 min read</span></div><h1>Lightyard</h1><p class="dek">Lightyard is a challenging puzzle game I created where you set up mirrors to get packets of light from the emitters to the receivers.</p></div>
 <div class="prose">
-<p>Lightyard is a challenging puzzle game where you position mirrors and other controls to guide packets of light from the emitters to the receivers. It&rsquo;s inspired by <a href="https://trainyard.ca">Trainyard</a>, a favorite of mine whose app is no longer in the App Store. I created Lightyard using Claude and ChatGPT.</p>
+<p>In Lightyard you position mirrors and other controls to guide packets of light from the emitters to the receivers. It&rsquo;s inspired by <a href="https://trainyard.ca">Trainyard</a>, a favorite of mine whose app is no longer in the App Store. I created Lightyard using Claude and ChatGPT.</p>
 <p>You place mirrors, half-mirrors, and prisms to guide packets of colored light from emitters to receivers. Each emitter gives a determined sequence of colors, and each receiver wants a specific sequence of colors. Those sequences can be in a different order, or different colors completely, and you have to find ways to get the receivers what they want.</p>
 <figure class="video"><video src="/img/lightyard.mp4" poster="/img/lightyard-board.png" autoplay loop muted playsinline controls preload="metadata"></video><figcaption>A puzzle being solved: packets of light run from the emitters to the receivers.</figcaption></figure>
 
@@ -24,7 +24,10 @@
 <p>When packets cross, they take on the union of their colors: red and blue make magenta, red and green make yellow, etc. Packets can also merge, becoming one packet with their color union. A prism can split packets apart, duplicating the primary colors, and splitting e.g. magenta into blue and red. Crystals slow and filter light, transformers step a color along the spectrum — there are many variations.</p>
 <h2>Build your own</h2>
 <p>Lightyard comes with many puzzles built in, and you can create your own and share them. Lightyard is a single page self-contained web app, and everything you create is saved in your browser.</p>
-<p>I&rsquo;m still actively developing Lightyard, so check back for improvements and more puzzles over time.</p>
+<h2>Building Lightyard</h2>
+<p>I initiated Lightyard in Claude, one-shotting the initial gameplay with emitters, receivers, mirrors and prisms; design mode and play mode. Here&rsquo;s <a href="/prompts/lightyard-first-prompt.txt">the prompt I used</a>.</p>
+<p>That prompt worked, and produced a working app, but if you try Lightyard now, you will immediately see that a lot has changed since that first implementation. As I&rsquo;ve built and solved puzzles and tried things out, I&rsquo;ve iterated well over 100 times. I started with Claude, but I&rsquo;ve taken the app to ChatGPT and gone back and forth at various times.</p>
+<p>I’m actively developing Lightyard, so check back for improvements and more puzzles over time.</p>
 <p><a class="play" href="/lightyard.html" target="_blank" rel="noopener"><span><span class="k">Play it</span><span class="n">Lightyard</span><span class="s">Pick a puzzle, place mirrors, press play. The ? button has the full rules. Opens in a new tab.</span></span><span class="o">Open &rarr;</span></a></p>
 </div>
 <div class="foot"><span>geoffcanyon.com</span><span><a href="/about/">About</a> · <a href="mailto:gcanyon@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/geoffcanyon">LinkedIn</a></span></div>

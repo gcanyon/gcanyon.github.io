@@ -6,7 +6,7 @@ pinned: true
 dek: Lightyard is a challenging puzzle game I created where you set up mirrors to get packets of light from the emitters to the receivers.
 thumb: /img/lightyard-thumb.jpg
 ---
-Lightyard is a challenging puzzle game where you position mirrors and other controls to guide packets of light from the emitters to the receivers. It's inspired by [Trainyard](https://trainyard.ca), a favorite of mine whose app is no longer in the App Store. I created Lightyard using Claude and ChatGPT.
+In Lightyard you position mirrors and other controls to guide packets of light from the emitters to the receivers. It's inspired by [Trainyard](https://trainyard.ca), a favorite of mine whose app is no longer in the App Store. I created Lightyard using Claude and ChatGPT.
 
 You place mirrors, half-mirrors, and prisms to guide packets of colored light from emitters to receivers. Each emitter gives a determined sequence of colors, and each receiver wants a specific sequence of colors. Those sequences can be in a different order, or different colors completely, and you have to find ways to get the receivers what they want.
 
@@ -20,6 +20,12 @@ When packets cross, they take on the union of their colors: red and blue make ma
 
 Lightyard comes with many puzzles built in, and you can create your own and share them. Lightyard is a single page self-contained web app, and everything you create is saved in your browser.
 
-I'm still actively developing Lightyard, so check back for improvements and more puzzles over time.
+## Building Lightyard
+
+I initiated Lightyard in Claude, one-shotting the initial gameplay with emitters, receivers, mirrors and prisms; design mode and play mode. Here's [the prompt I used](/prompts/lightyard-first-prompt.txt).
+
+That prompt worked, and produced a working app, but if you try Lightyard now, you will immediately see that a lot has changed since that first implementation. As I've built and solved puzzles and tried things out, I've iterated well over 100 times. I started with Claude, but I've taken the app to ChatGPT and gone back and forth at various times.
+
+I’m actively developing Lightyard, so check back for improvements and more puzzles over time.
 
 :::play Lightyard | Pick a puzzle, place mirrors, press play. The ? button has the full rules. Opens in a new tab. | /lightyard.html
