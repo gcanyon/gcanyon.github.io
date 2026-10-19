@@ -1,0 +1,88 @@
+{
+  "name": "geoffcanyon",
+  "domain": "https://www.geoffcanyon.com",
+  "tagline": "Product, code, puzzles, and whatever else won't fit in a PRD.",
+  "email": "gcanyon@gmail.com",
+  "linkedin": "https://www.linkedin.com/in/geoffcanyon",
+  "github": "https://github.com/gcanyon",
+  "headshot": "/img/geoff_headshot_560.jpg",
+  "home_max": 5,
+  "bio": "I build AI-powered investment research tools at Arch Labs. Before that: chat design at LivePerson, experimentation tooling at Agoda, community systems at Answers.com, and a decade of building systems at HBO. This is where I write about product, code, puzzles, and fiction. There's nothing I enjoy more than brainstorming — if you have an interesting challenge to tackle, I'd love to hear about it.",
+  "status": "Currently: building a challenging puzzle game called Lightyard · writing a sequel to my recent novella · prototyping an educational reading app.",
+  "topics": [
+    {
+      "slug": "ai",
+      "name": "AI",
+      "nav": "AI",
+      "description": "What I do, how I use it, what I think.",
+      "subtopics": []
+    },
+    {
+      "slug": "coding",
+      "name": "Coding",
+      "nav": "Coding",
+      "description": "I'm a Product Manager with a dark past as a developer. I still code, here's what I've done.",
+      "subtopics": []
+    },
+    {
+      "slug": "product",
+      "name": "Product Management",
+      "nav": "Product",
+      "description": "0→1, how I move fast, what I focus on.",
+      "subtopics": []
+    },
+    {
+      "slug": "people",
+      "name": "People Management",
+      "nav": "People",
+      "description": "How I lead PMs, how I work with engineers and others in the company, how I partner with customers.",
+      "subtopics": []
+    },
+    {
+      "slug": "games",
+      "name": "Games & Puzzles",
+      "nav": "Games",
+      "description": "Lightyard, crosswords, and more.",
+      "subtopics": []
+    },
+    {
+      "slug": "fiction",
+      "name": "Fiction",
+      "nav": "Fiction",
+      "description": "Old School — a hard science fiction novella, and more as I write it.",
+      "subtopics": []
+    }
+  ],
+  "jobs": [
+    {
+      "company": "Arch Labs",
+      "about": "Alternative investment management platform",
+      "line": "Took Arch Investment Research (AIR) from zero to launch: AI that reads complex investment documents, extracts the facts, and automates the busywork around them. Also launched the product API and grew it to broad adoption."
+    },
+    {
+      "company": "LivePerson",
+      "about": "Online chatbot platform",
+      "line": "Launched a BERT model: lifted entity-recognition F1 by 34 points."
+    },
+    {
+      "company": "Agoda",
+      "about": "Southeast Asia's largest online travel agency",
+      "line": "Built and tested a trip insurance prototype. Launched the company's first personalization tool. Led experimentation and increased PM confidence."
+    },
+    {
+      "company": "Answers.com",
+      "about": "The world's largest Q&A website",
+      "line": "Led the excellent team responsible for [Answers.com](https://www.answers.com). Launched dozens of small-community themed web sites. Launched an expert-contributor platform. Launched an expert-help system."
+    },
+    {
+      "company": "PriceGrabber",
+      "about": "Online comparison shopping",
+      "line": "Introduced project management, built a cost-of-goods-sold model that showed some partners were a drag on the company, and led the Yahoo! and AOL API implementations. Began the move into product with a page redesign that tripled click rate in testing."
+    },
+    {
+      "company": "HBO",
+      "about": "Premium cable network",
+      "line": "Built dozens of systems, including a residuals and participation tracker."
+    }
+  ]
+}
