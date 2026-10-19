@@ -1179,8 +1179,10 @@ function sanitizeElementData(el,strict=false){
     const type=el.type==='crystalColored'?'crystal':el.type;
     if(!['emitter','receiver','mirrorDiag','mirrorHalf','crystal','transformer','prism'].includes(type))throw new Error('unknown element type');
     if(type==='emitter'||type==='receiver'){
-      if(!Array.isArray(el.colors)||el.colors.length<1||el.colors.length>MAX_PACKET_SEQUENCE||!el.colors.every(c=>Number.isInteger(c)&&c>=1&&c<=7))throw new Error('invalid packet sequence');
-      if(!Array.isArray(el.dirs)||!el.dirs.length||!el.dirs.every(d=>DIRS.includes(d)))throw new Error('invalid emitter or receiver directions');
+      // The editor permits empty queues and no selected directions. Preserve
+      // those designs on import, including inactive emitters and receivers.
+      if(!Array.isArray(el.colors)||el.colors.length>MAX_PACKET_SEQUENCE||!el.colors.every(c=>Number.isInteger(c)&&c>=1&&c<=7))throw new Error('invalid packet sequence');
+      if(!Array.isArray(el.dirs)||!el.dirs.every(d=>DIRS.includes(d)))throw new Error('invalid emitter or receiver directions');
     }
     if(type==='mirrorDiag'&&!['NE_SW','NW_SE'].includes(el.orientation))throw new Error('invalid mirror orientation');
     if(type==='mirrorHalf'&&el.facing!=null&&!['NW','NE','SE','SW'].includes(el.facing))throw new Error('invalid half-mirror facing');
@@ -2131,7 +2133,10 @@ function loadBuiltInCatalog(){
     p.noPrisms=p.noPrisms!=null?!!p.noPrisms:!!p.mirrorsOnly;p.noHalfMirrors=!!p.noHalfMirrors;p.noCollisions=!!p.noCollisions;p.strictCrystals=!!p.strictCrystals;delete p.mirrorsOnly;
     const goal=embeddedPuzzleGoal(p);
     if(goal){p.goalElements=goal.elements;p.goalTicks=goal.ticks;}else{delete p.goalElements;delete p.goalTicks;}
-    p.elements=(p.elements||[]).map(sanitizeElementData).filter(Boolean);p.configurationHash=puzzleConfigurationHash(p);
+    // map supplies an index as its second argument; never pass that index as
+    // sanitizeElementData's strict flag. Load embedded designs just as local
+    // designs are loaded, without aborting the entire catalog partway through.
+    p.elements=(p.elements||[]).map(element=>sanitizeElementData(element)).filter(Boolean);p.configurationHash=puzzleConfigurationHash(p);
     State.builtInPuzzles.push(p);
   });
 }
