@@ -19,3 +19,6 @@ Geoff's personal site, hosted on GitHub Pages (custom domain in `CNAME`). It is 
 - Don't hand-edit generated HTML; change `build.py`, `assets/site.css`, or content, then rebuild.
 - Old pages (`articleswithclaude.html`, `googlevsopenai.html`, `livecodewgpt.html`, `lightyard*.html`, `international.html`) keep their URLs. Leave them alone.
 - Design: light gray #F0F0EE, terracotta accent #B5502F, Fraunces / Source Serif 4 / JetBrains Mono, 700px column.
+
+## Medium images
+Imported Medium posts hotlink images from cdn-images-1.medium.com. Run `python3 scripts/localize_medium_images.py && python3 build.py` to download them into `img/medium/` and rewrite the links (idempotent).
