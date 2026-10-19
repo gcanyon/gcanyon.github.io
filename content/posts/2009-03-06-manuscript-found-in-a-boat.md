@@ -20,7 +20,7 @@ I have made arrangements by wireless to meet my team within the day of our landi
 
 12 July, 190\_, 9:36 in the morning.
 
-Captain B\_\_\_\_ reports that we are delayed, apparently due to a strong North-flowing current that carried us some one hundred nautical miles off course in the night. This uncharted current will set us back by a day, despite the Captain’s ordering more steam.
+Captain B\_\_\_\_\_ reports that we are delayed, apparently due to a strong North-flowing current that carried us some one hundred nautical miles off course in the night. This uncharted current will set us back by a day, despite the Captain’s ordering more steam.
 
 12:35, after noon.
 
