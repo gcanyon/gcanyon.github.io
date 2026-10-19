@@ -144,3 +144,14 @@ figure.hero { margin: 44px 0 0; }
 figure.video { max-width: 420px; margin: 10px auto; }
 figure.video video { width: 100%; height: auto; display: block; border-radius: 6px; background: #0d1018; }
 figure.video figcaption { text-align: center; }
+
+/* Dialogue-only stories: each voice keeps its own column position */
+.prose .dialogue { display: flex; flex-direction: column; gap: 14px; }
+.prose .dialogue p { margin: 0; max-width: 64%; }
+.prose .dialogue .v1 { margin-left: 18%; }
+.prose .dialogue .v2 { margin-left: 36%; }
+@media (max-width: 520px) {
+  .prose .dialogue p { max-width: 80%; }
+  .prose .dialogue .v1 { margin-left: 10%; }
+  .prose .dialogue .v2 { margin-left: 20%; }
+}

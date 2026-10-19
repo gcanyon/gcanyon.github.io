@@ -1,0 +1,69 @@
+---
+title: Manuscript Found in a Boat
+date: 2009-03-06
+topic: fiction
+dek: A short story in the style of Edgar Allan Poe: a journal recovered from a boat adrift in the North Atlantic.
+---
+The following journal was discovered in an abandoned power-boat found adrift in the North Atlantic somewhere above the sixtieth parallel, where the sea-ice becomes treacherous and only those with work to be done dare to travel.
+
+The veracity of its contents is uncertain, even were it not for the fantastical nature of the story contained therein, but it can be said with certainty that the power-boat itself provides some evidence, given that its like has not been seen before or since, at least in this author’s experience.
+
+Journal of Mr. T\_\_\_\_\_ M\_\_\_\_\_\_
+
+(Earlier entries omitted)
+
+11 July, 190\_, 6:35 in the evening.
+
+The cargo ship Y\_\_\_\_ continues to make excellent progress across the Atlantic. Captain B\_\_\_\_\_ says we will likely reach Newfoundland by the evening of the 14th. The weather has been uniformly grey, unusual for this time of year I am told. A seeming canopy hangs over the sky, blocking out any suggestion of light from the weak near-arctic sun.
+
+I have made arrangements by wireless to meet my team within the day of our landing, so we should be under way to the interior by the 17th at the latest. They are a rough group, but skilled. I have every expectation of a successful journey.
+
+12 July, 190\_, 9:36 in the morning.
+
+Captain B\_\_\_\_ reports that we are delayed, apparently due to a strong North-flowing current that carried us some one hundred nautical miles off course in the night. This uncharted current will set us back by a day, despite the Captain’s ordering more steam.
+
+12:35, after noon.
+
+A tremendous calm has overtaken us, accompanied by a light mist that further obscures the sky and confuses the senses. I know it to be near mid-day, yet it is near-impossible to make out the location of the sun. The damnable current continues to delay our progress; despite the Captain’s ordering full steam, he says we are actually losing ground, moving further Northward with each passing hour.
+
+Mssr. J\_\_\_\_, the only other passenger aboard, suggested that we turn back. The Captain says that would make matters worse, as the pack ice lies only a few hundred nautical miles to the North, and although we are headed toward it now, he is sure the current will not hold out. Turning back would only delay us and actually hasten us toward the ice, which would surely be the death of all of us were the freighter to become entrapped in its crushing grip.
+
+13? July, 190\_, time unknown
+
+My pocket-watch has stopped. So has every other timepiece aboard ship. The mist has thickened, making it impossible to take a reading from the sun, and the ship’s compass gives no accurate reading. In short, we are lost. The steam engine continues to function adequately, but with no way to tell direction, of what use is it? We appear to be trapped in the current still, as the thermometer (why should that instrument, incapable of aiding us, yet able to torment us, still function?) indicates a temperature drop of five degrees in the last half(?) hour.
+
+(Later)
+
+The mist has closed all around us. We can see only a few hundred yards in any direction. It wraps us like cotton, blinding us and stifling our hearing as well. I stood in the bow of the ship, searching for any sign-post that might guide us out of this hell — finding none, I called to Mssr. J\_\_\_\_ in the stern. It was barely possible to make out his shape, but my voice did not carry through the confining damp and he did not respond. Then I saw him climb upon the railing. I shouted as loudly as I could, but he didn’t turn; without hesitation he stepped to the other side and leapt. I say leapt because it did not appear that the water was his target. Instead, he appeared to have some other goal, some landing point in mind that was not apparent to me. Nevertheless, he fell down and out of sight.
+
+I ran aft as quickly as I could, shouting all the while to the rest of the crew that a man had gone overboard. The sea itself had calmed to an eerie stillness; no ripple disturbed its morror surface as far as the eye could see. When I reached the railing less than ten seconds later, the only thing I saw was my own reflection in the inky waters fifteen feet below.
+
+The Captain was the next on the scene, life preserver in hand. He made immediately to throw it into the water, but I stayed his hand and pointed to the black abyss below. He saw immediately that there was no need. With a puzzled look that betrayed more fear than I would have liked, he set the life preserver down on the freighter’s deck.
+
+Perhaps it was because I was looking at him that he saw it first. I saw his face go white, and then silently he pointed — not down into the water, but up, into the mist, astern. I followed his guesture and saw the harbinger of our doom: an iceberg.
+
+I write iceberg, but I do it injustice by calling it that. It rose out of the mist like Olympus, and as I gazed upon it I had the dread feeling that Zeus himself stood upon its summit, preparing the thunderbolt with which be would turn our poor ship into naught but brine-soaked kindling.
+
+I must remark again upon the sheer size of the thing. I had ventured North of the Arctic circle three times, and South of the Antarctic circle once, and yet I had never seen its like before. The only comparison that comes to mind is from two years prior on an expedition to Africa, of all places: one morning I saw Kilimanjaro rising up through the dawn. That was similar in scale, but of course Kilimanjaro did not cause my blood to freeze as did this infernal apparition.
+
+It was obvious that the freighter would not survive the hour; we happened to be headed directly away from the monster berg, under full steam, and yet we closed on it visibly. The Captain and I agreed that there was only one sensible course of action: among the ship’s cargo was a gasoline-powered motor-boat of the Captain’s own design and manufacture. He had planned to display it in New York and find financial backing to produce it in quantity. He claimed its top speed to be in excess of twenty knots, far faster that the ship, and faster than any possible ocean current.
+
+We searched the ship for the other three crewmembers, but they were nowhere. We could only assume they met the same fate as Mssr. J\_\_\_\_, but without benefit of witness. It seems an enviable fate now.
+
+The Captain and I managed to launch the motor-boat with just the two of us, and just in time; as we started its gasoline engine, the growl of its machinery was echoed by another, far more sinister sound: the near-constant crashing of waves against the mountain-wall of ice that lay only a few hundred yards astern.
+
+We had barely started away when we heard the first sound of contact between the berg and the freighter. The ship gave off an incredible squeal, as of pain, as its stern was torn apart, the heavy steel and wood being wrent like so much tissue. As we sped away it was a matter of less than a minute before there was nothing left of the freighter but bubbles rising up through the icy black water.
+
+(Later)
+
+We have made some progress away from the berg. The Captain does not hold out hope, however; there is only enough gasoline to last another hour. At that time we will be reduced to rowing for our lives. Being in general opposed to prolonged strenuous effort, I take some comfort in the fact that the excercise will last no more that thirty minutes.
+
+The Captain has a theory about the berg. If the frozen monster has an exceptionally high salt content, the the melting water coming from it would be more dense than the surrounding sea-water. Being more dense, it would sink, drawing in all around it. The Captain says that the same principle applies to other bergs; it is only the overwhelming mass of this one, and perhaps the exceeding salinity of it, that makes it our executioner. I have my doubts about the Captain’s reasoning. It makes sense of the current, but provides no explanation for the other phenomena documented in these pages, nor of the overwhelming sense of malevolence I feel whenever I dare look behind us.
+
+(Later)
+
+I know now for certain that our fate is sealed. The engine of the motor-boat has sputtered to a halt, but that is not the reason. Although I sit idly staring at our executioner while the Captain rows frantically and calls me a fool, that is not the reason either.
+
+We are as doomed as a condemned man a split second after the hangman pulls the lever, and just as guilty. My reasoning is simple: when the engine halted, the Captain immediately sought to make the boat lighter, I suppose because he thought it might help us survive, although I am certain he is only prolonging our suffering. In his haste he threw overboard anything not attached to the boat. Most of it sank, but the two life preservers floated — away from the berg, against the seeming current.
+
+I am as certain as I am of anything that the Captain’s explanation of the berg’s effect is wrong. It is no mere action of Physics that will destroy us; it is some force supernatural, and it is after the Captain, or it is after me. I only wonder if I am man enough to discover which one?
