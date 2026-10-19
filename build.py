@@ -47,7 +47,7 @@ def load_posts(drafts=False):
             topic=meta["topic"], dek=meta.get("dek", ""), pinned=meta.get("pinned", "").lower() == "true",
             thumb=meta.get("thumb"), hero=meta.get("hero"), hero_caption=meta.get("hero_caption", ""),
             signoff=meta.get("signoff", ""), needs_review=meta.get("needs_review", ""),
-            legacy=legacy, body=body, src=p.name,
+            legacy=legacy, body=body, src=p.name, time=meta.get("time","00:00"),
         )
         assert post["topic"] in TOPICS, f"{p.name}: unknown topic {post['topic']}"
         post["url"] = legacy if legacy else f"/posts/{slug}/"
@@ -55,7 +55,7 @@ def load_posts(drafts=False):
         words = len(re.findall(r"\w+", body))
         post["mins"] = max(1, round(words / 220))
         posts.append(post)
-    posts.sort(key=lambda x: x["date"], reverse=True)
+    posts.sort(key=lambda x: (x["date"], x["time"]), reverse=True)
     return posts
 
 

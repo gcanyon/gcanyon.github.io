@@ -102,9 +102,9 @@ h1 { margin: 0; font-family: var(--head); font-weight: 700; font-size: 36px; lin
 .pull { margin: 14px 0; display: flex; flex-direction: column; gap: 16px; }
 .pull::before { content: ""; display: block; width: 44px; height: 2px; background: var(--accent); }
 .pull p { margin: 0; font-family: var(--head); font-style: italic; font-weight: 400; font-size: 26px; line-height: 1.4; }
-figure { margin: 10px 0; display: flex; flex-direction: column; gap: 10px; }
-figure img { width: 100%; height: auto; display: block; border-radius: 2px; }
-figcaption { font-size: 12px; line-height: 1.5; color: var(--muted); }
+figure { margin: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+figure img { max-width: 100%; height: auto; display: block; border-radius: 2px; }
+figcaption { font-size: 12px; line-height: 1.5; color: var(--muted); text-align: center; }
 figure.hero { margin: 44px 0 0; }
 .play { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px 20px; padding: 20px 22px; background: var(--callout); border: 1px solid var(--callout-b); border-radius: 3px; text-decoration: none !important; color: var(--ink) !important; }
 .play .k { font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
