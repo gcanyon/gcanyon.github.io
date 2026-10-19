@@ -4,21 +4,20 @@ date: 2019-01-07
 time: 16:42
 topic: product
 dek: Thoughts on which UI elements should respond to the user’s touch in iOS.
-hero: https://cdn-images-1.medium.com/max/1024/1*-UEeCH7NhLqMt0Xm7i4eAA.png
-thumb: https://cdn-images-1.medium.com/max/1024/1*-UEeCH7NhLqMt0Xm7i4eAA.png
-signoff: Originally published on <a href="https://medium.com/thinking-product/cant-touch-this-b531db70187b">Medium</a>.
+hero: /img/medium/1024-1_-UEeCH7NhLqMt0Xm7i4eAA.png
+thumb: /img/medium/1024-1_-UEeCH7NhLqMt0Xm7i4eAA.png
 ---
 The iOS Camera application supports “burst mode”: hold down the shutter button or the volume button and the camera will take multiple photos in rapid succession (about eight per second in my experience). The Photos app doesn’t display these photos separately; instead, it displays them as one “burst”, with the option to choose among them and delete unnecessary photos from the sequence. This is a great feature: if someone blinks, or moves suddenly, that might ruin one photo, but others in the burst will be fine. iOS even does a good job choosing which photo to show to represent the burst when browsing photos.
 
 But the option to select photos from a burst is not user friendly, and illustrates an important aspect of a touch-based interface: what, exactly, should be touchable?
 
-![The Photos app showing a burst of 8 photos](https://cdn-images-1.medium.com/max/225/1*h9yaHn8QL7KPDhkBlafTcw.png)
+![The Photos app showing a burst of 8 photos](/img/medium/225-1_h9yaHn8QL7KPDhkBlafTcw.png)
 
 To the left is the Photos app showing a photo burst. You can see that it is a photo burst because of the small grey file folder(?) icon in the upper-left, and the grey text that says, “Burst (8 photos)”.
 
 You can also see that it is a photo burst because the command bar at the bottom includes the command, “Select…”. Non-burst photos don’t show that option.
 
-![The “Burst (8 photos)” label and the “Select…” command on opposite edges of the screen](https://cdn-images-1.medium.com/max/225/1*lPPSIlQ5XBLG9XWrFSO0gg.png)
+![The “Burst (8 photos)” label and the “Select…” command on opposite edges of the screen](/img/medium/225-1_lPPSIlQ5XBLG9XWrFSO0gg.png)
 
 To the left: how are these two items connected? They are not styled the same, they are not proximate to each other. How is the user to infer that “Select…” means “select from among the photos in this burst”? When looking at all photos rather than a single (possibly burst) photo, “Select” (no ellipsis) appears in a different location and means select different photos to do something with them. The interface for selecting photos in a burst is very different from selecting photos in a gallery, but I’ll cover that in a separate post. For now, the issue is that the word “select” is vague and means nothing without the context provided by the text “Burst (8 photos)”, which appears on the opposite edge of the screen (closer in landscape mode, as shown above, but still not close). I’m sympathetic to the UX designer, because it’s hard to think of a better word to use here, but the fact that it’s hard just means that perhaps the whole experience needs to be reworked.
 
@@ -30,7 +29,7 @@ Having spent a minute considering this screen shot, that assumption seems questi
 
 ***Interlude: a History Lesson***
 
-![Balloon Help for the Finder’s Special menu](https://cdn-images-1.medium.com/max/247/1*rGYqyqqDoVQnUI29ZWTdcg.png "Balloon Help for the Finder’s Special menu")
+![Balloon Help for the Finder’s Special menu](/img/medium/247-1_rGYqyqqDoVQnUI29ZWTdcg.png "Balloon Help for the Finder’s Special menu")
 
 In the 1990s the Macintosh operating system had a thing called “Balloon Help”. Turned on and off by menu, Balloon Help displayed text (and optionally, graphics) to answer the user’s questions: “What is this?” and “How do I use this?” For example, the Balloon Help for the Copy menu item was “Copies the selected text onto the clipboard” if text was selected. Importantly, if there was no text selection the Balloon Help read, “Not available now because there is no selection”.
 
@@ -48,6 +47,6 @@ If the user interface is up for modification, consider changing the functional t
 
 *Postscript*: Microsoft gained the rights to the Balloon Help patent in the 90s and implemented it in Windows. Here are images of Balloon Help on a color Mac running System 8, and on Windows 8.1. This says a lot about the UI design sensibilities of Apple vs. Microsoft.
 
-![Balloon Help on a Mac running System 8](https://cdn-images-1.medium.com/max/260/1*JE2F-0v53cqalg9ewdzo7A.png "Balloon Help on a Mac running System 8")
+![Balloon Help on a Mac running System 8](/img/medium/260-1_JE2F-0v53cqalg9ewdzo7A.png "Balloon Help on a Mac running System 8")
 
-![Balloon Help on Windows 8.1](https://cdn-images-1.medium.com/max/182/1*5f2SFmOyrAYUlSexqHEhkg.png "Balloon Help on Windows 8.1")
+![Balloon Help on Windows 8.1](/img/medium/182-1_5f2SFmOyrAYUlSexqHEhkg.png "Balloon Help on Windows 8.1")

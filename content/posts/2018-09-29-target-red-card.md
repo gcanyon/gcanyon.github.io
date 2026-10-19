@@ -4,9 +4,8 @@ date: 2018-09-29
 time: 23:52
 topic: product
 dek: A 5% discount, and a long list of ways using the card disappoints.
-hero: https://cdn-images-1.medium.com/max/1024/1*XNaLeiUvczkz2cUBLzcsfw.png
-thumb: https://cdn-images-1.medium.com/max/1024/1*XNaLeiUvczkz2cUBLzcsfw.png
-signoff: Originally published on <a href="https://medium.com/thinking-product/how-targets-red-card-works-to-disappoint-7543b2096c14">Medium</a>.
+hero: /img/medium/1024-1_XNaLeiUvczkz2cUBLzcsfw.png
+thumb: /img/medium/1024-1_XNaLeiUvczkz2cUBLzcsfw.png
 ---
 I live two blocks from a Target. It’s affordable and very convenient, and I go there at least 3–4 times per week. A Target Red Card yields a 5% discount on all purchases, so it makes perfect sense to get one.
 

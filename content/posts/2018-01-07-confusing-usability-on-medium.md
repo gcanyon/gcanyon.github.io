@@ -4,15 +4,14 @@ date: 2018-01-07
 time: 15:03
 topic: product
 dek: Two avatars in the corner of the screen, and nothing saying why.
-signoff: Originally published on <a href="https://medium.com/thinking-product/confusing-usability-on-medium-8728f541e7e">Medium</a>.
 ---
 This is what Medium looks like right now:
 
-![Medium’s header showing two different avatars](https://cdn-images-1.medium.com/max/1024/1*vrmyKe5zNnmUhwsXW7fDZA.png "What!?")
+![Medium’s header showing two different avatars](/img/medium/1024-1_vrmyKe5zNnmUhwsXW7fDZA.png "What!?")
 
 The obvious question is why is medium showing two different avatars for me? The menus in each avatar don’t make it clear, but they do provide enough information to figure it out:
 
-![The menus behind the two avatars](https://cdn-images-1.medium.com/max/1024/1*rGb3FACASqm2U5DHIn_NsQ.png "No explanation, but…clues.")
+![The menus behind the two avatars](/img/medium/1024-1_rGb3FACASqm2U5DHIn_NsQ.png "No explanation, but…clues.")
 
 Despite the misleading “Become a Member” entry at the top of the round avatar’s menu, I’m logged in to Medium in that screen capture, and that’s my account’s avatar/menu. You can tell by the items at the bottom of the menu: Profile, Settings, and most obviously, Sign out.
 

@@ -4,11 +4,10 @@ date: 2017-12-21
 time: 14:23
 topic: product
 dek: The only thing the page says is “No Tickets Available.” It could say a lot more.
-signoff: Originally published on <a href="https://medium.com/thinking-product/bad-usability-getting-passes-to-the-nmaahc-8355dd34a4f4">Medium</a>.
 ---
 The National Museum of African American History and Culture (NMAAHC) is very popular. Getting to go requires securing a pass, either by booking in advance, or by getting same-day passes starting at 6:30 AM. If you go to the page at 6:25 AM, you see this:
 
-![The pass page reading “No Tickets Available”](https://cdn-images-1.medium.com/max/1024/1*fVrNELPcA_HAIna5-pUmHw.png "What does this mean?")
+![The pass page reading “No Tickets Available”](/img/medium/1024-1_fVrNELPcA_HAIna5-pUmHw.png "What does this mean?")
 
 The only information given is “No Tickets Available.” Does that mean:
 

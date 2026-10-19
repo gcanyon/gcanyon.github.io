@@ -4,9 +4,8 @@ date: 2019-03-28
 time: 19:34
 topic: product
 dek: If you want people to find your child online later, pick a name that isn't one of the most common ones.
-signoff: Originally published on <a href="https://medium.com/thinking-product/your-children-are-a-product-brand-them-accordingly-d219c4e66ec8">Medium</a>.
 ---
-![](https://cdn-images-1.medium.com/max/264/1*ZiH0nU0gcn_d7u3TV4padw.jpeg)
+![](/img/medium/264-1_ZiH0nU0gcn_d7u3TV4padw.jpeg)
 
 There’s a reason [Samsung](https://www.samsung.com) didn’t name their mobile phone products Frisbee that has nothing to do with the fact that [Wham-o](https://wham-o.com/Selections/frisbee/) would probably sue them: if you [search the internet for “Frisbee](https://www.google.com/search?q=frisbee)” you get Wham-o’s product from top to bottom in the results, and Samsung could only break into those results with a similarly-named product with significant and sustained effort.
 
