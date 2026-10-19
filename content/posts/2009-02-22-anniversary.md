@@ -28,7 +28,7 @@ After breakfast, we spent the day together. We hiked up to Pilot Rock with a pic
 
 “You’ve worked so hard. I ought to at least give it a shot. If I don’t like it I can always drop out, right?”
 
-“Of course.” The whole exchange rang false, as usual when I changed something. I wouldn’t be doing that agan.
+“Of course.” The whole exchange rang false, as usual when I changed something. I wouldn’t be doing that again.
 
 We walked back after lunch holding hands. The sunlight cast dark highlights in her hair, and her eyes sparkled with life. I almost couldn’t stand it, she was so beautiful. After some small talk about the summer weather, she turned to me slightly and asked in a low voice, “Have you found someone?” I really should fix that, but each time I tinker, I end up frustrated.
 
@@ -40,7 +40,7 @@ We walked back after lunch holding hands. The sunlight cast dark highlights in h
 
 That night I made her favorite fried chicken for dinner. Again, the bitter truth wasn’t lost on me. I almost cried when I served it to her, but it <em>was</em> her favorite, what else could I do? While we ate, I made a point of telling her I loved her. I said it at least a dozen times over the course of the day. I wasn’t going to make the same mistake twice, that’s for sure.
 
-Later we fell asleep in each others’ arms. In the morning, she was gone as if she were never there.
+Later we fell asleep in each other’s arms. In the morning, she was gone as if she were never there.
 
 There’s nothing illegal about bringing her back. It’s uncommon, but I’m not the only one. Still, everyone else I know of went all the way — they reintegrate the duplicate into their lives, and after some time everyone looks the other way and treats the duplicate like it was the original.
 
