@@ -756,6 +756,53 @@ header nav.detail-nav button:disabled{opacity:.35;}
   #sheetBody.sequence-sheet .card{padding:10px 12px;}
   #sheetBody.sequence-sheet label.field{margin-top:7px;}
 }
+/* ---------- online ---------- */
+#onlineBtn[hidden],.online-more[hidden]{display:none !important;}
+.online-backdrop{z-index:110;}
+.online-dialog{width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px);display:flex;flex-direction:column;}
+.online-body{display:flex;flex-direction:column;min-height:0;flex:1;}
+.online-scroll{overflow-y:auto;flex:1;min-height:120px;}
+.online-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.online-tabs{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.online-tabs button{background:none;border:0;color:var(--dim);padding:6px 12px;font-size:12.5px;cursor:pointer;}
+.online-tabs button.active{background:#132229;color:var(--accent);}
+.online-controls select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;}
+.online-highlights{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-bottom:12px;}
+.online-highlights:empty{display:none;}
+.online-card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;font-size:11.5px;min-width:0;}
+.online-card .label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-weight:700;}
+.online-card canvas{width:100% !important;height:auto !important;aspect-ratio:1;border-radius:6px;}
+.online-card .who{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.online-card .meta{color:var(--dim);}
+.online-row{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;}
+.online-row canvas{border-radius:6px;flex-shrink:0;}
+.online-row .info{flex:1;min-width:0;}
+.online-row .who{font-weight:600;}
+.online-row .meta,.online-you .meta{color:var(--dim);font-size:11.5px;margin-top:2px;}
+.online-row .actions{display:flex;gap:6px;flex-shrink:0;}
+.online-row .btn.small,.online-card .btn.small,.online-you .btn.small,.online-more{margin:0;width:auto;}
+.online-more{margin-top:10px;}
+.online-you{font-size:12.5px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+.online-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--dim);margin-left:6px;vertical-align:1px;font-weight:600;}
+.online-tag.good{color:#32e428;border-color:#32e42866;}
+.online-tag.warn{color:#ffd94d;border-color:#ffd94d66;}
+.online-empty{color:var(--dim);font-size:12.5px;padding:18px 4px;text-align:center;}
+.online-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+.online-footer .btn{width:auto;margin:0;}
+.online-section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin:4px 0 8px;font-weight:700;}
+.online-section-title:not(:first-child){margin-top:16px;}
+.badge.online-badge{background:#132229;color:var(--accent);cursor:pointer;margin-left:6px;}
+.victory-buttons{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:20px;}
+.victory-dialog .victory-buttons .btn{margin:0;}
+.victory-dialog .btn.victory-skip{background:none;border-color:transparent;color:var(--dim);padding:4px 10px;font-weight:500;}
+.victory-dialog .btn.victory-skip:hover{color:var(--text);}
+.victory-error{color:#ff8080;font-size:12px;margin-top:8px;max-width:300px;text-align:center;}
+.victory-error:empty{display:none;}
+@media (max-width:560px){
+  .online-row .actions{flex-direction:column;}
+  .online-highlights{display:flex;overflow-x:auto;padding-bottom:4px;}
+  .online-card{flex:0 0 128px;}
+}
 </style>
 </head>
 <body>
@@ -787,6 +834,7 @@ header nav.detail-nav button:disabled{opacity:.35;}
       <button class="iconbtn primary" id="playBtn" title="Play / Pause">▶</button>
       <button class="iconbtn" id="resetRunBtn" title="Restart playback from tick 0">↺</button>
     </div>
+    <button class="iconbtn" id="onlineBtn" title="Online puzzles and solutions" aria-label="Online puzzles and solutions" hidden>🌐</button>
     <button class="iconbtn" id="settingsBtn" title="Preferences" aria-label="Preferences">⚙</button>
     <button class="iconbtn" id="helpBtn" title="How to play">?</button>
   </header>
@@ -5745,7 +5793,7 @@ function deleteCurrentSolution(){
 }
 function chooseBoardTool(value){
   const p=getCurrentPuzzle();
-  const actions=['tryPuzzle','setup','arrange','deletePuzzle','clonePuzzle','copyPuzzle','exportPuzzle','newSolution','setupSolution','deleteSolution','cloneSolution','copySolution','pasteSolutions','exportSolution','importSolutions','goDesign'];
+  const actions=['tryPuzzle','setup','arrange','deletePuzzle','clonePuzzle','copyPuzzle','exportPuzzle','newSolution','setupSolution','deleteSolution','cloneSolution','copySolution','pasteSolutions','exportSolution','importSolutions','goDesign','uploadSolution','onlineBoard','sharePuzzle'];
   const elementTools=['emitter','receiver','crystal','transformer','mirrorDiag','mirrorHalf','prism','cloneElement','eraser'];
   if(elementTools.includes(value)&&!canEditNow()){
     State.selectedTool=null;State.selectedCell=null;closeInspectorSheet();syncBoardToolControls();return;
@@ -5758,6 +5806,9 @@ function chooseBoardTool(value){
     State.selectedTool='mirrorDiag';setActiveMode('solve');warnIfStrictPacketTotalsMismatch(p);State.currentSolutionId='BLANK';
     State.selectedCell=null;State.screen='solutionEdit';renderScreen();schedulePuzzleIntro(p);return;
   }
+  if(value==='uploadSolution'){uploadCurrentSolutionFromMenu();return;}
+  if(value==='onlineBoard'){showOnlineBoard(p);return;}
+  if(value==='sharePuzzle'){shareCurrentPuzzle(p);return;}
   if(value==='setup'){ State.selectedTool=null; showPuzzleSetupDialog(p); return; }
   if(value==='arrange'){ State.selectedTool=null; showPuzzleArrangeDialog(p); return; }
   if(value==='deletePuzzle'){State.selectedTool=null;deleteCurrentPuzzle();return;}
@@ -5839,7 +5890,7 @@ function renderPuzzleEditScreen(){
   title.addEventListener('click',()=>showPuzzleSetupDialog(p)); row.appendChild(title);
   row.appendChild(makeBoardMoreMenu([
     ['tryPuzzle','Try It Now'],['setup','Setup'],['arrange','Arrange…'],['clonePuzzle','Clone Puzzle'],['copyPuzzle','Copy Puzzle'],
-    ['exportPuzzle','Export Puzzle'],['deletePuzzle','Delete Puzzle']
+    ['exportPuzzle','Export Puzzle'],...onlinePuzzleMenuItems(p),['deletePuzzle','Delete Puzzle']
   ],true));
   boardChrome.appendChild(row);
   boardChrome.appendChild(makeMobileToolStrip(
@@ -5928,10 +5979,12 @@ function renderSolutionEditScreen(){
     const solvedBadge=document.createElement('span');solvedBadge.className='badge solved board-solved-badge';solvedBadge.textContent='Solved';
     selectors.appendChild(solvedBadge);
   }
+  addOnlineBadge(selectors,p,s);
   row.appendChild(selectors);
   row.appendChild(makeBoardMoreMenu([
     ['newSolution','New Solution'],['setupSolution','Rename Solution'],['cloneSolution','Clone Solution'],['copySolution','Copy Solution'],
     ['pasteSolutions','Paste Solutions'],['exportSolution','Export Solution'],['importSolutions','Import Solutions'],
+    ...onlineSolutionMenuItems(),
     ['goDesign','Go to Puzzle Design'],['deleteSolution','Delete Solution']
   ],true));
   boardChrome.appendChild(row);
@@ -6593,15 +6646,20 @@ function showSolvedCelebration(){
   const {puzzles,index}=currentPuzzleSequence();
   const nextPuzzle=index>=0?puzzles[index+1]:null;
   const close=document.createElement('button');close.type='button';close.className='btn solid';close.textContent=nextPuzzle?'Next Puzzle':'Continue';
-  if(nextPuzzle)close.addEventListener('click',event=>{
-    event.stopPropagation();
+  const goNext=()=>{
     const recent=mostRecentSolutionForPuzzle(nextPuzzle);
     dismissCelebration();
     openPuzzleBoard(nextPuzzle,recent?recent.id:'BLANK');
-  });
-  layer.addEventListener('click',dismissCelebration);
-  dialog.appendChild(message);dialog.appendChild(stats);if(callouts.children.length)dialog.appendChild(callouts);dialog.appendChild(close);layer.appendChild(dialog);document.body.appendChild(layer);
-  setTimeout(()=>close.focus(),0);
+  };
+  if(nextPuzzle)close.addEventListener('click',event=>{event.stopPropagation();goNext();});
+  layer.addEventListener('click',event=>{if(!dialog.contains(event.target))dismissCelebration();});
+  dialog.appendChild(message);dialog.appendChild(stats);if(callouts.children.length)dialog.appendChild(callouts);
+  let focusButton=close;
+  if(onlineEnabled())focusButton=addCelebrationUploadButtons(dialog,close,getCurrentPuzzle(),solution,nextPuzzle,goNext);
+  else dialog.appendChild(close);
+  if(!nextPuzzle)close.addEventListener('click',dismissCelebration);
+  layer.appendChild(dialog);document.body.appendChild(layer);
+  setTimeout(()=>focusButton.focus(),0);
   setTimeout(()=>layer.querySelectorAll('.confetti-piece').forEach(piece=>piece.remove()),4700);
 }
 
@@ -7025,10 +7083,531 @@ document.addEventListener('keydown', (e)=>{
   else if(State.sheetOpen) closeInspectorSheet();
 });
 
+/* ============================== ONLINE ============================== */
+// Shared solutions, leaderboards, and community puzzles (see lightyard-server).
+// With ONLINE_API_BASE empty, every online feature stays hidden.
+const ONLINE_API_BASE="https://lightyard.lightyard.workers.dev";
+const ONLINE_SITE_URL='https://www.geoffcanyon.com/lightyard.html';
+const ONLINE_PIECE_NAMES={mirrorDiag:['mirror','mirrors'],mirrorHalf:['half-mirror','half-mirrors'],prism:['prism','prisms']};
+class OnlineError extends Error{constructor(message,status){super(message);this.status=status;}}
+function onlineApiBase(){
+  let override=null;
+  try{override=localStorage.getItem('lightyard_onlineApi');}catch(error){}
+  return String(override||ONLINE_API_BASE||'').replace(/\/+$/,'');
+}
+function onlineEnabled(){return !!onlineApiBase();}
+function onlineReadJson(kind,fallback){
+  try{const raw=readStorage(kind);return raw?JSON.parse(raw):fallback;}catch(error){return fallback;}
+}
+async function onlineApi(method,path,body,{auth=false,timeout=20000}={}){
+  const headers={};
+  if(body!==undefined)headers['Content-Type']='application/json';
+  if(auth){const token=readStorage('onlineToken');if(token)headers.Authorization='Bearer '+token;}
+  const controller=typeof AbortController!=='undefined'?new AbortController():null;
+  const timer=controller?setTimeout(()=>controller.abort(),timeout):null;
+  let response;
+  try{
+    response=await fetch(onlineApiBase()+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal:controller?controller.signal:undefined});
+  }catch(error){
+    throw new OnlineError(error&&error.name==='AbortError'?'The Lightyard server took too long to answer.':'Couldn’t reach the Lightyard server. Check your connection and try again.',0);
+  }finally{if(timer)clearTimeout(timer);}
+  let data=null;
+  try{data=await response.json();}catch(error){}
+  if(!response.ok)throw new OnlineError((data&&data.error)||`The Lightyard server returned an error (${response.status}).`,response.status);
+  return data;
+}
+
+/* ---------- player ---------- */
+// Everyone gets a generated name ("Amber Shimmer 7"). The Preferences player
+// name is used online instead whenever the server's name filter accepts it.
+async function createOnlinePlayer(){
+  const created=await onlineApi('POST','/v1/players');
+  writeStorage('onlineToken',created.token);
+  writeStorage('onlinePlayer',JSON.stringify(created.player));
+  writeStorage('onlineNameTried','\u0000');
+}
+async function ensureOnlinePlayer(){
+  if(!readStorage('onlineToken'))await createOnlinePlayer();
+  try{return await syncOnlineName();}
+  catch(error){
+    if(error.status!==401)throw error;
+    // The server no longer knows this browser; start over with a new identity.
+    await createOnlinePlayer();
+    return syncOnlineName();
+  }
+}
+async function syncOnlineName(){
+  let player=onlineReadJson('onlinePlayer',null);
+  const wanted=String(State.playerName||'').trim();
+  if(player&&(player.name||'')===wanted)return {player,nameNote:null};
+  if(player&&readStorage('onlineNameTried')===wanted)return {player,nameNote:null}; // already refused; don't ask again
+  try{
+    const result=await onlineApi('PUT','/v1/players/me/name',{name:wanted},{auth:true});
+    player=result.player;writeStorage('onlinePlayer',JSON.stringify(player));writeStorage('onlineNameTried',wanted);
+    return {player,nameNote:null};
+  }catch(error){
+    if(error.status!==422)throw error;
+    writeStorage('onlineNameTried',wanted);
+    return {player,nameNote:`Your player name can’t be used online (${error.message.replace(/\.$/,'')}), so you’re shown as ${player?player.handle:'a generated name'}.`};
+  }
+}
+
+/* ---------- uploads ---------- */
+function onlineLayoutSignature(elements){
+  return stableStringify((elements||[]).map(el=>{const copy=JSON.parse(JSON.stringify(el));delete copy.fixed;return copy;})
+    .sort((a,b)=>a.r-b.r||a.c-b.c));
+}
+function onlineUploadRecord(solution){
+  if(!solution||solution.id==='BLANK')return null;
+  const record=onlineReadJson('onlineUploads',{})[solution.id];
+  return record&&record.sig===onlineLayoutSignature(solution.elements)?record:null;
+}
+function saveOnlineUploadRecord(solution,record){
+  const all=onlineReadJson('onlineUploads',{});all[solution.id]=record;writeStorage('onlineUploads',JSON.stringify(all));
+}
+// Upload, then ask the server to check it. If the check runs out of time the
+// server leaves the solution unverified; that's reported, not treated as an error.
+async function uploadSolutionOnline(puzzle,solution,onProgress){
+  const elements=(solution.elements||[]).map(el=>{const copy=JSON.parse(JSON.stringify(el));delete copy.fixed;return copy;});
+  if(!elements.length)throw new OnlineError('Place at least one piece before uploading.',0);
+  const {nameNote}=await ensureOnlinePlayer();
+  const puzzleHash=puzzleConfigurationHash(puzzle);
+  const solved=solution.status==='solved';
+  const ticks=solved&&Number.isFinite(Number(solution.ticksToSolve))?Math.floor(Number(solution.ticksToSolve)):null;
+  let upload;
+  try{
+    upload=await onlineApi('POST','/v1/solutions',{puzzleHash,elements,claimedSolved:solved,claimedTicks:ticks},{auth:true});
+  }catch(error){
+    if(error.status===404)throw new OnlineError(puzzle._builtIn
+      ?'This puzzle isn’t on the online boards. Your copy of Lightyard may be out of date.'
+      :'This puzzle isn’t shared online yet. Share it first (Create Puzzles › ⋮ › Share Puzzle Online), then upload.',404);
+    throw error;
+  }
+  const record={code:upload.id,status:upload.status,ticks:null,failure:null,sig:onlineLayoutSignature(elements),puzzleHash,
+    at:Date.now(),duplicate:!!upload.duplicate,yours:upload.yours!==false};
+  if(onProgress)onProgress('Checking…');
+  try{
+    const check=await onlineApi('POST',`/v1/solutions/${upload.id}/check`,undefined,{timeout:60000});
+    record.status=check.status;record.ticks=check.ticks;record.failure=check.failure||null;
+  }catch(error){record.status='unverified';/* Too long to check, or the connection dropped. */}
+  saveOnlineUploadRecord(solution,record);
+  return {...record,nameNote};
+}
+function describeOnlineUpload(record){
+  const lead=record.duplicate&&!record.yours?'Someone already uploaded this exact layout, so you’re listed as also finding it.'
+    :record.duplicate?'You already uploaded this layout.':'Uploaded.';
+  const result=record.status==='solved'?`Verified: it solves in ${record.ticks} tick${record.ticks===1?'':'s'}.`
+    :record.status==='failed'?`It doesn’t solve the puzzle${record.failure?` (${record.failure.replace(/\.$/,'')})`:''}, so it’s listed with the attempts.`
+    :'It was too long to check right now, so it’s listed as unverified.';
+  return `${lead} ${result}${record.nameNote?' '+record.nameNote:''}`;
+}
+function onlineShareUrl(kind,id){
+  const here=/^https?:$/.test(location.protocol)?location.origin+location.pathname:ONLINE_SITE_URL;
+  return `${here}#${kind}=${id}`;
+}
+async function copyOnlineLink(url){
+  try{await navigator.clipboard.writeText(url);showOnlineToast('Link copied.');}
+  catch(error){window.prompt('Copy this link:',url);}
+}
+function showOnlineToast(message,actions=[],{sticky=false}={}){
+  document.querySelectorAll('.online-toast').forEach(node=>node.remove());
+  const toast=document.createElement('div');toast.className='clipboard-notice online-toast';toast.setAttribute('role','status');
+  const text=document.createElement('span');text.textContent=message;toast.appendChild(text);
+  for(const [label,action] of actions){
+    const button=document.createElement('button');button.type='button';button.className='btn small';button.textContent=label;
+    button.addEventListener('click',()=>{toast.remove();action();});toast.appendChild(button);
+  }
+  const dismiss=document.createElement('button');dismiss.type='button';dismiss.className='btn small';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss');
+  dismiss.addEventListener('click',()=>toast.remove());toast.appendChild(dismiss);
+  document.body.appendChild(toast);
+  if(!sticky)setTimeout(()=>toast.remove(),actions.length?15000:6000);
+  return toast;
+}
+function onlineUploadActions(puzzle,record){
+  return [['View board',()=>showOnlineBoard(puzzle)],['Copy link',()=>copyOnlineLink(onlineShareUrl('s',record.code))]];
+}
+async function uploadCurrentSolutionFromMenu(){
+  const puzzle=getCurrentPuzzle();
+  let solution=getCurrentSolution();
+  if(!puzzle||!solution)return;
+  if(solution.id==='BLANK'){
+    if(!(solution.elements||[]).length){showOnlineToast('Place some pieces before uploading.');return;}
+    solution=promoteBlankIfNeeded();
+  }
+  const existing=onlineUploadRecord(solution);
+  if(existing){showOnlineToast(`You already uploaded this layout.${existing.status==='unverified'?' It’s listed as unverified.':''}`,onlineUploadActions(puzzle,existing));return;}
+  if(solution.status!=='solved'&&!confirm('This solution hasn’t solved the puzzle yet. Upload it as an attempt? Attempts are listed separately from solutions.'))return;
+  const progress=showOnlineToast('Uploading…',[],{sticky:true});
+  try{
+    const record=await uploadSolutionOnline(puzzle,solution,text=>{progress.querySelector('span').textContent=text;});
+    showOnlineToast(describeOnlineUpload(record),onlineUploadActions(puzzle,record));
+    if(State.screen==='solutionEdit'&&getCurrentSolution()===solution)renderSolutionEditScreen();
+  }catch(error){showOnlineToast(error.message);}
+}
+// The upload button pair in the "Way to go!" dialog. Returns the button to focus.
+function addCelebrationUploadButtons(dialog,close,puzzle,solution,nextPuzzle,goNext){
+  const buttons=document.createElement('div');buttons.className='victory-buttons';
+  const upload=document.createElement('button');upload.type='button';upload.className='btn solid';
+  const error=document.createElement('div');error.className='victory-error';
+  close.className='btn victory-skip';close.textContent=nextPuzzle?'Just go next':'Close';
+  if(onlineUploadRecord(solution)){
+    upload.textContent=nextPuzzle?'Already uploaded · next puzzle':'Already uploaded';
+    upload.addEventListener('click',event=>{event.stopPropagation();if(nextPuzzle)goNext();else dismissCelebration();});
+  }else{
+    upload.textContent=nextPuzzle?'Upload solution & go to next puzzle':'Upload solution';
+    upload.addEventListener('click',async event=>{
+      event.stopPropagation();
+      upload.disabled=true;close.disabled=true;error.textContent='';upload.textContent='Uploading…';
+      try{
+        const record=await uploadSolutionOnline(puzzle,solution,text=>{upload.textContent=text;});
+        if(nextPuzzle)goNext();else dismissCelebration();
+        showOnlineToast(describeOnlineUpload(record),onlineUploadActions(puzzle,record));
+      }catch(failure){
+        error.textContent=failure.message;
+        upload.disabled=false;close.disabled=false;upload.textContent='Try uploading again';
+      }
+    });
+  }
+  buttons.appendChild(upload);buttons.appendChild(close);dialog.appendChild(buttons);dialog.appendChild(error);
+  return upload;
+}
+
+/* ---------- puzzles ---------- */
+function onlinePuzzleByHash(hash){
+  return allPuzzles().find(p=>puzzleConfigurationHash(p)===hash)||null;
+}
+function communitySetId(){
+  let set=State.sets.find(s=>s.name==='Community');
+  if(!set){set={id:uid(),name:'Community',createdAt:Date.now()};State.sets.push(set);}
+  return set.id;
+}
+function findOrImportOnlinePuzzle(hash,rawPuzzle){
+  const existing=onlinePuzzleByHash(hash);
+  if(existing)return existing;
+  const puzzle=sanitizePuzzleData(rawPuzzle,communitySetId());
+  State.puzzles.push(puzzle);persistData();
+  return puzzle;
+}
+function loadOnlineSolution(puzzle,item){
+  const label=`${item.player} · ${item.elements} element${item.elements===1?'':'s'}${item.ticks!=null?` · ${item.ticks} ticks`:''}`;
+  const solution=sanitizeSolutionData({name:label.slice(0,80),elements:item.layout,status:'in-progress'},puzzle);
+  State.solutions.push(solution);persistSolutions();
+  closeOnlineDialogs();setActiveMode('solve');openPuzzleBoard(puzzle,solution.id);
+  showOnlineToast(`Loaded ${item.player}’s layout as a new solution. Press ▶ to watch it run.`);
+}
+async function shareCurrentPuzzle(puzzle){
+  if(!puzzle)return;
+  if(!confirm(`Share “${puzzle.name}” online? Anyone will be able to play it, and it will be listed as unsolved until someone solves it. If you change the puzzle later, that’s a new puzzle; the shared copy stays as it is.`))return;
+  const progress=showOnlineToast('Sharing…',[],{sticky:true});
+  try{
+    const {nameNote}=await ensureOnlinePlayer();
+    const result=await onlineApi('POST','/v1/puzzles',{puzzle:portablePuzzle(puzzle)},{auth:true});
+    const lead=!result.existing?'Shared! It’s in the Online list now.'
+      :result.source==='builtin'?'That puzzle matches a built-in puzzle, so it already has an online board.'
+      :'That puzzle was already shared.';
+    showOnlineToast(lead+(nameNote?' '+nameNote:''),[['Copy link',()=>copyOnlineLink(onlineShareUrl('p',result.hash))],['View board',()=>showOnlineBoard(puzzle)]]);
+  }catch(error){showOnlineToast(error.message);}
+  finally{progress.remove();}
+}
+function onlineSolutionMenuItems(){return onlineEnabled()?[['uploadSolution','Upload Solution'],['onlineBoard','Online Solutions']]:[];}
+function onlinePuzzleMenuItems(p){return onlineEnabled()&&p&&!p._builtIn?[['sharePuzzle','Share Puzzle Online'],['onlineBoard','Online Solutions']]:[];}
+function addOnlineBadge(container,puzzle,solution){
+  const record=onlineEnabled()?onlineUploadRecord(solution):null;
+  if(!record)return;
+  const badge=document.createElement('span');badge.className='badge online-badge';
+  badge.textContent=record.status==='unverified'?'Uploaded · unverified':'Uploaded';
+  badge.title='Show the online board';badge.addEventListener('click',()=>showOnlineBoard(puzzle));
+  container.appendChild(badge);
+}
+
+/* ---------- thumbnails ---------- */
+function drawOnlineThumb(canvas,puzzle,layout,size){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  canvas.width=size*dpr;canvas.height=size*dpr;
+  const g=canvas.getContext('2d');if(!g)return;
+  g.scale(dpr,dpr);
+  const rows=puzzle.rows||7,cols=puzzle.cols||7;
+  const cell=Math.floor((size-4)/Math.max(rows,cols));
+  const ox=Math.floor((size-cell*cols)/2),oy=Math.floor((size-cell*rows)/2);
+  g.fillStyle='#0a0b10';g.fillRect(0,0,size,size);
+  g.strokeStyle='#1c1f29';g.lineWidth=1;
+  for(let r=0;r<=rows;r++){g.beginPath();g.moveTo(ox,oy+r*cell+.5);g.lineTo(ox+cols*cell,oy+r*cell+.5);g.stroke();}
+  for(let c=0;c<=cols;c++){g.beginPath();g.moveTo(ox+c*cell+.5,oy);g.lineTo(ox+c*cell+.5,oy+rows*cell);g.stroke();}
+  const color=v=>COLHEX[v]||'#8b8fa3';
+  const draw=(el,player)=>{
+    const x=ox+el.c*cell,y=oy+el.r*cell,cx=x+cell/2,cy=y+cell/2,h=cell*.36;
+    g.lineWidth=Math.max(1.2,cell*.12);g.lineCap='round';
+    if(el.type==='emitter'){g.fillStyle=color((el.colors||[])[0]);g.fillRect(x+cell*.2,y+cell*.2,cell*.6,cell*.6);}
+    else if(el.type==='receiver'){g.strokeStyle=color((el.colors||[])[0]);g.lineWidth=Math.max(1.2,cell*.1);g.strokeRect(x+cell*.22,y+cell*.22,cell*.56,cell*.56);}
+    else if(el.type==='crystal'){g.fillStyle=el.filterColor==null?'#cfd3e055':color(el.filterColor)+'aa';g.beginPath();g.moveTo(cx,cy-h);g.lineTo(cx+h,cy);g.lineTo(cx,cy+h);g.lineTo(cx-h,cy);g.closePath();g.fill();}
+    else if(el.type==='transformer'){g.strokeStyle='#cfd3e0';g.beginPath();g.arc(cx,cy,h*.8,0,Math.PI*2);g.stroke();}
+    else{
+      g.strokeStyle=player?'#6ee7ff':'#cfd3e0';g.fillStyle=g.strokeStyle;
+      if(el.type==='mirrorDiag'){
+        g.beginPath();
+        if(el.orientation==='NE_SW'){g.moveTo(cx-h,cy+h);g.lineTo(cx+h,cy-h);}else{g.moveTo(cx-h,cy-h);g.lineTo(cx+h,cy+h);}
+        g.stroke();
+      }else if(el.type==='mirrorHalf'){
+        // Same geometry as the game: the line's orientation follows the facing; a dot marks the reflective side.
+        const facing=halfMirrorFacing(el);
+        const corner={NE:[1,-1],NW:[-1,-1],SE:[1,1],SW:[-1,1]}[facing]||[1,-1];
+        g.beginPath();
+        if(halfMirrorOrientation(facing)==='NE_SW'){g.moveTo(cx-h,cy+h);g.lineTo(cx+h,cy-h);}else{g.moveTo(cx-h,cy-h);g.lineTo(cx+h,cy+h);}
+        g.stroke();
+        g.beginPath();g.arc(cx+corner[0]*h*.5,cy+corner[1]*h*.5,Math.max(1,cell*.08),0,Math.PI*2);g.fill();
+      }else if(el.type==='prism'){
+        const d={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]}[el.base]||[0,-1];
+        g.beginPath();g.moveTo(cx+d[0]*h,cy+d[1]*h);g.lineTo(cx-d[0]*h-d[1]*h,cy-d[1]*h-d[0]*h);g.lineTo(cx-d[0]*h+d[1]*h,cy-d[1]*h+d[0]*h);g.closePath();g.fill();
+      }
+    }
+  };
+  for(const el of puzzle.elements||[])draw(el,false);
+  for(const el of layout||[])draw(el,true);
+}
+function makeOnlineThumb(puzzle,layout,size){
+  const canvas=document.createElement('canvas');canvas.style.width=size+'px';canvas.style.height=size+'px';
+  drawOnlineThumb(canvas,puzzle,layout,size);return canvas;
+}
+
+/* ---------- dialogs ---------- */
+function closeOnlineDialogs(){
+  document.querySelectorAll('.online-backdrop').forEach(node=>{if(node._onKey)document.removeEventListener('keydown',node._onKey,true);node.remove();});
+}
+function openOnlineDialog(title){
+  closeOnlineDialogs();
+  const backdrop=document.createElement('div');backdrop.className='dialog-backdrop online-backdrop';
+  const dialog=document.createElement('div');dialog.className='dialog online-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
+  const heading=document.createElement('h3');heading.textContent=title;dialog.appendChild(heading);
+  const body=document.createElement('div');body.className='online-body';dialog.appendChild(body);
+  const footer=document.createElement('div');footer.className='online-footer';
+  const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Close';
+  close.addEventListener('click',closeOnlineDialogs);footer.appendChild(close);dialog.appendChild(footer);
+  backdrop.appendChild(dialog);
+  backdrop.addEventListener('click',event=>{if(event.target===backdrop)closeOnlineDialogs();});
+  backdrop._onKey=event=>{if(event.key==='Escape'){event.stopImmediatePropagation();closeOnlineDialogs();}};
+  document.addEventListener('keydown',backdrop._onKey,true);
+  document.body.appendChild(backdrop);
+  return {dialog,body};
+}
+function onlineSelect(options,value,onChange){
+  const select=document.createElement('select');
+  for(const [v,label] of options){const o=document.createElement('option');o.value=v;o.textContent=label;select.appendChild(o);}
+  select.value=value;select.addEventListener('change',()=>onChange(select.value));return select;
+}
+function onlineTabs(options,value,onChange){
+  const wrap=document.createElement('div');wrap.className='online-tabs';
+  for(const [v,label] of options){
+    const b=document.createElement('button');b.type='button';b.textContent=label;b.classList.toggle('active',v===value);
+    b.addEventListener('click',()=>{wrap.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));onChange(v);});
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+function onlinePieceSummary(item){
+  const parts=Object.entries(item.byType||{}).sort((a,b)=>b[1]-a[1]).map(([type,n])=>{
+    const names=ONLINE_PIECE_NAMES[type]||[type,type+'s'];return `${n} ${n===1?names[0]:names[1]}`;
+  });
+  return `${item.elements} element${item.elements===1?'':'s'}${parts.length>1?` (${parts.join(', ')})`:''}`;
+}
+function onlineTicksText(item){
+  if(item.verified&&item.ticks!=null)return `${item.ticks} tick${item.ticks===1?'':'s'}`;
+  return item.claimedTicks!=null?`${item.claimedTicks} ticks claimed`:'';
+}
+function onlineDate(ms){
+  try{return new Date(ms).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}catch(error){return '';}
+}
+function onlineTag(text,kind){const t=document.createElement('span');t.className='online-tag'+(kind?' '+kind:'');t.textContent=text;return t;}
+function onlineEmpty(text){const e=document.createElement('div');e.className='online-empty';e.textContent=text;return e;}
+function onlineSmallButton(label,title,onClick){
+  const b=document.createElement('button');b.type='button';b.className='btn small';b.textContent=label;if(title)b.title=title;
+  b.addEventListener('click',onClick);return b;
+}
+
+// Leaderboard for one puzzle.
+function showOnlineBoard(puzzle){
+  if(!puzzle)return;
+  const hash=puzzleConfigurationHash(puzzle);
+  const {body}=openOnlineDialog(`Online · ${puzzle.name}`);
+  const state={view:'solutions',sort:'pieces',offset:0};
+  const controls=document.createElement('div');controls.className='online-controls';
+  const highlights=document.createElement('div');highlights.className='online-highlights';
+  const scroll=document.createElement('div');scroll.className='online-scroll';
+  const list=document.createElement('div');list.className='online-list';
+  const more=onlineSmallButton('Load more','',()=>loadMore());more.classList.add('online-more');more.hidden=true;
+  scroll.appendChild(highlights);scroll.appendChild(list);scroll.appendChild(more);
+  const sorts=[['pieces','Fewest elements'],['ticks','Fewest ticks'],['ticks_desc','Most ticks'],['oldest','First submitted'],['newest','Most recent']];
+  controls.appendChild(onlineTabs([['solutions','Solutions'],['attempts','Attempts']],state.view,v=>{state.view=v;reload();}));
+  controls.appendChild(onlineSelect(sorts,state.sort,v=>{state.sort=v;reload();}));
+  body.appendChild(controls);body.appendChild(scroll);
+  const row=item=>{
+    const r=document.createElement('div');r.className='online-row';
+    r.appendChild(makeOnlineThumb(puzzle,item.layout,56));
+    const info=document.createElement('div');info.className='info';
+    const who=document.createElement('div');who.className='who';who.textContent=item.player;
+    if(!item.verified)who.appendChild(onlineTag('Unverified','warn'));
+    if(item.alsoFoundBy)who.appendChild(onlineTag(`also found by ${item.alsoFoundBy}`));
+    const meta=document.createElement('div');meta.className='meta';
+    meta.textContent=[onlinePieceSummary(item),onlineTicksText(item),state.view==='attempts'&&item.failure?item.failure:null,onlineDate(item.submittedAt)].filter(Boolean).join(' · ');
+    info.appendChild(who);info.appendChild(meta);r.appendChild(info);
+    const actions=document.createElement('div');actions.className='actions';
+    actions.appendChild(onlineSmallButton('Load','Add this layout to your solutions',()=>loadOnlineSolution(puzzle,item)));
+    actions.appendChild(onlineSmallButton('Link','Copy a link to this solution',()=>copyOnlineLink(onlineShareUrl('s',item.id))));
+    r.appendChild(actions);
+    return r;
+  };
+  const card=(label,item,stat)=>{
+    const c=document.createElement('div');c.className='online-card';
+    const l=document.createElement('div');l.className='label';l.textContent=label;c.appendChild(l);
+    c.appendChild(makeOnlineThumb(puzzle,item.layout,110));
+    const who=document.createElement('div');who.className='who';who.textContent=item.player;c.appendChild(who);
+    const s=document.createElement('div');s.className='meta';s.textContent=stat;c.appendChild(s);
+    c.appendChild(onlineSmallButton('Load','Add this layout to your solutions',()=>loadOnlineSolution(puzzle,item)));
+    return c;
+  };
+  const fetchPage=()=>onlineApi('GET',`/v1/puzzles/${hash}/solutions?view=${state.view}&sort=${state.sort}&limit=30&offset=${state.offset}`);
+  async function reload(){
+    state.offset=0;list.innerHTML='';highlights.innerHTML='';more.hidden=true;
+    list.appendChild(onlineEmpty('Loading…'));
+    try{
+      const page=await fetchPage();
+      list.innerHTML='';
+      const h=page.highlights||{};
+      if(state.view==='solutions'&&h.fewestPieces){
+        highlights.appendChild(card('Fewest elements',h.fewestPieces,`${h.fewestPieces.elements} element${h.fewestPieces.elements===1?'':'s'}`));
+        highlights.appendChild(card('Fewest ticks',h.fewestTicks,onlineTicksText(h.fewestTicks)));
+        highlights.appendChild(card('Most ticks',h.mostTicks,onlineTicksText(h.mostTicks)));
+        highlights.appendChild(card('First solved',h.first,onlineDate(h.first.submittedAt)));
+        highlights.appendChild(card('Most recent',h.newest,onlineDate(h.newest.submittedAt)));
+      }
+      if(!page.items.length)list.appendChild(onlineEmpty(state.view==='solutions'?'No solutions uploaded yet. Be the first!':'No attempts uploaded.'));
+      page.items.forEach(item=>list.appendChild(row(item)));
+      state.offset=page.items.length;more.hidden=state.offset>=page.total;
+    }catch(error){
+      list.innerHTML='';
+      list.appendChild(onlineEmpty(error.status===404?(puzzle._builtIn?'This puzzle isn’t on the online boards. Your copy of Lightyard may be out of date.':'This puzzle hasn’t been shared online yet.'):error.message));
+    }
+  }
+  async function loadMore(){
+    more.disabled=true;
+    try{const page=await fetchPage();page.items.forEach(item=>list.appendChild(row(item)));state.offset+=page.items.length;more.hidden=state.offset>=page.total;}
+    catch(error){showOnlineToast(error.message);}
+    more.disabled=false;
+  }
+  reload();
+}
+
+// Header button: shared puzzles and your online name.
+function showOnlineHub(){
+  const {body}=openOnlineDialog('Online');
+  const state={sort:'newest',offset:0};
+  const you=document.createElement('div');you.className='online-you';
+  const renderYou=()=>{
+    you.innerHTML='';
+    const player=onlineReadJson('onlinePlayer',null);
+    const line=document.createElement('div');
+    if(player){
+      line.textContent=`You appear online as ${player.displayName||player.handle}.`;you.appendChild(line);
+      const note=document.createElement('div');note.className='meta';
+      note.textContent=player.name?`Your generated name is ${player.handle}. Your Preferences player name is shown instead.`:'Set a player name in Preferences to use it online instead.';
+      you.appendChild(note);
+      const reroll=onlineSmallButton('New generated name','',async()=>{
+        reroll.disabled=true;
+        try{const r=await onlineApi('POST','/v1/players/me/handle',undefined,{auth:true});writeStorage('onlinePlayer',JSON.stringify(r.player));renderYou();}
+        catch(error){showOnlineToast(error.message);reroll.disabled=false;}
+      });
+      you.appendChild(reroll);
+    }else{
+      line.textContent='You’ll get a generated name the first time you upload or share. Your Preferences player name is used instead when the name filter allows it.';
+      you.appendChild(line);
+    }
+  };
+  renderYou();
+  const youTitle=document.createElement('div');youTitle.className='online-section-title';youTitle.textContent='You';
+  const title=document.createElement('div');title.className='online-section-title';title.textContent='Shared puzzles';
+  const controls=document.createElement('div');controls.className='online-controls';
+  controls.appendChild(onlineSelect([['newest','Newest'],['unsolved','Unsolved first'],['recently_solved','Recently solved'],['name','Name']],state.sort,v=>{state.sort=v;reload();}));
+  const scroll=document.createElement('div');scroll.className='online-scroll';
+  const list=document.createElement('div');list.className='online-list';
+  const more=onlineSmallButton('Load more','',()=>loadMore());more.classList.add('online-more');more.hidden=true;
+  scroll.appendChild(list);scroll.appendChild(more);
+  body.appendChild(youTitle);body.appendChild(you);body.appendChild(title);body.appendChild(controls);body.appendChild(scroll);
+  const puzzleCache=new Map();
+  const getPuzzle=async hash=>{
+    if(!puzzleCache.has(hash))puzzleCache.set(hash,onlineApi('GET',`/v1/puzzles/${hash}`).then(d=>d.puzzle));
+    return puzzleCache.get(hash);
+  };
+  const row=item=>{
+    const r=document.createElement('div');r.className='online-row';
+    const thumb=document.createElement('canvas');thumb.style.width='56px';thumb.style.height='56px';r.appendChild(thumb);
+    const info=document.createElement('div');info.className='info';
+    const who=document.createElement('div');who.className='who';who.textContent=item.name;
+    who.appendChild(item.solved?onlineTag('Solved','good'):onlineTag('Unsolved','warn'));
+    const meta=document.createElement('div');meta.className='meta';
+    meta.textContent=[item.author?`by ${item.author}`:null,`${item.solutionCount} solution${item.solutionCount===1?'':'s'}`,
+      item.attemptCount?`${item.attemptCount} attempt${item.attemptCount===1?'':'s'}`:null,onlineDate(item.sharedAt)].filter(Boolean).join(' · ');
+    info.appendChild(who);info.appendChild(meta);r.appendChild(info);
+    const actions=document.createElement('div');actions.className='actions';
+    actions.appendChild(onlineSmallButton('Play','Add this puzzle to your Community set and open it',async()=>{
+      try{const puzzle=findOrImportOnlinePuzzle(item.hash,await getPuzzle(item.hash));closeOnlineDialogs();setActiveMode('solve');
+        const recent=mostRecentSolutionForPuzzle(puzzle);openPuzzleBoard(puzzle,recent?recent.id:'BLANK');}
+      catch(error){showOnlineToast(error.message);}
+    }));
+    actions.appendChild(onlineSmallButton('Board','See uploaded solutions',async()=>{
+      try{showOnlineBoard(onlinePuzzleByHash(item.hash)||{...(await getPuzzle(item.hash)),name:item.name});}
+      catch(error){showOnlineToast(error.message);}
+    }));
+    actions.appendChild(onlineSmallButton('Link','Copy a link to this puzzle',()=>copyOnlineLink(onlineShareUrl('p',item.hash))));
+    r.appendChild(actions);
+    getPuzzle(item.hash).then(p=>drawOnlineThumb(thumb,p,[],56)).catch(()=>{});
+    return r;
+  };
+  const fetchPage=()=>onlineApi('GET',`/v1/puzzles?source=shared&sort=${state.sort}&limit=30&offset=${state.offset}`);
+  async function reload(){
+    state.offset=0;list.innerHTML='';more.hidden=true;list.appendChild(onlineEmpty('Loading…'));
+    try{
+      const page=await fetchPage();list.innerHTML='';
+      if(!page.items.length)list.appendChild(onlineEmpty('No one has shared a puzzle yet. Make one in Create Puzzles and choose ⋮ › Share Puzzle Online.'));
+      page.items.forEach(item=>list.appendChild(row(item)));
+      state.offset=page.items.length;more.hidden=page.items.length<page.limit;
+    }catch(error){list.innerHTML='';list.appendChild(onlineEmpty(error.message));}
+  }
+  async function loadMore(){
+    more.disabled=true;
+    try{const page=await fetchPage();page.items.forEach(item=>list.appendChild(row(item)));state.offset+=page.items.length;more.hidden=page.items.length<page.limit;}
+    catch(error){showOnlineToast(error.message);}
+    more.disabled=false;
+  }
+  reload();
+}
+
+/* ---------- links: #s=<solution> and #p=<puzzle> ---------- */
+async function handleOnlineLink(){
+  if(!onlineEnabled())return;
+  const match=/^#(s|p)=([0-9a-z-]+)$/i.exec(location.hash||'');
+  if(!match)return;
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(error){}
+  if(aboutBackdrop.classList.contains('show'))hideAbout();
+  try{
+    if(match[1]==='s'){
+      const item=await onlineApi('GET',`/v1/solutions/${match[2].toLowerCase()}`);
+      loadOnlineSolution(findOrImportOnlinePuzzle(item.puzzleHash,item.puzzle),item);
+    }else{
+      const data=await onlineApi('GET',`/v1/puzzles/${match[2].toLowerCase()}`);
+      const puzzle=findOrImportOnlinePuzzle(data.hash,data.puzzle);
+      setActiveMode('solve');const recent=mostRecentSolutionForPuzzle(puzzle);openPuzzleBoard(puzzle,recent?recent.id:'BLANK');
+    }
+  }catch(error){showOnlineToast(`Couldn’t open that link: ${error.message}`);}
+}
+window.addEventListener('hashchange',handleOnlineLink);
+const onlineBtn=document.getElementById('onlineBtn');
+onlineBtn.hidden=!onlineEnabled();
+onlineBtn.addEventListener('click',showOnlineHub);
+
 /* ============================== BOOT ============================== */
 loadAll();
 renderScreen();
 showAbout();
+handleOnlineLink();
 
 })();
 </script></body></html>
