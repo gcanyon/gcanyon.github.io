@@ -1,0 +1,107 @@
+# Where Is My Cap?
+@target 1
+@names Sam
+@pic 👦🧢
+I am Sam. I see my cap.
+---
+@pic 🧢
+My cap is red. My cap is big.
+---
+@pic 😴
+I can nap. I nap and nap.
+---
+@pic 👦❓
+Up! Up! Where is my cap?
+---
+@pic 🍳
+Is my cap in the pan?
+---
+@pic 🥫
+Is my cap in the can?
+---
+@pic 🧺
+Is my cap on the mat?
+---
+@pic 👀
+Look! Look! I see a cap. I see a tail.
+---
+@pic 🐱🧢
+It is a cat! A cat is in my cap.
+---
+@pic 😺💤
+The cat can nap in my cap.
+---
+@pic 👦😺
+Pat, pat, pat. Nap, cat, nap.
+===
+# Big Pig Digs
+@target 2
+@names Pig, Rat
+@pic 🐷
+Here is Big Pig. Big Pig can dig.
+---
+@pic 🐷⛏️
+Dig, dig, dig! Big Pig digs a pit.
+---
+@pic 🕳️
+Big Pig digs a big, big pit.
+---
+@pic 🎩
+"Is it a hat?" said Big Pig. It is not a hat.
+---
+@pic 🫙
+"Is it a lid?" said Big Pig. It is not a lid.
+---
+@pic 🐷💦
+Big Pig digs and digs. Big Pig is hot.
+---
+@pic 🐭
+Look! It is Rat! Rat is in the pit.
+---
+@pic 🐭😠
+"Big Pig! I had a nap in my pit!" said Rat.
+---
+@pic 🐷🙏
+"I can fix it," said Big Pig. "I can dig a pit for Rat."
+---
+@pic 🐷🐭🌳
+Big Pig and Rat dig. Dig, dig, dig! Look, it is a fig tree!
+---
+@pic 🐷🐭😋
+Big Pig and Rat sit in the pit. Figs for Pig. Figs for Rat. Yum!
+===
+# Bug Gets on the Bus
+@target 3
+@names Bug
+@pic 🐞
+Bug is a little red bug. Bug has six legs.
+---
+@pic 🐞🪵☀️
+Bug sits on a log. The sun is hot. Bug is hot.
+---
+@pic 🐞🚌
+"I am hot," said Bug. "I will get on the bus."
+---
+@pic 🚌
+The bus is big and red. Bug gets on the bus.
+---
+@pic 🐱🐶🐔
+A cat is on the bus. A dog is on the bus. A hen is on the bus.
+---
+@pic 🚌⛰️
+The bus runs up a hill. Up, up, up it gets!
+---
+@pic 💥
+Bump! The bus hits a rock. Bug falls off his seat.
+---
+@pic 🐞☕
+Bug lands in a cup. It is the hen's cup, and it is full of hot mud!
+---
+@pic 🐔😲
+"Yuck!" said the hen. "A bug in my cup!"
+---
+@pic 🐞🤢
+"Yuck!" said Bug. "Mud on all six legs!"
+---
+@pic 🐞🪵
+Bug gets off the bus. Bug sits on his log. "A bus? Not for me!" said Bug. "A log is the best!"

@@ -65,6 +65,14 @@ input,select,textarea{font:inherit;color:inherit}
 .book .prog i{display:block;height:100%;background:var(--teal)}
 .book.add{border:3px dashed var(--line);background:transparent;box-shadow:none;align-items:center;justify-content:center;font-size:17px;gap:6px;color:var(--ink-2)}
 .lvl1{background:var(--sun-2)} .lvl2{background:var(--teal-2)} .lvl3{background:var(--plum-2)}
+.book .cover.lv{background:color-mix(in srgb, var(--lv) 24%, var(--page))}
+.lv-chip{position:absolute;top:8px;left:8px;font:600 12px var(--ui);padding:2px 8px;border-radius:999px;background:var(--lv);color:#fff}
+.badge{position:absolute;bottom:8px;right:8px;font:600 12px var(--ui);padding:3px 9px;border-radius:999px;background:var(--page);color:var(--ink);box-shadow:var(--shadow)}
+.badge.next{background:var(--sun);color:#2b2833}
+.shelf-title .dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--lv);margin-right:8px;vertical-align:0}
+.level-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.level-pill{font:600 15px var(--ui);padding:4px 12px;border-radius:999px;background:var(--lv);color:#fff}
+.level-notes{margin:10px 0 0;padding-left:18px;line-height:1.55}
 .big-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
 .big-action{flex:1;min-width:220px;border:0;border-radius:20px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);text-align:left}
 .big-action .e{font-size:38px}
@@ -286,7 +294,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 <div id="modalRoot"></div>
 <div id="toast"></div>
 <script type="module">
-// Tap & Read — a tap-to-hear children's reader. Built from src/ by build.sh.
+// Tap & Read — a tap-to-hear children's reader. This file is the source; edit it directly.
 
 // ---------------------------------------------------------------------------
 // Built-in stories. Script format (same as plain-text import):
@@ -296,38 +304,109 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 //   blank line   new paragraph
 // ---------------------------------------------------------------------------
 const BUILTIN_STORIES = [
-{ id:'b-cat-hat', title:'Cat and Hat', author:'Tap & Read', level:1, cover:'🐱', text:`
-@pic 🐱
-This is Cat.
+{ id:'b-cap', title:'Where Is My Cap?', author:'Tap & Read', level:1, names:['Sam'], cover:'🧢', text:`
+@pic 👦🧢
+I am Sam. I see my cap.
 ===
-@pic 🎩
-This is a hat.
+@pic 🧢
+My cap is red. My cap is big.
 ===
-@pic 🐱🎩
-Cat sees the hat.
+@pic 😴
+I can nap. I nap and nap.
 ===
-@pic 🐱❓
-Is the hat for Cat?
+@pic 👦❓
+Up! Up! Where is my cap?
 ===
-@pic 🎩🐱
-Cat gets in the hat.
+@pic 🍳
+Is my cap in the pan?
 ===
-@pic 🎩
-Where is Cat?
+@pic 🥫
+Is my cap in the can?
 ===
-@pic 👀🎩
-I can see a tail!
+@pic 🧺
+Is my cap on the mat?
 ===
-@pic 🐱✨
-Here is Cat!
+@pic 👀
+Look! Look! I see a cap. I see a tail.
 ===
-@pic 😺🎩
-Cat likes the hat.
+@pic 🐱🧢
+It is a cat! A cat is in my cap.
 ===
-@pic 💤🎩
-Now Cat naps in the hat.
+@pic 😺💤
+The cat can nap in my cap.
+===
+@pic 👦😺
+Pat, pat, pat. Nap, cat, nap.
 `},
-{ id:'b-up', title:'Up, Up, Up!', author:'Tap & Read', level:1, cover:'🎈', text:`
+{ id:'b-pig-digs', title:'Big Pig Digs', author:'Tap & Read', level:2, names:['Pig', 'Rat'], cover:'🐷', text:`
+@pic 🐷
+Here is Big Pig. Big Pig can dig.
+===
+@pic 🐷⛏️
+Dig, dig, dig! Big Pig digs a pit.
+===
+@pic 🕳️
+Big Pig digs a big, big pit.
+===
+@pic 🎩
+"Is it a hat?" said Big Pig. It is not a hat.
+===
+@pic 🫙
+"Is it a lid?" said Big Pig. It is not a lid.
+===
+@pic 🐷💦
+Big Pig digs and digs. Big Pig is hot.
+===
+@pic 🐭
+Look! It is Rat! Rat is in the pit.
+===
+@pic 🐭😠
+"Big Pig! I had a nap in my pit!" said Rat.
+===
+@pic 🐷🙏
+"I can fix it," said Big Pig. "I can dig a pit for Rat."
+===
+@pic 🐷🐭🌳
+Big Pig and Rat dig. Dig, dig, dig! Look, it is a fig tree!
+===
+@pic 🐷🐭😋
+Big Pig and Rat sit in the pit. Figs for Pig. Figs for Rat. Yum!
+`},
+{ id:'b-bug-bus', title:'Bug Gets on the Bus', author:'Tap & Read', level:3, names:['Bug'], cover:'🐞', text:`
+@pic 🐞
+Bug is a little red bug. Bug has six legs.
+===
+@pic 🐞🪵☀️
+Bug sits on a log. The sun is hot. Bug is hot.
+===
+@pic 🐞🚌
+"I am hot," said Bug. "I will get on the bus."
+===
+@pic 🚌
+The bus is big and red. Bug gets on the bus.
+===
+@pic 🐱🐶🐔
+A cat is on the bus. A dog is on the bus. A hen is on the bus.
+===
+@pic 🚌⛰️
+The bus runs up a hill. Up, up, up it gets!
+===
+@pic 💥
+Bump! The bus hits a rock. Bug falls off his seat.
+===
+@pic 🐞☕
+Bug lands in a cup. It is the hen's cup, and it is full of hot mud!
+===
+@pic 🐔😲
+"Yuck!" said the hen. "A bug in my cup!"
+===
+@pic 🐞🤢
+"Yuck!" said Bug. "Mud on all six legs!"
+===
+@pic 🐞🪵
+Bug gets off the bus. Bug sits on his log. "A bus? Not for me!" said Bug. "A log is the best!"
+`},
+{ id:'b-up', title:'Up, Up, Up!', author:'Tap & Read', level:4, cover:'🎈', text:`
 @pic 👧🎈
 Mia has a red balloon.
 ===
@@ -358,7 +437,7 @@ Down, down, down it comes.
 @pic 👧🎈😀
 Mia hugs her red balloon. The end!
 `},
-{ id:'b-fox-crow', title:'The Fox and the Crow', author:'A fable, retold', level:2, cover:'🦊', text:`
+{ id:'b-fox-crow', title:'The Fox and the Crow', author:'A fable, retold', level:7, cover:'🦊', text:`
 @pic 🐦🧀
 A crow found a big piece of cheese. She flew up to a high branch to eat it.
 ===
@@ -386,7 +465,7 @@ Down fell the cheese, right into the mouth of the fox.
 @pic 🐦💭
 The crow never forgot it.
 `},
-{ id:'b-tortoise-hare', title:'The Tortoise and the Hare', author:'A fable, retold', level:2, cover:'🐢', text:`
+{ id:'b-tortoise-hare', title:'The Tortoise and the Hare', author:'A fable, retold', level:5, cover:'🐢', text:`
 @pic 🐇💨
 Hare was very fast, and he liked to tell everyone about it. "No one can beat me," he said.
 ===
@@ -420,7 +499,7 @@ But Tortoise was already at the finish line. All the animals cheered.
 @pic 🐢😊
 "Slow and steady wins the race," said Tortoise with a smile.
 `},
-{ id:'b-pip-light', title:'Pip and the Lighthouse', author:'Tap & Read', level:3, cover:'⛵', text:`
+{ id:'b-pip-light', title:'Pip and the Lighthouse', author:'Tap & Read', level:7, cover:'⛵', text:`
 ## Chapter One: The Little Keeper
 
 @pic 🏠💡🌊
@@ -743,7 +822,7 @@ function paginate(blocks, target = S.wordsPerPage) {
 function guessLevel(pages) {
   const words = pages.flat().filter(b => b.t === 'p').reduce((a, b) => a + countWords(b.text), 0);
   const per = words / Math.max(1, pages.length);
-  return per <= 12 ? 1 : per <= 45 ? 2 : 3;
+  return per <= 12 ? 2 : per <= 45 ? 5 : 7;   // rough fallback when word levels can't load
 }
 function storyFromScript(meta) {
   let pages = parseScript(meta.text);
@@ -752,7 +831,192 @@ function storyFromScript(meta) {
   if (tb >= 0) { title = title || pages[0][tb].text; pages[0].splice(tb, 1); if (!pages[0].length) pages.shift(); }
   const explicit = /^\s*(?:={3,}|-{3,}|\f|\[page\])\s*$/m.test(meta.text);
   if (!explicit) pages = paginate(pages.flat());
-  return { id: meta.id || 'u-' + uid(), title: title || 'My story', author: meta.author || '', level: meta.level || guessLevel(pages), cover: meta.cover || '📘', builtin: !!meta.builtin, pages, added: Date.now() };
+  return { id: meta.id || 'u-' + uid(), title: title || 'My story', author: meta.author || '', level: meta.level || guessLevel(pages), cover: meta.cover || '📘', builtin: !!meta.builtin, names: meta.names || [], levelScheme: meta.level ? 2 : undefined, pages, added: Date.now() };
+}
+
+// ===========================================================================
+// Reading levels
+// ===========================================================================
+// Eight levels follow a standard phonics sequence. A book's level comes from its
+// text: the share of words a reader at that level can sound out or knows by sight,
+// how many new out-of-level ("tricky") words each page adds, and page/sentence
+// length. Tricky words are fine — the reader taps them — so each level allows a
+// small budget of them per page. A reader's level comes from how much they tap.
+// Levels are guidance, not gates: every book stays open.
+const LEVELS = [
+  { level: 1, color: '#e5533d', about: 'First sounds: m, s, t, p, n, c and short a, plus a few sight words. Short pattern books.', limits: [10, 8], floor: 0.80, tricky: 1 },
+  { level: 2, color: '#e8812c', about: 'Short a and i with most single consonants, and -s endings (cat, sit, pigs).', limits: [18, 7], floor: 0.80, tricky: 1.5 },
+  { level: 3, color: '#d9a400', about: 'All short vowels and consonants, plus ff, ll, ss, zz (hot, bug, bed, hill).', limits: [25, 8], floor: 0.80, tricky: 2 },
+  { level: 4, color: '#4a9d3a', about: 'Digraphs and blends: sh, ch, th, wh, ck, ng; st-, fl-, -nd, -mp (ship, frog, jump).', limits: [35, 9], floor: 0.80, tricky: 2.5 },
+  { level: 5, color: '#2a9d8f', about: 'Long vowels: silent e (cake), ee, ea, ai, ay, oa, ow, igh; endings -ed, -ing, -er.', limits: [55, 11], floor: 0.80, tricky: 3 },
+  { level: 6, color: '#3d7fd9', about: 'More vowel sounds: ar, or, er, ir, ur; oi, oy, ou, ow; oo; soft c and g; two-syllable words.', limits: [85, 13], floor: 0.80, tricky: 4 },
+  { level: 7, color: '#5b5fc7', about: 'Longer words: prefixes and suffixes (un-, re-, -ful, -tion), kn, wr, ph. Short chapters.', limits: [160, 17], floor: 0.75, tricky: 6 },
+  { level: 8, color: '#8a5fbf', about: 'Chapter books, no limits.', limits: [Infinity, Infinity], floor: 0, tricky: Infinity },
+];
+const levelOf = n => LEVELS[Math.min(8, Math.max(1, n || 1)) - 1];
+
+// Level of every dictionary word, precomputed from the CMU Pronouncing Dictionary and the
+// phonics scope (tools are in the leveling folder). Loaded only when a book needs scoring.
+const WordLevels = {
+  map: null, loading: null,
+  load() {
+    if (this.map) return Promise.resolve();
+    return this.loading ||= fetch('vendor/levels/wordlevels.json').then(r => { if (!r.ok) throw new Error('Could not load word levels'); return r.json(); }).then(data => {
+      const map = new Map();
+      data.bands.forEach((list, band) => { for (const w of list.split(' ')) map.set(w, band + 1); });
+      this.map = map;
+    }).catch(e => { this.loading = null; throw e; });
+  },
+  // Level 1–8; words not in the dictionary count as Level 8 (tricky everywhere).
+  of(word) {
+    const w = word.toLowerCase().replace(/’/g, "'");
+    return this.map.get(w) || this.map.get(w.replace(/'s$/, '')) || 8;
+  },
+};
+
+// The text a reader sees on each page (the title is on page 1).
+function storyPageTexts(story) {
+  return story.pages.map((blocks, i) => (i === 0 ? story.title + '.\n' : '') + blocks.filter(b => b.t === 'p' || b.t === 'h').map(b => b.text).join('\n'));
+}
+
+// pageTexts: array of strings. names: character names (never tricky). levelOfWord: word -> 1..8.
+function scoreLevel(pageTexts, { names = [] } = {}, levelOfWord) {
+  const WORD = /[A-Za-z]+(?:['’][A-Za-z]+)*/g;
+  const all = pageTexts.join('\n');
+  // Character names: capitalized mid-sentence, never seen in lowercase.
+  const lower = new Set((all.match(WORD) || []).filter(w => w === w.toLowerCase()).map(w => w.toLowerCase()));
+  const exempt = new Set(names.map(n => n.toLowerCase()));
+  for (const sent of all.split(/(?<=[.!?:]["'”’]?)\s+|\n+|["“”]/))
+    (sent.match(WORD) || []).slice(1).forEach(w => {
+      const lw = w.toLowerCase().replace(/['’]s$/, '');
+      if (/^[A-Z][a-z]/.test(w) && !lower.has(lw) && levelOfWord(lw) > 1) exempt.add(lw);
+    });
+  const tokens = [], perPage = [], perSentence = [];
+  for (const text of pageTexts) {
+    const ws = text.match(WORD) || [];
+    perPage.push(ws.length);
+    for (const s of text.split(/(?<=[.!?])\s+/)) { const k = (s.match(WORD) || []).length; if (k) perSentence.push(k); }
+    for (const w of ws) { const lw = w.toLowerCase(); if (!exempt.has(lw.replace(/['’]s$/, ''))) tokens.push(lw); }
+  }
+  const lv = tokens.map(levelOfWord);
+  const p90 = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(0.9 * s.length))]; };
+  const pageP90 = p90(perPage), sentP90 = p90(perSentence);
+  const known = n => lv.filter(x => x <= n).length / Math.max(1, lv.length);
+  const trickyPerPage = n => new Set(tokens.filter((w, i) => lv[i] > n)).size / Math.max(1, pageTexts.length);
+  let level = 8;
+  for (const L of LEVELS) {
+    if (known(L.level) >= L.floor && trickyPerPage(L.level) <= L.tricky && pageP90 <= L.limits[0] && sentP90 <= L.limits[1]) { level = L.level; break; }
+  }
+  const tricky = [...new Set(tokens.filter((w, i) => lv[i] > level))];
+  return { level, known: +known(level).toFixed(3), tricky, names: [...exempt] };
+}
+
+// Score a story (imports); falls back to a length-based guess if word levels can't load.
+async function levelStory(story) {
+  if (story.levelSource === 'manual') return story;
+  try {
+    await WordLevels.load();
+    const r = scoreLevel(storyPageTexts(story), { names: story.names || [] }, w => WordLevels.of(w));
+    Object.assign(story, { level: r.level, levelScheme: 2, levelSource: 'auto', levelInfo: { known: r.known, tricky: r.tricky.slice(0, 20) } });
+  } catch (e) {
+    console.warn('Leveling unavailable', e);
+    Object.assign(story, { level: guessLevel(story.pages), levelScheme: 2, levelSource: 'estimate' });
+  }
+  return story;
+}
+
+// Stories saved before levels existed used 1–3; rescore them once.
+async function migrateStoryLevels() {
+  const old = (await DB.all('stories')).filter(s => s.levelScheme !== 2);
+  if (!old.length) return;
+  for (const s of old) { if (s.levelSource !== 'manual') s.level = { 1: 2, 2: 5, 3: 7 }[s.level] || s.level; await levelStory(s); await DB.put('stories', s); }
+  STORY_CACHE = null;
+  if (document.body.dataset.screen === 'library') renderLibrary();
+}
+
+// ---- Reader level ----------------------------------------------------------
+// For each book a reader has read, the share of words on the pages they read
+// themselves that they didn't need to tap. Pages they had read to them are
+// listening, not reading, so they're left out.
+function readingsFor(events, stories) {
+  const byStory = new Map();
+  const since = Date.now() - 60 * DAY;
+  for (const e of events) {
+    if (!e.storyId || e.ts < since || !['page', 'tap', 'readpage', 'finish'].includes(e.type)) continue;
+    if (!byStory.has(e.storyId)) byStory.set(e.storyId, []);
+    byStory.get(e.storyId).push(e);
+  }
+  const out = [];
+  for (const [id, evs] of byStory) {
+    const story = stories.find(s => s.id === id); if (!story) continue;
+    const seen = new Set(), listened = new Set(), tapped = new Set();
+    let ts = 0, finished = false;
+    for (const e of evs) {
+      ts = Math.max(ts, e.ts);
+      if (e.type === 'page') seen.add(e.page);
+      else if (e.type === 'readpage') listened.add(e.page);
+      else if (e.type === 'finish') finished = true;
+      else if (e.type === 'tap' && (e.how || 'tap') === 'tap') { seen.add(e.page); tapped.add(e.page + '|' + e.word); }
+    }
+    const texts = storyPageTexts(story);
+    let words = 0, taps = 0;
+    for (const p of seen) {
+      if (listened.has(p) || !texts[p]) continue;
+      words += (texts[p].match(WORD_RE) || []).length - (p === 0 ? countWords(story.title) : 0);
+      for (const t of tapped) if (t.startsWith(p + '|')) taps++;
+    }
+    if (words < 12) continue;                       // too little to say anything
+    out.push({ id, title: story.title, level: story.level, words, taps, share: Math.max(0, 1 - taps / words), ts, finished });
+  }
+  return out.sort((a, b) => b.ts - a.ts);
+}
+
+// comfortable: highest level read with ≥95% of words unaided (or the parent-set starting level).
+// next: one above — the "just right with a few taps" level the shelf recommends.
+function readerLevels(reader, events, stories) {
+  const readings = readingsFor(events, stories);
+  const start = reader.startLevel || 1, recent = readings.slice(0, 8);
+  const easy = recent.filter(r => r.share >= 0.95).map(r => r.level);
+  let comfortable = Math.max(start, ...easy);
+  const atC = recent.filter(r => r.level === comfortable);
+  let tough = false;
+  if (!easy.includes(comfortable) && atC.length >= 2 && atC[0].share < 0.88 && atC[1].share < 0.88) { comfortable = Math.max(1, comfortable - 1); tough = true; }
+  return { comfortable, next: Math.min(8, comfortable + 1), start, readings, tough };
+}
+async function currentReaderLevels(reader = READER) {
+  if (!reader) return null;
+  return readerLevels(reader, await DB.byReader('events', reader.id), await allStories());
+}
+function bookBadge(story, lv) {
+  if (!lv) return null;
+  if (story.level === lv.next && lv.next !== lv.comfortable) return { text: '⭐ Next step', cls: 'next' };
+  if (story.level === lv.comfortable) return { text: 'Just right', cls: 'right' };
+  return null;
+}
+
+// Plain-language notes for grown-ups.
+function levelNotes(reader, lv) {
+  const name = reader.name, pct = x => Math.round(x * 100) + '%';
+  const notes = [];
+  for (const r of lv.readings.slice(0, 5)) {
+    const book = `“${r.title}” (Level ${r.level})`;
+    if (r.share >= 0.95) notes.push(`${name} read ${book} easily: ${pct(r.share)} of the words without a tap.`);
+    else if (r.share >= 0.88) notes.push(`${book} was a good stretch: ${name} read ${pct(r.share)} of the words and tapped ${r.taps} for help.`);
+    else notes.push(`${book} was a big stretch: ${r.taps} words tapped. ${r.level > 1 ? `Level ${r.level - 1} books may feel better for now.` : 'Reading it together can help.'}`);
+  }
+  // Trend at the comfortable level: taps per 100 words, earlier vs. most recent.
+  const same = lv.readings.filter(r => r.level === lv.comfortable);
+  if (same.length >= 3) {
+    const rate = rs => Math.round(rs.reduce((a, r) => a + r.taps, 0) / rs.reduce((a, r) => a + r.words, 0) * 100);
+    const now = rate(same.slice(0, 2)), before = rate(same.slice(2));
+    if (now < before) notes.push(`At Level ${lv.comfortable}, taps are down from ${before} to ${now} per 100 words.`);
+  }
+  let headline;
+  if (!lv.readings.length) headline = `${name} hasn’t read enough yet for a level estimate. Starting at Level ${lv.start}.`;
+  else if (lv.comfortable >= 8) headline = `${name} reads chapter books comfortably.`;
+  else if (lv.tough) headline = `${name} is finding Level ${lv.comfortable + 1} hard right now. Level ${lv.comfortable} books are the sweet spot.`;
+  else headline = `${name} reads Level ${lv.comfortable} books comfortably and is ready to try Level ${lv.next}.`;
+  return { headline, notes };
 }
 
 // ===========================================================================
@@ -1496,19 +1760,26 @@ async function allStories() {
   }
   return STORY_CACHE;
 }
-const LEVEL_NAMES = { 1: 'First words', 2: 'Short stories', 3: 'Chapter books' };
 async function renderLibrary() {
   if (!READER) return renderReaders();
   $('#libFace').textContent = READER.face; $('#libFace').style.background = READER.color;
   $('#libHello').textContent = `Hi, ${READER.name}!`;
   const stories = await allStories();
   const prog = (await KV.get('progress:' + READER.id)) || {};
-  const lvls = [1, 2, 3].map(l => [l, stories.filter(s => s.level === l)]).filter(([, a]) => a.length);
-  $('#shelves').innerHTML = lvls.map(([l, arr]) => `<div class="shelf-title">${LEVEL_NAMES[l]}</div><div class="shelf">` + arr.map(s => {
+  const lv = await currentReaderLevels();
+  const card = s => {
     const p = prog[s.id]; const pct = p ? Math.round(((p.page + 1) / s.pages.length) * 100) : 0;
     const img = s.coverImg ? `<img src="${s.coverImg}" alt="">` : esc(s.cover || '📘');
-    return `<button class="book" data-id="${s.id}"><span class="cover lvl${s.level}">${img}</span><span class="meta"><span class="t">${esc(s.title)}</span><span class="muted" style="font-size:13px">${s.pages.length} pages${p?.done ? ' · ✓ read' : ''}</span><span class="prog"><i style="width:${p?.done ? 100 : pct}%"></i></span></span></button>`;
-  }).join('') + (l === 3 ? '' : '') + `</div>`).join('') +
+    const badge = bookBadge(s, lv), L = levelOf(s.level);
+    return `<button class="book" data-id="${s.id}" style="--lv:${L.color}"><span class="cover lv">${img}<span class="lv-chip">Level ${L.level}</span>${badge ? `<span class="badge ${badge.cls}">${badge.text}</span>` : ''}</span><span class="meta"><span class="t">${esc(s.title)}</span><span class="muted" style="font-size:13px">${s.pages.length} pages${p?.done ? ' · ✓ read' : ''}</span><span class="prog"><i style="width:${p?.done ? 100 : pct}%"></i></span></span></button>`;
+  };
+  // Picked for you: unfinished books at the comfortable and next-step levels, books in progress first.
+  const picks = stories.filter(s => !prog[s.id]?.done && (s.level === lv.comfortable || s.level === lv.next))
+    .sort((a, b) => (prog[b.id] ? 1 : 0) - (prog[a.id] ? 1 : 0) || (b.level === lv.next) - (a.level === lv.next)).slice(0, 6);
+  const levels = [...new Set(stories.map(s => s.level))].sort((a, b) => a - b);
+  $('#shelves').innerHTML =
+    (picks.length ? `<div class="shelf-title">Picked for you</div><div class="shelf">${picks.map(card).join('')}</div>` : '') +
+    levels.map(l => `<div class="shelf-title" style="--lv:${levelOf(l).color}"><span class="dot"></span>Level ${l}</div><div class="shelf">${stories.filter(s => s.level === l).map(card).join('')}</div>`).join('') +
     `<div class="shelf-title">Add more</div><div class="shelf"><button class="book add" data-act="add-story"><span style="font-size:34px">➕</span>Add a story<span style="font-size:13px">(grown-ups)</span></button></div>`;
   $$('#shelves .book[data-id]').forEach(b => b.onclick = () => openStory(b.dataset.id));
   // continue reading
@@ -1686,7 +1957,7 @@ async function openStory(id, page) {
 // Build the page DOM. Every word is a span; sentence index lets long-press read the sentence.
 function renderPage(dir) {
   const s = B.story, blocks = s.pages[B.page] || [];
-  const fs = { 1: 44, 2: 32, 3: 24 }[s.level] || 28;
+  const fs = [44, 44, 38, 38, 32, 28, 26, 24][(s.level || 5) - 1] || 28;
   const inner = $('#pageInner');
   inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
   B.sentences = []; B.pageWords = []; B.wordGaps = []; B.sentenceInfo = [];
@@ -2588,6 +2859,7 @@ async function importFile(file) {
   return importText(text, name);
 }
 async function saveImported(story) {
+  await levelStory(story);
   await DB.put('stories', story); STORY_CACHE = null;
   return story;
 }
@@ -2652,7 +2924,14 @@ async function renderOverview(body, reader) {
   for (const e of ra) { (e.missed || []).forEach(w => raMissed[w] = (raMissed[w] || 0) + 1); (e.hes || []).forEach(w => raHes[w] = (raHes[w] || 0) + 1); }
   const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 12);
   const recentBooks = []; for (const e of ev.filter(e => e.type === 'open').reverse()) if (!recentBooks.find(x => x.storyId === e.storyId)) recentBooks.push(e); recentBooks.splice(6);
+  const lv = readerLevels(reader, ev, stories), ln = levelNotes(reader, lv), cur = levelOf(lv.comfortable);
   body.innerHTML = `
+    <div class="panel" style="--lv:${cur.color}"><h3>Reading level</h3>
+      <div class="level-head"><span class="level-pill">Level ${lv.comfortable}</span><span>${esc(ln.headline)}</span></div>
+      ${ln.notes.length ? `<ul class="level-notes">${ln.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+      <p class="note" style="margin-top:12px"><b>Level ${lv.comfortable}:</b> ${esc(cur.about)}${lv.next !== lv.comfortable ? `<br><b>Level ${lv.next}:</b> ${esc(levelOf(lv.next).about)}` : ''}</p>
+      <div class="row"><label for="startLevel">Starting level</label><select class="field" id="startLevel">${LEVELS.map(L => `<option value="${L.level}" ${lv.start === L.level ? 'selected' : ''}>Level ${L.level}</option>`).join('')}</select>
+        <span class="note">Used until there’s enough reading to estimate. Every book stays open whatever the level.</span></div></div>
     <div class="cards">
       <div class="card"><div class="n">${Math.round(readingMinutes(week))}</div><div class="l">minutes this week</div></div>
       <div class="card"><div class="n">${Math.round(readingMinutes(ev))}</div><div class="l">minutes in all</div></div>
@@ -2671,6 +2950,7 @@ async function renderOverview(body, reader) {
       ${top(raHes).length ? `<h4>Paused before</h4><div class="wordcloud">${top(raHes).map(([w, n]) => `<span>${esc(w)} <small class="muted">${n}×</small></span>`).join('')}</div>` : ''}
       ${top(raMissed).length ? `<h4>Skipped or said differently</h4><div class="wordcloud">${top(raMissed).map(([w, n]) => `<span style="background:var(--tomato-2)">${esc(w)} <small class="muted">${n}×</small></span>`).join('')}</div>` : ''}</div>` : ''}
     <div class="panel"><h3>Recent books</h3>${recentBooks.length ? `<table>${recentBooks.map(e => `<tr><td>${esc(title(e.storyId))}</td><td class="muted">${fmtDate(e.ts)}</td><td>${finished.has(e.storyId) ? '✓ finished' : ''}</td></tr>`).join('')}</table>` : '<p class="muted">No books opened yet.</p>'}</div>`;
+  $('#startLevel', body).onchange = async e => { reader.startLevel = +e.target.value; await DB.put('readers', reader); if (READER?.id === reader.id) READER.startLevel = reader.startLevel; renderParent(); };
 }
 
 async function renderWordsTab(body, reader) {
@@ -2699,8 +2979,8 @@ async function renderStoriesTab(body) {
       <div class="row"><input class="field" id="impTitle" placeholder="Title" style="flex:1"></div>
       <textarea class="field" id="impText" placeholder="# The Frog Who Sang&#10;@pic 🐸&#10;A frog sat on a log.&#10;---&#10;He liked to sing."></textarea>
       <div class="row"><button class="btn teal" id="impSave">Add story</button></div></div>
-    <div class="panel"><h3>Library</h3><table>${stories.map(s => `<tr><td style="font-size:22px">${s.coverImg ? '🖼️' : esc(s.cover)}</td><td><b>${esc(s.title)}</b><div class="muted" style="font-size:13px">${esc(s.author || '')} · ${s.pages.length} pages · level ${s.level}</div></td>
-      <td><select class="field" data-lvl="${s.id}" ${s.builtin ? 'disabled' : ''}>${[1, 2, 3].map(l => `<option value="${l}" ${s.level === l ? 'selected' : ''}>${LEVEL_NAMES[l]}</option>`).join('')}</select></td>
+    <div class="panel"><h3>Library</h3><table>${stories.map(s => `<tr><td style="font-size:22px">${s.coverImg ? '🖼️' : esc(s.cover)}</td><td><b>${esc(s.title)}</b><div class="muted" style="font-size:13px">${[s.author ? esc(s.author) : '', `${s.pages.length} pages`, s.levelSource === 'auto' && s.levelInfo ? `${Math.round(s.levelInfo.known * 100)}% of words at level${s.levelInfo.tricky.length ? `, tap words: ${esc(s.levelInfo.tricky.slice(0, 6).join(', '))}${s.levelInfo.tricky.length > 6 ? '…' : ''}` : ''}` : ''].filter(Boolean).join(' · ')}</div></td>
+      <td><select class="field" data-lvl="${s.id}" ${s.builtin ? 'disabled' : ''}>${LEVELS.map(L => `<option value="${L.level}" ${s.level === L.level ? 'selected' : ''}>Level ${L.level}${s.levelSource === 'manual' && s.level === L.level ? ' (set by you)' : ''}</option>`).join('')}</select></td>
       <td>${s.builtin ? '<span class="muted">built in</span>' : `<button class="btn small" data-rm="${s.id}">Delete</button>`}</td></tr>`).join('')}</table></div>`;
   $('#impPick').onclick = () => $('#impFile').click();
   $('#impFile').onchange = async e => {
@@ -2715,7 +2995,7 @@ async function renderStoriesTab(body) {
     await saveImported(st); toast(`Added “${st.title}”`); renderStoriesTab(body);
   };
   $$('[data-rm]', body).forEach(b => b.onclick = async () => { if (!confirm('Delete this story? Reading progress stays in the stats.')) return; await DB.del('stories', b.dataset.rm); STORY_CACHE = null; renderStoriesTab(body); });
-  $$('[data-lvl]', body).forEach(sel => sel.onchange = async () => { const s = await DB.get('stories', sel.dataset.lvl); s.level = +sel.value; await DB.put('stories', s); STORY_CACHE = null; });
+  $$('[data-lvl]', body).forEach(sel => sel.onchange = async () => { const s = await DB.get('stories', sel.dataset.lvl); s.level = +sel.value; s.levelSource = 'manual'; s.levelScheme = 2; await DB.put('stories', s); STORY_CACHE = null; renderStoriesTab(body); });
 }
 
 // Recording is confined to the parent dialog and always stops when it closes.
@@ -3075,6 +3355,7 @@ document.addEventListener('click', e => {
   DB.tx('audio', 'readwrite', st => st.delete(IDBKeyRange.bound('k|', 'k|\uffff'))).catch(() => {});
   SystemVoice.init();
   try { navigator.storage?.persist?.().catch(() => {}); } catch {}
+  migrateStoryLevels().catch(e => console.warn('Level migration skipped', e));
   wireBook();
   if (S.engine === 'pocket') Pocket.load().catch(e => console.warn('PocketTTS unavailable', e));
   if (S.engine === 'kokoro' && S.kokoroWanted) Kokoro.load().catch(e => console.warn('Kokoro unavailable', e));
@@ -3094,7 +3375,7 @@ document.addEventListener('click', e => {
 });
 
 // Handy for debugging from the console.
-window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords };
+window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords , LEVELS, WordLevels, scoreLevel, storyPageTexts, levelStory, readerLevels, levelNotes, allStories, currentReaderLevels };
 </script>
 </body>
 </html>
