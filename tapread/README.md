@@ -51,6 +51,6 @@ Whistle was trained and benchmarked on adult speech, so the lab numbers for your
 
 ## Editing
 
-`index.html` is readable as-is. It's assembled from `src/` by `./build.sh` if you'd rather edit the parts. `window.tapread` in the console exposes the database and a few internals for debugging.
+`index.html` is the source: edit it directly (there is no build step). `window.tapread` in the console exposes the database and a few internals for debugging.
 
 Vendored `cactus-needle` 0.3.0 (Apache-2.0) runs Whistle in a WebAssembly worker. Kokoro-82M and kokoro-js are Apache-2.0.
