@@ -198,6 +198,62 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   .choices{grid-template-columns:repeat(2,1fr);width:100%}
   .row label{min-width:100%}
 }
+/* ===== Library: a bookcase on the nursery wall; books as cloth picture books ===== */
+:root{--wall:#d7e8e1;--wall-dot:#c6ddd4;--oak:#c98a4b;--oak-hi:#dfa86c;--oak-lo:#9a6230;--oak-dk:#6e4220;--birch:#f3e5cc;--paper-1:#fffaf0;--paper-edge:#e4d6ba;--table-1:#c99a66;--table-2:#b5824e}
+@media (prefers-color-scheme: dark){:root{--wall:#1c2726;--wall-dot:#243230;--oak:#7a5132;--oak-hi:#94673f;--oak-lo:#5a3922;--oak-dk:#3a2414;--birch:#33281f;--paper-1:#2d2924;--paper-edge:#433b31;--table-1:#4a3424;--table-2:#3c2a1c}}
+#scr-library{background-color:var(--wall);background-image:radial-gradient(var(--wall-dot) 2px,transparent 2.5px);background-size:28px 28px}
+.case{--bkW:132px;--bkH:174px;--row:calc(var(--bkH) + 46px);position:relative;margin:34px 0 10px;padding:22px 18px 0;border:12px solid var(--oak);border-bottom-width:18px;border-radius:12px 12px 6px 6px;background:linear-gradient(var(--birch),color-mix(in srgb,var(--birch) 88%,#7a4a22));box-shadow:inset 0 14px 18px -12px rgba(60,30,0,.45),0 14px 26px -14px rgba(60,30,0,.55)}
+.case.featured{border-color:#e2a93b;background:linear-gradient(#fff3d4,#f6e2b5)}
+@media (prefers-color-scheme: dark){.case.featured{border-color:#9c7426;background:linear-gradient(#3b3020,#33291b)}}
+.case-sign{position:absolute;top:0;left:20px;transform:translateY(-78%);background:var(--oak-hi);color:#3b2412;font:600 18px var(--ui);padding:5px 16px 6px;border-radius:9px;box-shadow:0 3px 0 var(--oak-lo),0 7px 10px -6px rgba(0,0,0,.45);display:flex;align-items:center;gap:9px}
+.case.featured .case-sign{background:#f4c24f;box-shadow:0 3px 0 #b8861f,0 7px 10px -6px rgba(0,0,0,.45)}
+.case-sign .dot{width:15px;height:15px;border-radius:50%;background:var(--lv);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 2px #fffaf0}
+.row-books{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:28px;row-gap:0;margin:0 -18px;padding:0 24px;
+  background-image:linear-gradient(to bottom,transparent calc(var(--row) - 24px),var(--oak-hi) calc(var(--row) - 24px),var(--oak) calc(var(--row) - 16px),var(--oak-lo) calc(var(--row) - 3px),var(--oak-dk) var(--row));background-size:100% var(--row)}
+.bk{position:relative;flex:none;width:var(--bkW);height:var(--bkH);margin:calc(var(--row) - var(--bkH) - 19px) 0 19px;border:0;padding:0;background:none;font:inherit;color:inherit;cursor:pointer;transform-origin:50% 100%;transition:transform .18s ease}
+.bk:hover{transform:translateY(-6px) rotate(-1.5deg)}
+.bk:active{transform:translateY(-2px) scale(.97)}
+.bk:focus-visible{outline:3px solid var(--sky);outline-offset:5px;border-radius:8px}
+.bk-cover{position:absolute;inset:0;display:flex;flex-direction:column;gap:7px;padding:12px 10px 10px 19px;border-radius:3px 9px 9px 3px;background-color:var(--lv);
+  background-image:linear-gradient(90deg,rgba(0,0,0,.3) 0 8px,rgba(255,255,255,.28) 8px 10px,rgba(0,0,0,.1) 10px 14px,transparent 14px),repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 2px,transparent 2px 5px);
+  box-shadow:3px 1px 0 -1px var(--paper-1),4px 1px 0 -1px var(--paper-edge),6px 2px 0 -1px var(--paper-1),7px 2px 0 -1px var(--paper-edge),0 14px 14px -9px rgba(40,20,0,.6)}
+.bk-art{flex:1;min-height:0;display:grid;place-items:center;font-size:56px;line-height:1;border-radius:7px;background:rgba(255,253,245,.3);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);overflow:hidden}
+.bk-art img{width:100%;height:100%;object-fit:cover}
+.bk-label{background:#fffaf0;color:#2b2833;font:600 14px/1.15 var(--ui);text-align:center;padding:6px 5px;border-radius:4px;box-shadow:0 1px 0 rgba(0,0,0,.18);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bk-lv{position:absolute;top:-9px;left:4px;width:31px;height:31px;border-radius:50%;background:#fffaf0;color:var(--lv);font:700 16px var(--ui);display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--lv),0 2px 4px rgba(0,0,0,.3);transform:rotate(-8deg)}
+.bk-sticker{position:absolute;right:-12px;top:-10px;font:700 12px var(--ui);padding:5px 9px;border-radius:999px;background:#fffaf0;color:#2b2833;box-shadow:0 2px 5px rgba(0,0,0,.3);transform:rotate(7deg);white-space:nowrap}
+.bk-sticker.next{background:#f6c445;color:#3b2412}
+.bk-ribbon{position:absolute;right:24px;top:calc(100% - 8px);width:13px;height:30px;background:#d8433b;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:inset -3px 0 0 rgba(0,0,0,.15)}
+.bk-seal{position:absolute;right:-9px;bottom:50px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--ui);color:#6b4a00;background:radial-gradient(circle at 35% 30%,#ffe9a3,#e8b52f 60%,#c48f12);box-shadow:0 2px 5px rgba(0,0,0,.35),inset 0 0 0 3px rgba(255,255,255,.35);transform:rotate(-10deg)}
+.bookend{flex:none;height:calc(var(--bkH) * .62);margin:calc(var(--row) - var(--bkH) * .62 - 19px) 0 19px;width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px 10px 3px 3px;background:var(--oak-hi);color:#3b2412;font:600 13px/1 var(--ui);box-shadow:inset 0 -6px 0 rgba(0,0,0,.12),0 10px 10px -8px rgba(40,20,0,.55)}
+.bookend b{font-size:30px;line-height:1;color:var(--lv);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.bookend-pair{display:flex;flex:none;align-items:flex-end;column-gap:14px}
+.row-books .bookend-pair:not(:first-child){margin-left:14px}
+.bk.add .bk-cover{background:transparent;box-shadow:none;border:3px dashed var(--oak-lo);align-items:center;justify-content:center;color:var(--oak-dk);font:600 15px var(--ui);text-align:center;padding:10px}
+@media (prefers-color-scheme: dark){.bk.add .bk-cover{color:var(--oak-hi);border-color:var(--oak-hi)}}
+.bk.add .bk-cover b{font-size:36px;line-height:1}
+@media (max-width:640px){.bookend{width:46px}.bookend b{font-size:24px}.case{--bkW:104px;--bkH:140px;padding:20px 12px 0;border-width:9px;border-bottom-width:14px}.row-books{column-gap:18px;padding:0 14px;margin:0 -12px}.bk-art{font-size:42px}.bk-label{font-size:12px}.bk-cover{padding:10px 8px 8px 16px}}
+
+/* ===== Reading: an open hardcover on a wooden table ===== */
+#scr-book{background-color:var(--table-2);background-image:repeating-linear-gradient(90deg,rgba(70,35,5,.07) 0 2px,transparent 2px 11px),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 23px),linear-gradient(var(--table-1),var(--table-2))}
+#scr-book .topbar h2{color:#2b1a0c;text-shadow:0 1px 0 rgba(255,255,255,.25)}
+@media (prefers-color-scheme: dark){#scr-book .topbar h2{color:#f3e8d8;text-shadow:none}}
+.board{flex:1;display:flex;min-height:0;min-width:0;position:relative;background-color:var(--lv,#8a5fbf);background-image:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.12));border-radius:10px;padding:10px 14px 14px 10px;box-shadow:0 22px 30px -16px rgba(40,18,0,.75),inset 0 0 0 1px rgba(0,0,0,.18)}
+.board .page{background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px),linear-gradient(rgba(255,255,255,0),rgba(120,90,40,.04));border-radius:3px 7px 7px 3px;box-shadow:none}
+.leaf{position:absolute;top:10px;left:10px;right:14px;bottom:14px;z-index:4;pointer-events:none;background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px);border-radius:3px 7px 7px 3px;overflow:hidden;display:flex;flex-direction:column;padding:clamp(18px,4vw,48px);backface-visibility:hidden;transform-origin:left center;animation:leafNext .55s cubic-bezier(.35,.1,.3,1) forwards}
+.leaf.back{transform-origin:right center;animation-name:leafBack}
+.leaf::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.18));animation:leafShade .55s ease forwards}
+@keyframes leafNext{from{transform:perspective(1800px) rotateY(0)}to{transform:perspective(1800px) rotateY(-96deg)}}
+@keyframes leafBack{from{transform:perspective(1800px) rotateY(0)}to{transform:perspective(1800px) rotateY(96deg)}}
+@keyframes leafShade{from{opacity:0}to{opacity:1}}
+.curl{position:absolute;right:14px;bottom:14px;z-index:3;width:56px;height:56px;border:0;padding:0;cursor:pointer;border-radius:0 0 7px 0;background:linear-gradient(to top left,var(--lv,#8a5fbf) 49%,#d9c8a6 50%,#f2e7d1 62%,var(--paper-1) 80%);box-shadow:-3px -3px 6px -2px rgba(60,30,0,.25);transition:width .15s,height .15s}
+.curl:hover,.curl:focus-visible{width:68px;height:68px}
+.curl:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+@media (prefers-color-scheme: dark){.curl{background:linear-gradient(to top left,var(--lv,#8a5fbf) 49%,#5a4f42 50%,#3b342c 70%,var(--paper-1) 85%)}}
+.book-tools .progress-line i{background:var(--lv,var(--tomato))}
+@media (max-width:640px){.reading{font-size:calc(var(--fs,30px) * var(--scale,1) * .74)}}
+@media (prefers-reduced-motion:reduce){.leaf{display:none}.bk{transition:none}.bk:hover{transform:none}}
+@media (max-width:640px){.board{padding:6px 9px 9px 6px;border-radius:8px}.leaf{top:6px;left:6px;right:9px;bottom:9px}.curl{right:9px;bottom:9px;width:48px;height:48px}}
 </style>
 </head>
 <body>
@@ -238,7 +294,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   </div>
   <div class="book-stage">
     <button class="nav" id="prevBtn" aria-label="Previous page">‹</button>
-    <article class="page" id="page"><div class="page-inner reading" id="pageInner"></div></article>
+    <div class="board" id="board"><article class="page" id="page"><div class="page-inner reading" id="pageInner"></div></article><button class="curl" id="curlNext" aria-label="Turn the page"></button></div>
     <button class="nav" id="nextBtn" aria-label="Next page">›</button>
   </div>
   <div class="read-along hidden" id="readAlongControls"><span id="readAlongStatus" role="status"></span><button class="btn small primary" id="readAlongToggle">⏹ Stop</button><button class="btn small" id="readAlongEnd">Done</button></div>
@@ -1767,21 +1823,30 @@ async function renderLibrary() {
   const stories = await allStories();
   const prog = (await KV.get('progress:' + READER.id)) || {};
   const lv = await currentReaderLevels();
+  // Each book is a cloth-bound picture book standing face-out on a shelf.
   const card = s => {
-    const p = prog[s.id]; const pct = p ? Math.round(((p.page + 1) / s.pages.length) * 100) : 0;
-    const img = s.coverImg ? `<img src="${s.coverImg}" alt="">` : esc(s.cover || '📘');
-    const badge = bookBadge(s, lv), L = levelOf(s.level);
-    return `<button class="book" data-id="${s.id}" style="--lv:${L.color}"><span class="cover lv">${img}<span class="lv-chip">Level ${L.level}</span>${badge ? `<span class="badge ${badge.cls}">${badge.text}</span>` : ''}</span><span class="meta"><span class="t">${esc(s.title)}</span><span class="muted" style="font-size:13px">${s.pages.length} pages${p?.done ? ' · ✓ read' : ''}</span><span class="prog"><i style="width:${p?.done ? 100 : pct}%"></i></span></span></button>`;
+    const p = prog[s.id], L = levelOf(s.level), badge = bookBadge(s, lv);
+    const art = s.coverImg ? `<img src="${s.coverImg}" alt="">` : esc(s.cover || '📘');
+    const state = p?.done ? 'read' : p ? 'started' : '';
+    const label = [s.title, `Level ${L.level}`, badge ? badge.text.replace('⭐ ', '') : '', state === 'read' ? 'read' : state === 'started' ? `on page ${p.page + 1}` : ''].filter(Boolean).join(', ');
+    return `<button class="bk" data-id="${s.id}" style="--lv:${L.color}" aria-label="${esc(label)}"><span class="bk-cover"><span class="bk-art" aria-hidden="true">${art}</span><span class="bk-label">${esc(s.title)}</span></span>`
+      + `<span class="bk-lv" aria-hidden="true">${L.level}</span>`
+      + (badge ? `<span class="bk-sticker ${badge.cls}" aria-hidden="true">${badge.text}</span>` : '')
+      + (state === 'started' ? '<span class="bk-ribbon" aria-hidden="true"></span>' : '')
+      + (state === 'read' ? '<span class="bk-seal" aria-hidden="true">✓</span>' : '') + `</button>`;
   };
   // Picked for you: unfinished books at the comfortable and next-step levels, books in progress first.
   const picks = stories.filter(s => !prog[s.id]?.done && (s.level === lv.comfortable || s.level === lv.next))
     .sort((a, b) => (prog[b.id] ? 1 : 0) - (prog[a.id] ? 1 : 0) || (b.level === lv.next) - (a.level === lv.next)).slice(0, 6);
   const levels = [...new Set(stories.map(s => s.level))].sort((a, b) => a - b);
+  const addBook = `<button class="bk add" data-act="add-story" aria-label="Add a story (grown-ups)"><span class="bk-cover"><b>+</b>Add a story</span></button>`;
   $('#shelves').innerHTML =
-    (picks.length ? `<div class="shelf-title">Picked for you</div><div class="shelf">${picks.map(card).join('')}</div>` : '') +
-    levels.map(l => `<div class="shelf-title" style="--lv:${levelOf(l).color}"><span class="dot"></span>Level ${l}</div><div class="shelf">${stories.filter(s => s.level === l).map(card).join('')}</div>`).join('') +
-    `<div class="shelf-title">Add more</div><div class="shelf"><button class="book add" data-act="add-story"><span style="font-size:34px">➕</span>Add a story<span style="font-size:13px">(grown-ups)</span></button></div>`;
-  $$('#shelves .book[data-id]').forEach(b => b.onclick = () => openStory(b.dataset.id));
+    (picks.length ? `<section class="case featured" aria-label="Picked for you"><div class="case-sign">⭐ Picked for you</div><div class="row-books">${picks.map(card).join('')}</div></section>` : '') +
+    `<section class="case" aria-label="All books by level"><div class="case-sign">📚 All books</div><div class="row-books">` +
+    levels.map(l => { const [first, ...rest] = stories.filter(s => s.level === l).map(card);   // a bookend never gets separated from its first book
+      return `<span class="bookend-pair"><span class="bookend" style="--lv:${levelOf(l).color}" role="heading" aria-level="3" aria-label="Level ${l}">Level<b>${l}</b></span>${first}</span>${rest.join('')}`; }).join('') +
+    addBook + `</div></section>`;
+  $$('#shelves .bk[data-id]').forEach(b => b.onclick = () => openStory(b.dataset.id));
   // continue reading
   const last = Object.entries(prog).filter(([id, p]) => !p.done && stories.find(s => s.id === id)).sort((a, b) => b[1].ts - a[1].ts)[0];
   const cb = $('#continueBtn');
@@ -1993,9 +2058,23 @@ function renderPage(dir) {
     else if (b.t === 'p') html += `<p>${addText(b.text)}</p>`;
   }
   html += `<div class="pageno"><span class="w" data-num="${B.page + 1}" data-s="-1">${B.page + 1}</span></div>`;
+  // Page turn: the old page swings away as a paper leaf over the new one.
+  const oldHTML = inner.innerHTML, board = $('#board');
+  $$('.leaf', board).forEach(l => l.remove());
+  if (dir && oldHTML && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const leaf = document.createElement('div');
+    leaf.className = 'leaf' + (dir < 0 ? ' back' : '');
+    leaf.innerHTML = `<div class="page-inner reading" style="${inner.getAttribute('style') || ''}">${oldHTML}</div>`;
+    leaf.firstChild.querySelectorAll('.hit,.say,.sent').forEach(e => e.classList.remove('hit', 'say', 'sent'));
+    board.appendChild(leaf);
+    leaf.addEventListener('animationend', e => { if (e.target === leaf) leaf.remove(); });
+  }
   inner.innerHTML = html;
   const pg = $('#page'); pg.scrollTop = 0;
-  if (dir) { pg.classList.remove('turn-l', 'turn-r'); void pg.offsetWidth; pg.classList.add(dir < 0 ? 'turn-l' : 'turn-r'); }
+  board.style.setProperty('--lv', levelOf(s.level).color);
+  // Page edges: a stack on the left for pages read, on the right for pages to go.
+  const stack = (n, side) => Array.from({ length: Math.min(5, Math.ceil(n / 2)) }, (_, k) => `${side * (k + 1) * 2}px ${(k + 1)}px 0 -1px var(--paper-1), ${side * (k + 1) * 2}px ${(k + 1)}px 0 0 var(--paper-edge)`);
+  pg.style.boxShadow = [...stack(s.pages.length - 1 - B.page, 1), ...stack(B.page, -1)].join(', ') || 'none';
   const last = s.pages.length - 1;
   for (const id of ['prevBtn', 'prevBtn2']) $('#' + id).disabled = B.page === 0;
   $('#nextBtn').disabled = false;
@@ -2079,7 +2158,7 @@ function wireBook() {
   inner.addEventListener('contextmenu', e => e.preventDefault());
   inner.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('w')) { e.preventDefault(); tapWord(e.target); } });
   $('#prevBtn').onclick = $('#prevBtn2').onclick = () => turn(-1);
-  $('#nextBtn').onclick = $('#nextBtn2').onclick = () => turn(1);
+  $('#nextBtn').onclick = $('#nextBtn2').onclick = $('#curlNext').onclick = () => turn(1);
   $('#readPageBtn').onclick = () => readPage();
   $('#readAlongToggle').onclick = () => ReadAlong.paused ? ReadAlong.start() : ReadAlong.pause();
   $('#readAlongEnd').onclick = () => ReadAlong.reset();
