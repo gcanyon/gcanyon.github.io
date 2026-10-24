@@ -242,6 +242,8 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 .flipbook{width:100%;height:100%;position:relative}
 .sp-page{background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px),linear-gradient(rgba(255,255,255,0),rgba(120,90,40,.04));display:flex;flex-direction:column;padding:clamp(18px,4vw,48px);overflow:auto;border-radius:3px 7px 7px 3px}
 .sp-page > .page-inner{margin:auto 0;width:100%;max-width:720px;align-self:center}
+.sp-page.sp-back{background-image:linear-gradient(270deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px);background-color:color-mix(in srgb,var(--paper-1) 94%,#8a7350)}
+.sp-page.sp-back > *{visibility:hidden}
 .flipbook.single .sp-page{position:absolute;inset:0}
 .flipbook.single .sp-page:not(.current){display:none}
 .board .page{background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px),linear-gradient(rgba(255,255,255,0),rgba(120,90,40,.04));border-radius:3px 7px 7px 3px;box-shadow:none}
@@ -2092,13 +2094,32 @@ async function buildBook() {
       startPage: B.page, autoSize: true, mobileScrollSupport: true, disableFlipByClick: true, clickEventForward: true, showPageCorners: true, swipeDistance: 40,
     });
     book.on('flip', e => onBookFlip(e.data));
+    // While a page curls over, StPageFlip draws its back with a temporary copy of the page.
+    // Our pages are printed on one side, so that copy is shown as blank paper.
+    const originals = new Set(Flip.pages);
+    Flip.backObserver?.disconnect();
+    Flip.backObserver = new MutationObserver(muts => { for (const m of muts) for (const n of m.addedNodes) {
+      if (n.nodeType !== 1 || !n.classList.contains('sp-page') || originals.has(n)) continue;
+      n.classList.add('sp-back'); n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    } });
+    Flip.backObserver.observe(host, { childList: true, subtree: true });
     book.loadFromHTML(Flip.pages);
     Flip.book = book;
   } else host.classList.add('single');
 }
+// StPageFlip 2.0.7's flipPrev() aims at x = 10px, but in single-page mode the book's frame
+// starts a full page to the left, so the point lands on the visible page and nothing happens.
+// Aim at the hidden left page instead; fall back to an instant turn if the internals change.
+function flipBack() {
+  const fb = Flip.book;
+  try { const r = fb.getRender().getRect(); fb.flipController.flip({ x: r.left + 10, y: r.height - 2 }); }
+  catch { fb.turnToPage(B.page); return; }
+  setTimeout(() => { if (Flip.book === fb && fb.getCurrentPageIndex() !== B.page && fb.getState?.() !== 'flipping') fb.turnToPage(B.page); }, 900);
+}
 // The reader turned the page by dragging or swiping.
 function onBookFlip(index) {
-  if (index === B.page) return;
+  // Keep the library's page count in step with ours (it can lag after a programmatic turn).
+  if (index === B.page) { if (Flip.book && Flip.book.getCurrentPageIndex() !== B.page) Flip.book.turnToPage(B.page); return; }
   ReadAlong.reset(); TTS.stop(); clearHighlights();
   B.page = index; renderPage();
 }
@@ -2127,7 +2148,8 @@ function renderPage(dir) {
   pageEl.scrollTop = 0;
   // Animate when the app turned the page (buttons, keys, read-along); drags are already flipped.
   if (Flip.book && Flip.book.getCurrentPageIndex() !== B.page) {
-    if (dir && Math.abs(Flip.book.getCurrentPageIndex() - B.page) === 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) Flip.book.flip(B.page, 'bottom');
+    const from = Flip.book.getCurrentPageIndex();
+    if (dir && Math.abs(from - B.page) === 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) B.page > from ? Flip.book.flipNext('bottom') : flipBack();
     else Flip.book.turnToPage(B.page);
   }
   const last = s.pages.length - 1;
@@ -3503,7 +3525,7 @@ document.addEventListener('click', e => {
 });
 
 // Handy for debugging from the console.
-window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords , LEVELS, WordLevels, scoreLevel, storyPageTexts, levelStory, readerLevels, levelNotes, allStories, currentReaderLevels };
+window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords , LEVELS, WordLevels, scoreLevel, storyPageTexts, levelStory, readerLevels, levelNotes, allStories, currentReaderLevels , Flip };
 </script>
 </body>
 </html>
