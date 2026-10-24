@@ -209,14 +209,14 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 .case.featured .case-sign{background:#f4c24f;box-shadow:0 3px 0 #b8861f,0 7px 10px -6px rgba(0,0,0,.45)}
 .case-sign .dot{width:15px;height:15px;border-radius:50%;background:var(--lv);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 2px #fffaf0}
 .row-books{display:flex;flex-wrap:wrap;align-items:flex-end;column-gap:28px;row-gap:0;margin:0 -18px;padding:0 24px;
-  background-image:linear-gradient(to bottom,transparent calc(var(--row) - 24px),var(--oak-hi) calc(var(--row) - 24px),var(--oak) calc(var(--row) - 16px),var(--oak-lo) calc(var(--row) - 3px),var(--oak-dk) var(--row));background-size:100% var(--row)}
-.bk{position:relative;flex:none;width:var(--bkW);height:var(--bkH);margin:calc(var(--row) - var(--bkH) - 19px) 0 19px;border:0;padding:0;background:none;font:inherit;color:inherit;cursor:pointer;transform-origin:50% 100%;transition:transform .18s ease}
+  background-image:linear-gradient(to bottom,transparent calc(var(--row) - 20px),var(--oak-hi) calc(var(--row) - 20px),var(--oak-hi) calc(var(--row) - 17px),var(--oak) calc(var(--row) - 16px),var(--oak-lo) calc(var(--row) - 3px),var(--oak-dk) var(--row));background-size:100% var(--row)}
+.bk{position:relative;flex:none;width:var(--bkW);height:var(--bkH);margin:calc(var(--row) - var(--bkH) - 19px) 0 19px;margin-bottom:19px;border:0;padding:0;background:none;font:inherit;color:inherit;cursor:pointer;transform-origin:50% 100%;transition:transform .18s ease}
 .bk:hover{transform:translateY(-6px) rotate(-1.5deg)}
 .bk:active{transform:translateY(-2px) scale(.97)}
 .bk:focus-visible{outline:3px solid var(--sky);outline-offset:5px;border-radius:8px}
 .bk-cover{position:absolute;inset:0;display:flex;flex-direction:column;gap:7px;padding:12px 10px 10px 19px;border-radius:3px 9px 9px 3px;background-color:var(--lv);
   background-image:linear-gradient(90deg,rgba(0,0,0,.3) 0 8px,rgba(255,255,255,.28) 8px 10px,rgba(0,0,0,.1) 10px 14px,transparent 14px),repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 2px,transparent 2px 5px);
-  box-shadow:3px 1px 0 -1px var(--paper-1),4px 1px 0 -1px var(--paper-edge),6px 2px 0 -1px var(--paper-1),7px 2px 0 -1px var(--paper-edge),0 14px 14px -9px rgba(40,20,0,.6)}
+  box-shadow:3px 1px 0 -1px var(--paper-1),4px 1px 0 -1px var(--paper-edge),6px 2px 0 -1px var(--paper-1),7px 2px 0 -1px var(--paper-edge),0 6px 6px -4px rgba(40,20,0,.45)}
 .bk-art{flex:1;min-height:0;display:grid;place-items:center;font-size:56px;line-height:1;border-radius:7px;background:rgba(255,253,245,.3);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);overflow:hidden}
 .bk-art img{width:100%;height:100%;object-fit:cover}
 .bk-label{background:#fffaf0;color:#2b2833;font:600 14px/1.15 var(--ui);text-align:center;padding:6px 5px;border-radius:4px;box-shadow:0 1px 0 rgba(0,0,0,.18);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -225,7 +225,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 .bk-sticker.next{background:#f6c445;color:#3b2412}
 .bk-ribbon{position:absolute;right:24px;top:calc(100% - 8px);width:13px;height:30px;background:#d8433b;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:inset -3px 0 0 rgba(0,0,0,.15)}
 .bk-seal{position:absolute;right:-9px;bottom:50px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--ui);color:#6b4a00;background:radial-gradient(circle at 35% 30%,#ffe9a3,#e8b52f 60%,#c48f12);box-shadow:0 2px 5px rgba(0,0,0,.35),inset 0 0 0 3px rgba(255,255,255,.35);transform:rotate(-10deg)}
-.bookend{flex:none;height:calc(var(--bkH) * .62);margin:calc(var(--row) - var(--bkH) * .62 - 19px) 0 19px;width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px 10px 3px 3px;background:var(--oak-hi);color:#3b2412;font:600 13px/1 var(--ui);box-shadow:inset 0 -6px 0 rgba(0,0,0,.12),0 10px 10px -8px rgba(40,20,0,.55)}
+.bookend{flex:none;height:calc(var(--bkH) * .62);margin:calc(var(--row) - var(--bkH) * .62 - 19px) 0 19px;width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px 10px 3px 3px;background:var(--oak-hi);color:#3b2412;font:600 13px/1 var(--ui);box-shadow:inset 0 -6px 0 rgba(0,0,0,.12),0 5px 5px -4px rgba(40,20,0,.45)}
 .bookend b{font-size:30px;line-height:1;color:var(--lv);text-shadow:0 1px 0 rgba(255,255,255,.5)}
 .bookend-pair{display:flex;flex:none;align-items:flex-end;column-gap:14px}
 .row-books .bookend-pair:not(:first-child){margin-left:14px}
@@ -239,21 +239,16 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 #scr-book .topbar h2{color:#2b1a0c;text-shadow:0 1px 0 rgba(255,255,255,.25)}
 @media (prefers-color-scheme: dark){#scr-book .topbar h2{color:#f3e8d8;text-shadow:none}}
 .board{flex:1;display:flex;min-height:0;min-width:0;position:relative;background-color:var(--lv,#8a5fbf);background-image:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.12));border-radius:10px;padding:10px 14px 14px 10px;box-shadow:0 22px 30px -16px rgba(40,18,0,.75),inset 0 0 0 1px rgba(0,0,0,.18)}
+.flipbook{width:100%;height:100%;position:relative}
+.sp-page{background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px),linear-gradient(rgba(255,255,255,0),rgba(120,90,40,.04));display:flex;flex-direction:column;padding:clamp(18px,4vw,48px);overflow:auto;border-radius:3px 7px 7px 3px}
+.sp-page > .page-inner{margin:auto 0;width:100%;max-width:720px;align-self:center}
+.flipbook.single .sp-page{position:absolute;inset:0}
+.flipbook.single .sp-page:not(.current){display:none}
 .board .page{background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px),linear-gradient(rgba(255,255,255,0),rgba(120,90,40,.04));border-radius:3px 7px 7px 3px;box-shadow:none}
-.leaf{position:absolute;top:10px;left:10px;right:14px;bottom:14px;z-index:4;pointer-events:none;background-color:var(--paper-1);background-image:linear-gradient(90deg,rgba(80,50,10,.16),rgba(80,50,10,0) 34px);border-radius:3px 7px 7px 3px;overflow:hidden;display:flex;flex-direction:column;padding:clamp(18px,4vw,48px);backface-visibility:hidden;transform-origin:left center;animation:leafNext .55s cubic-bezier(.35,.1,.3,1) forwards}
-.leaf.back{transform-origin:right center;animation-name:leafBack}
-.leaf::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.18));animation:leafShade .55s ease forwards}
-@keyframes leafNext{from{transform:perspective(1800px) rotateY(0)}to{transform:perspective(1800px) rotateY(-96deg)}}
-@keyframes leafBack{from{transform:perspective(1800px) rotateY(0)}to{transform:perspective(1800px) rotateY(96deg)}}
-@keyframes leafShade{from{opacity:0}to{opacity:1}}
-.curl{position:absolute;right:14px;bottom:14px;z-index:3;width:56px;height:56px;border:0;padding:0;cursor:pointer;border-radius:0 0 7px 0;background:linear-gradient(to top left,var(--lv,#8a5fbf) 49%,#d9c8a6 50%,#f2e7d1 62%,var(--paper-1) 80%);box-shadow:-3px -3px 6px -2px rgba(60,30,0,.25);transition:width .15s,height .15s}
-.curl:hover,.curl:focus-visible{width:68px;height:68px}
-.curl:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
-@media (prefers-color-scheme: dark){.curl{background:linear-gradient(to top left,var(--lv,#8a5fbf) 49%,#5a4f42 50%,#3b342c 70%,var(--paper-1) 85%)}}
 .book-tools .progress-line i{background:var(--lv,var(--tomato))}
 @media (max-width:640px){.reading{font-size:calc(var(--fs,30px) * var(--scale,1) * .74)}}
-@media (prefers-reduced-motion:reduce){.leaf{display:none}.bk{transition:none}.bk:hover{transform:none}}
-@media (max-width:640px){.board{padding:6px 9px 9px 6px;border-radius:8px}.leaf{top:6px;left:6px;right:9px;bottom:9px}.curl{right:9px;bottom:9px;width:48px;height:48px}}
+@media (prefers-reduced-motion:reduce){.bk{transition:none}.bk:hover{transform:none}}
+@media (max-width:640px){.board{padding:6px 9px 9px 6px;border-radius:8px}}
 </style>
 </head>
 <body>
@@ -294,7 +289,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   </div>
   <div class="book-stage">
     <button class="nav" id="prevBtn" aria-label="Previous page">‹</button>
-    <div class="board" id="board"><article class="page" id="page"><div class="page-inner reading" id="pageInner"></div></article><button class="curl" id="curlNext" aria-label="Turn the page"></button></div>
+    <div class="board" id="board"><div class="flipbook" id="flipbook"></div></div>
     <button class="nav" id="nextBtn" aria-label="Next page">›</button>
   </div>
   <div class="read-along hidden" id="readAlongControls"><span id="readAlongStatus" role="status"></span><button class="btn small primary" id="readAlongToggle">⏹ Stop</button><button class="btn small" id="readAlongEnd">Done</button></div>
@@ -2017,14 +2012,13 @@ async function openStory(id, page) {
   $('#readAloudBtn').classList.toggle('hidden', !(S.recog && Recog.ready));
   logEvent({ type: 'open', storyId: id });
   show('book');
+  await buildBook();
   renderPage();
 }
 // Build the page DOM. Every word is a span; sentence index lets long-press read the sentence.
-function renderPage(dir) {
-  const s = B.story, blocks = s.pages[B.page] || [];
-  const fs = [44, 44, 38, 38, 32, 28, 26, 24][(s.level || 5) - 1] || 28;
-  const inner = $('#pageInner');
-  inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
+// Builds the HTML for page j and sets the page's word/sentence state (B.sentences, B.pageWords…).
+function buildPage(j) {
+  const s = B.story, blocks = s.pages[j] || [];
   B.sentences = []; B.pageWords = []; B.wordGaps = []; B.sentenceInfo = [];
   let html = '', block = 0;
   const addText = (text, kind = 'p') => {
@@ -2047,7 +2041,7 @@ function renderPage(dir) {
     while (B.sentences.length < si) B.sentences.push('');
     return out;
   };
-  if (B.page === 0) {
+  if (j === 0) {
     html += `<div class="title">${addText(s.title, 'title')}</div>`;
     if (s.author) html += `<div class="byline">${esc(s.author)}</div>`;
   }
@@ -2057,24 +2051,85 @@ function renderPage(dir) {
     else if (b.t === 'h') html += `<h2>${addText(b.text, 'h')}</h2>`;
     else if (b.t === 'p') html += `<p>${addText(b.text)}</p>`;
   }
-  html += `<div class="pageno"><span class="w" data-num="${B.page + 1}" data-s="-1">${B.page + 1}</span></div>`;
-  // Page turn: the old page swings away as a paper leaf over the new one.
-  const oldHTML = inner.innerHTML, board = $('#board');
-  $$('.leaf', board).forEach(l => l.remove());
-  if (dir && oldHTML && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const leaf = document.createElement('div');
-    leaf.className = 'leaf' + (dir < 0 ? ' back' : '');
-    leaf.innerHTML = `<div class="page-inner reading" style="${inner.getAttribute('style') || ''}">${oldHTML}</div>`;
-    leaf.firstChild.querySelectorAll('.hit,.say,.sent').forEach(e => e.classList.remove('hit', 'say', 'sent'));
-    board.appendChild(leaf);
-    leaf.addEventListener('animationend', e => { if (e.target === leaf) leaf.remove(); });
-  }
-  inner.innerHTML = html;
-  const pg = $('#page'); pg.scrollTop = 0;
+  html += `<div class="pageno"><span class="w" data-num="${j + 1}" data-s="-1">${j + 1}</span></div>`;
+  return html;
+}
+
+// The book is a StPageFlip book (vendor/page-flip, MIT). Every story page is a paper page
+// element; pages near the current one are filled in, and the current page's inner element
+// carries id="pageInner" so taps, highlighting and read-along work on it.
+const Flip = { book: null, pages: [], loading: null, storyId: null };
+function loadPageFlip() {
+  if (window.St?.PageFlip) return Promise.resolve();
+  return Flip.loading ||= new Promise(res => {
+    const sc = document.createElement('script'); sc.src = 'vendor/page-flip/page-flip.browser.js';
+    sc.onload = res; sc.onerror = () => { console.warn('Page flip unavailable; using plain pages'); res(); };
+    document.head.appendChild(sc);
+  });
+}
+async function buildBook() {
+  const s = B.story, holder = $('#flipbook'), board = $('#board');
+  try { Flip.book?.destroy(); } catch {}
+  Flip.book = null;
+  // StPageFlip's destroy() removes its root element; recreate the holder if needed.
+  let host = $('#flipbook');
+  if (!host) { host = document.createElement('div'); host.id = 'flipbook'; host.className = 'flipbook'; board.appendChild(host); }
+  host.innerHTML = ''; host.className = 'flipbook';
   board.style.setProperty('--lv', levelOf(s.level).color);
-  // Page edges: a stack on the left for pages read, on the right for pages to go.
-  const stack = (n, side) => Array.from({ length: Math.min(5, Math.ceil(n / 2)) }, (_, k) => `${side * (k + 1) * 2}px ${(k + 1)}px 0 -1px var(--paper-1), ${side * (k + 1) * 2}px ${(k + 1)}px 0 0 var(--paper-edge)`);
-  pg.style.boxShadow = [...stack(s.pages.length - 1 - B.page, 1), ...stack(B.page, -1)].join(', ') || 'none';
+  Flip.pages = s.pages.map((_, j) => {
+    const el = document.createElement('div'); el.className = 'sp-page'; el.dataset.page = j;
+    el.innerHTML = '<div class="page-inner reading"></div>'; host.appendChild(el); return el;
+  });
+  Flip.storyId = s.id; Flip.filled = new Set();
+  await loadPageFlip();
+  const r = board.getBoundingClientRect(), cs = getComputedStyle(board);
+  const w = Math.max(200, Math.floor(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
+  const h = Math.max(260, Math.floor(r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
+  if (window.St?.PageFlip) {
+    const book = new St.PageFlip(host, {
+      width: w, height: h, size: 'stretch', minWidth: Math.ceil(w / 2) + 1, maxWidth: w, minHeight: 100, maxHeight: h,  // width < 2 × minWidth keeps it a single-page (portrait) book
+      usePortrait: true, showCover: false, drawShadow: true, maxShadowOpacity: 0.45, flippingTime: 650,
+      startPage: B.page, autoSize: true, mobileScrollSupport: true, disableFlipByClick: true, clickEventForward: true, showPageCorners: true, swipeDistance: 40,
+    });
+    book.on('flip', e => onBookFlip(e.data));
+    book.loadFromHTML(Flip.pages);
+    Flip.book = book;
+  } else host.classList.add('single');
+}
+// The reader turned the page by dragging or swiping.
+function onBookFlip(index) {
+  if (index === B.page) return;
+  ReadAlong.reset(); TTS.stop(); clearHighlights();
+  B.page = index; renderPage();
+}
+let flipResizeTimer = null;
+addEventListener('resize', () => {
+  if (document.body.dataset.screen !== 'book' || !B.story) return;
+  clearTimeout(flipResizeTimer); flipResizeTimer = setTimeout(async () => { await buildBook(); renderPage(); }, 250);
+});
+
+function renderPage(dir) {
+  const s = B.story;
+  const fs = [44, 44, 38, 38, 32, 28, 26, 24][(s.level || 5) - 1] || 28;
+  if (!Flip.pages.length || Flip.storyId !== s.id) return;
+  // Fill neighbors first (each build overwrites the word state), then the current page last.
+  for (const j of [B.page - 1, B.page + 1, B.page + 2]) {
+    const el = Flip.pages[j]; if (!el || Flip.filled.has(j)) continue;
+    const inner = el.firstElementChild; inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
+    inner.innerHTML = buildPage(j); Flip.filled.add(j);
+  }
+  $('#pageInner')?.removeAttribute('id'); $('#page')?.removeAttribute('id');
+  Flip.pages.forEach(el => el.classList.remove('current'));
+  const pageEl = Flip.pages[B.page], inner = pageEl.firstElementChild;
+  pageEl.id = 'page'; pageEl.classList.add('current'); inner.id = 'pageInner';
+  inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
+  inner.innerHTML = buildPage(B.page); Flip.filled.add(B.page);
+  pageEl.scrollTop = 0;
+  // Animate when the app turned the page (buttons, keys, read-along); drags are already flipped.
+  if (Flip.book && Flip.book.getCurrentPageIndex() !== B.page) {
+    if (dir && Math.abs(Flip.book.getCurrentPageIndex() - B.page) === 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) Flip.book.flip(B.page, 'bottom');
+    else Flip.book.turnToPage(B.page);
+  }
   const last = s.pages.length - 1;
   for (const id of ['prevBtn', 'prevBtn2']) $('#' + id).disabled = B.page === 0;
   $('#nextBtn').disabled = false;
@@ -2140,9 +2195,9 @@ function clearHighlights() { $$('#pageInner .w.say, #pageInner .w.sent').forEach
 
 // Tap = say the word, long-press = say the whole sentence.
 function wireBook() {
-  const inner = $('#pageInner'); let timer = null, longFired = false, downEl = null, downXY = null;
+  const inner = $('#board'); let timer = null, longFired = false, downEl = null, downXY = null;
   inner.addEventListener('pointerdown', e => {
-    const w = e.target.closest('.w'); if (!w) return;
+    const w = e.target.closest('#pageInner .w'); if (!w) return;   // only words on the open page
     audioCtx(); downEl = w; longFired = false; downXY = [e.clientX, e.clientY];
     clearTimeout(timer);
     timer = setTimeout(() => { longFired = true; saySentence(w); }, 520);
@@ -2151,25 +2206,19 @@ function wireBook() {
   inner.addEventListener('pointermove', e => { if (downXY && Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]) > 12) { cancel(); downEl = null; } });
   inner.addEventListener('pointercancel', () => { cancel(); downEl = null; });
   inner.addEventListener('pointerup', e => {
-    cancel(); const w = e.target.closest('.w');
+    cancel(); const w = e.target.closest('#pageInner .w');
     if (!w || w !== downEl || longFired) { downEl = null; return; }
     downEl = null; tapWord(w);
   });
   inner.addEventListener('contextmenu', e => e.preventDefault());
   inner.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('w')) { e.preventDefault(); tapWord(e.target); } });
   $('#prevBtn').onclick = $('#prevBtn2').onclick = () => turn(-1);
-  $('#nextBtn').onclick = $('#nextBtn2').onclick = $('#curlNext').onclick = () => turn(1);
+  $('#nextBtn').onclick = $('#nextBtn2').onclick = () => turn(1);
   $('#readPageBtn').onclick = () => readPage();
   $('#readAlongToggle').onclick = () => ReadAlong.paused ? ReadAlong.start() : ReadAlong.pause();
   $('#readAlongEnd').onclick = () => ReadAlong.reset();
   $('#readAloudBtn').onclick = () => readAloud();
-  // Swipe to turn pages.
-  let sx = null, sy = 0;
-  $('#page').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
-  $('#page').addEventListener('touchend', e => {
-    if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
-    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
-  });
+  // Dragging a page corner or swiping is handled by the page-flip book (see buildBook).
   addEventListener('keydown', e => {
     if (document.body.dataset.screen !== 'book' || $('#modalRoot').firstChild) return;
     if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1);
