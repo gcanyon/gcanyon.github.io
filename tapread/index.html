@@ -251,6 +251,53 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
 @media (max-width:640px){.reading{font-size:calc(var(--fs,30px) * var(--scale,1) * .74)}}
 @media (prefers-reduced-motion:reduce){.bk{transition:none}.bk:hover{transform:none}}
 @media (max-width:640px){.board{padding:6px 9px 9px 6px;border-radius:8px}}
+
+/* ---- page body / page number at the bottom of the page ---- */
+.sp-page > .page-inner{margin:0 auto;min-height:100%;display:flex;flex-direction:column;width:100%;max-width:720px}   /* StPageFlip sets display:block on pages */
+.pg-body{margin:auto 0}
+.sp-page.flow .pg-body{margin:0 0 auto}
+.page-inner .pageno{margin-top:auto;padding-top:.5em}
+/* ---- headphones: the "listen" icon everywhere ---- */
+.hp-ico{width:1.15em;height:1.15em;vertical-align:-.2em;flex:none}
+.hp-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;font:600 15px var(--ui);border-radius:999px;padding:8px 16px 9px;min-height:40px;
+  background:linear-gradient(#5aa4ec,#3d8bd9);box-shadow:0 4px 0 #2a6bb0,0 8px 14px -8px rgba(20,60,120,.55);transition:transform .08s,box-shadow .08s}
+.hp-btn:hover{filter:brightness(1.06)}
+.hp-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #2a6bb0,0 3px 6px -4px rgba(20,60,120,.5)}
+.hp-btn:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.hp-btn.icon{width:40px;height:40px;padding:0}
+.hp-btn.icon .hp-ico{width:22px;height:22px}
+.hp-btn.small{min-height:32px;padding:4px 10px;font-size:13px}
+.hp-btn.small.icon{width:32px;height:32px;padding:0}
+.hp-btn.small.icon .hp-ico{width:18px;height:18px}
+.speaker{width:104px;height:104px;border-radius:50%;padding:0}
+.speaker .hp-ico{width:56px;height:56px}
+.speaker::after{content:"";position:absolute}
+/* ---- game progress pips ---- */
+.pips{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.pips i{width:16px;height:16px;border-radius:50%;background:var(--line);display:block;transition:transform .2s,background .2s}
+.pips i.done{background:var(--teal)}
+.pips i.now{width:22px;height:22px;background:var(--sun);box-shadow:0 0 0 4px var(--sun-2)}
+.choice{white-space:nowrap;overflow:hidden;min-width:0}
+/* ---- memory match: words and sounds ---- */
+.mem-groups{display:flex;flex-direction:column;gap:22px;align-items:center;width:100%}
+.mem-group{display:grid;gap:12px;grid-template-columns:repeat(var(--cols,3),minmax(64px,128px));justify-content:center}
+.mem .f{white-space:nowrap;overflow:hidden;word-break:normal}
+.mem.word .b{background-color:#f0a43a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='42' viewBox='0 0 60 42'%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='.75' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9c4-4 7 4 11 0s7 4 11 0 7 4 11 0 7 4 9 1'/%3E%3Cpath d='M6 21c4-4 7 4 11 0s7 4 11 0 7 4 11 0'/%3E%3Cpath d='M6 33c4-4 7 4 11 0s7 4 11 0 7 4 13 0'/%3E%3C/g%3E%3C/svg%3E");background-size:60px 42px;background-position:center;color:transparent}
+.mem.sound .b{background:linear-gradient(#5aa4ec,#3d8bd9);color:#fff}
+.mem.sound .b .hp-ico,.mem.sound .f .hp-ico{width:44%;height:44%}
+.mem.sound .f{color:var(--sky)}
+.mem.picked .f{box-shadow:0 0 0 4px var(--sun),var(--shadow)}
+/* ---- voice preparation: headphones that fill up ---- */
+.voice-prep{display:flex;justify-content:center;align-items:center;min-height:30px;padding:0 12px 2px}
+.voice-prep.hidden{display:flex!important;visibility:hidden}
+.prep-hp{position:relative;width:30px;height:30px;color:rgba(59,36,18,.7)}
+@media (prefers-color-scheme: dark){.prep-hp{color:rgba(243,232,216,.7)}}
+.prep-hp > span{position:absolute;inset:0;display:block}
+.prep-hp svg{width:100%;height:100%;display:block}
+.prep-hp .fill{color:#3d8bd9;clip-path:inset(calc(100% - var(--p,0%)) 0 0 0);transition:clip-path .3s}
+/* ---- reading chart: minutes on every bar ---- */
+.bars div b{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font:600 11px var(--ui);color:var(--ink-2);white-space:nowrap}
+.bars{padding-top:22px;height:140px}
 </style>
 </head>
 <body>
@@ -286,7 +333,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   <div class="topbar">
     <button class="icon-btn" data-act="library" title="Back to books">🏠</button>
     <h2 id="bookTitle"></h2>
-    <button class="btn small" id="readPageBtn" title="Read aloud and follow each word">🔊 Read along</button>
+    <button class="hp-btn" id="readPageBtn" title="Read aloud and follow each word"><svg class="hp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="2.4" y="13.2" width="5.2" height="8.3" rx="2.2" fill="currentColor"/><rect x="16.4" y="13.2" width="5.2" height="8.3" rx="2.2" fill="currentColor"/></svg>Read along</button>
     <button class="icon-btn hidden" id="readAloudBtn" title="I'll read it!">🎤</button>
   </div>
   <div class="book-stage">
@@ -295,7 +342,7 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
     <button class="nav" id="nextBtn" aria-label="Next page">›</button>
   </div>
   <div class="read-along hidden" id="readAlongControls"><span id="readAlongStatus" role="status"></span><button class="btn small primary" id="readAlongToggle">⏹ Stop</button><button class="btn small" id="readAlongEnd">Done</button></div>
-  <div class="voice-prep hidden" id="voicePrep" role="status"></div>
+  <div class="voice-prep hidden" id="voicePrep" role="status" aria-label="Preparing the voice"><span class="prep-hp"><span class="outline"></span><span class="fill"></span></span></div>
   <div class="book-tools">
     <button class="btn small" id="prevBtn2">‹ Back</button>
     <div class="progress-line"><i id="bookProg"></i></div>
@@ -826,6 +873,9 @@ function sameWord(a, b) {
   return strip(a) === strip(b);
 }
 
+// Headphones: the "listen" icon used everywhere.
+const HP_ICON = '<svg class="hp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="2.4" y="13.2" width="5.2" height="8.3" rx="2.2" fill="currentColor"/><rect x="16.4" y="13.2" width="5.2" height="8.3" rx="2.2" fill="currentColor"/></svg>';
+const HP_OUTLINE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="13.7" width="4.4" height="7.4" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="16.6" y="13.7" width="4.4" height="7.4" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 // ---------- story parsing ---------------------------------------------------
 // A story is { id, title, author, level, cover, pages: [[block]] }
 // block: {t:'h', text} | {t:'p', text} | {t:'pic', text} | {t:'img', src, alt}
@@ -878,13 +928,20 @@ function guessLevel(pages) {
   return per <= 12 ? 2 : per <= 45 ? 5 : 7;   // rough fallback when word levels can't load
 }
 function storyFromScript(meta) {
+  // Optional header lines: @author, @level (kept as a level you set), @names (character names).
+  const head = {};
+  const text = meta.text.replace(/^@(author|level|names)[ \t]+(.*)$/gim, (_, k, v) => { head[k.toLowerCase()] = v.trim(); return ''; }).replace(/^@img\b.*$/gim, '');
+  if (head.author && !meta.author) meta = { ...meta, author: head.author };
+  if (head.names && !meta.names) meta = { ...meta, names: head.names.split(',').map(x => x.trim()).filter(Boolean) };
+  if (head.level && !meta.level && !meta.builtin) meta = { ...meta, level: Math.min(8, Math.max(1, +head.level || 1)), levelSource: 'manual' };
+  meta = { ...meta, text };
   let pages = parseScript(meta.text);
   let title = meta.title;
   const tb = pages[0]?.findIndex(b => b.t === 'title');
   if (tb >= 0) { title = title || pages[0][tb].text; pages[0].splice(tb, 1); if (!pages[0].length) pages.shift(); }
   const explicit = /^\s*(?:={3,}|-{3,}|\f|\[page\])\s*$/m.test(meta.text);
   if (!explicit) pages = paginate(pages.flat());
-  return { id: meta.id || 'u-' + uid(), title: title || 'My story', author: meta.author || '', level: meta.level || guessLevel(pages), cover: meta.cover || '📘', builtin: !!meta.builtin, names: meta.names || [], levelScheme: meta.level ? 2 : undefined, pages, added: Date.now() };
+  return { id: meta.id || 'u-' + uid(), title: title || 'My story', author: meta.author || '', level: meta.level || guessLevel(pages), cover: meta.cover || '📘', builtin: !!meta.builtin, names: meta.names || [], levelScheme: meta.level ? 2 : undefined, ...(meta.levelSource ? { levelSource: meta.levelSource } : {}), pages, added: Date.now() };
 }
 
 // ===========================================================================
@@ -1002,11 +1059,11 @@ function readingsFor(events, stories) {
   const out = [];
   for (const [id, evs] of byStory) {
     const story = stories.find(s => s.id === id); if (!story) continue;
-    const seen = new Set(), listened = new Set(), tapped = new Set();
+    const seen = new Set(), listened = new Set(), tapped = new Set(), counted = new Map();
     let ts = 0, finished = false;
     for (const e of evs) {
       ts = Math.max(ts, e.ts);
-      if (e.type === 'page') seen.add(e.page);
+      if (e.type === 'page') { seen.add(e.page); if (e.words != null) counted.set(e.page, e.words); }
       else if (e.type === 'readpage') listened.add(e.page);
       else if (e.type === 'finish') finished = true;
       else if (e.type === 'tap' && (e.how || 'tap') === 'tap') { seen.add(e.page); tapped.add(e.page + '|' + e.word); }
@@ -1014,8 +1071,10 @@ function readingsFor(events, stories) {
     const texts = storyPageTexts(story);
     let words = 0, taps = 0;
     for (const p of seen) {
-      if (listened.has(p) || !texts[p]) continue;
-      words += (texts[p].match(WORD_RE) || []).length - (p === 0 ? countWords(story.title) : 0);
+      if (listened.has(p)) continue;
+      if (counted.has(p)) words += counted.get(p);
+      else if (texts[p]) words += (texts[p].match(WORD_RE) || []).length - (p === 0 ? countWords(story.title) : 0);
+      else continue;
       for (const t of tapped) if (t.startsWith(p + '|')) taps++;
     }
     if (words < 12) continue;                       // too little to say anything
@@ -1490,6 +1549,10 @@ const Player = {
     }
     const el = this.element();
     const duration = audio.length / sr;
+    // Speakers and Bluetooth headphones take a moment to start, which swallowed the first
+    // sound of words like "beat" (PocketTTS starts speaking ~15 ms into a clip).
+    // Play a short silence first; reported times stay relative to the original clip.
+    const LEAD = 0.15, lead = Math.round(sr * LEAD), padded = new Float32Array(lead + audio.length); padded.set(audio, lead);
     let first = 0, last = audio.length - 1;
     if (onProgress) {
       while (first < last && Math.abs(audio[first]) < .004) first++;
@@ -1497,12 +1560,12 @@ const Player = {
       if (first === last) { first = 0; last = audio.length - 1; }
     }
     const info = { duration, speechStart: Math.max(0, first / sr - .025), speechEnd: Math.min(duration, (last + 1) / sr + .025) };
-    this.url = URL.createObjectURL(wavBlob(audio, sr));
+    this.url = URL.createObjectURL(wavBlob(padded, sr));
     el.src = this.url;
     const url = this.url;
     let finish;
     const ended = new Promise((res, rej) => { finish = this.done = res; el.onended = res; el.onerror = () => rej(new Error('Audio playback failed')); });
-    const guard = setTimeout(finish, Math.max(0, duration - startAt) * 1000 + 3000);
+    const guard = setTimeout(finish, Math.max(0, duration - startAt + LEAD) * 1000 + 3000);
     let frame;
     try {
       if (startAt > 0) {
@@ -1510,12 +1573,12 @@ const Player = {
         // setting src. Stop also releases this wait through the ended promise.
         await Promise.race([new Promise(resolve => { el.onloadedmetadata = resolve; if (el.readyState >= 1) resolve(); }), ended]);
         if (this.url !== url) return;
-        el.currentTime = Math.max(0, Math.min(startAt, Math.max(0, duration - .02)));
+        el.currentTime = LEAD + Math.max(0, Math.min(startAt, Math.max(0, duration - .02)));
       }
-      const tick = () => { if (this.url !== url) return; onProgress?.(el.currentTime, duration); frame = requestAnimationFrame(tick); };
+      const tick = () => { if (this.url !== url) return; onProgress?.(Math.max(0, el.currentTime - LEAD), duration); frame = requestAnimationFrame(tick); };
       await Promise.all([el.play().then(() => { if (this.url === url) { onStart?.(info); if (onProgress) { tick(); } } }), ended]);
     }
-    finally { cancelAnimationFrame(frame); clearTimeout(guard); if (this.url === url) { onProgress?.(Math.min(el.currentTime, duration), duration); this.stop(); } }
+    finally { cancelAnimationFrame(frame); clearTimeout(guard); if (this.url === url) { onProgress?.(Math.min(Math.max(0, el.currentTime - LEAD), duration), duration); this.stop(); } }
   },
   stop() {
     const el = this.el; if (!el) return;
@@ -2007,9 +2070,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && Rea
 const ABBREV = /^(Mr|Mrs|Ms|Dr|St|Jr|Sr|Mt|Prof|Capt|Gen|Lt|Col|Sgt|vs|etc)$/i;
 async function openStory(id, page) {
   const s = (await allStories()).find(s => s.id === id); if (!s) return;
-  B.story = s;
+  B.story = s; B.source = s;
   const prog = (await KV.get('progress:' + READER.id)) || {};
   B.page = page ?? (prog[id] && !prog[id].done ? prog[id].page : 0);
+  B.flowOffset = s.level === 8 && prog[id] && !prog[id].done ? (prog[id].word ?? 0) : 0;
   $('#bookTitle').textContent = s.title;
   $('#readAloudBtn').classList.toggle('hidden', !(S.recog && Recog.ready));
   logEvent({ type: 'open', storyId: id });
@@ -2053,9 +2117,51 @@ function buildPage(j) {
     else if (b.t === 'h') html += `<h2>${addText(b.text, 'h')}</h2>`;
     else if (b.t === 'p') html += `<p>${addText(b.text)}</p>`;
   }
-  html += `<div class="pageno"><span class="w" data-num="${j + 1}" data-s="-1">${j + 1}</span></div>`;
+  html = `<div class="pg-body">${html}</div><div class="pageno"><span class="w" data-num="${j + 1}" data-s="-1">${j + 1}</span></div>`;
   return html;
 }
+
+
+// ---- Level 8 (chapter books): fill each page instead of breaking at a word count ----
+// Lays the story's text into pages that fit the current page size. Paragraphs continue
+// onto the next page mid-sentence, as in a printed book. Chapter headings start a new page.
+function flowPages(story, w, h, fs) {
+  const m = document.createElement('div');
+  m.className = 'sp-page flow';
+  m.style.cssText = `position:fixed;left:-100000px;top:0;width:${w}px;height:${h}px;visibility:hidden;display:block`;   // pages in the book are display:block too
+  m.innerHTML = '<div class="page-inner reading"><div class="pg-body"></div><div class="pageno"><span>999</span></div></div>';
+  const inner = m.firstChild, body = inner.firstChild;
+  inner.style.setProperty('--fs', fs + 'px'); inner.style.setProperty('--scale', S.scale);
+  document.body.appendChild(m);
+  const pages = [];
+  const html = blocks => (pages.length === 0 ? `<div class="title">${esc(story.title)}</div>${story.author ? `<div class="byline">${esc(story.author)}</div>` : ''}` : '') +
+    blocks.map(b => b.t === 'p' ? `<p>${esc(b.text)}</p>` : b.t === 'h' ? `<h2>${esc(b.text)}</h2>` : b.t === 'pic' ? `<div class="pic">${esc(b.text)}</div>` : b.t === 'img' ? '<div style="height:40vh"></div>' : '').join('');
+  const fits = blocks => { body.innerHTML = html(blocks); return m.scrollHeight <= m.clientHeight + 1; };
+  // Largest k such that cur + first k units (joined) fits.
+  const fitPrefix = (cur, units, join) => { let lo = 0, hi = units.length; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (fits([...cur, { t: 'p', text: units.slice(0, mid).join(join) }])) lo = mid; else hi = mid - 1; } return lo; };
+  let cur = [];
+  const push = () => { pages.push(cur); cur = []; };
+  try {
+    for (const b of story.pages.flat()) {
+      if (b.t === 'h' && cur.length) push();
+      if (fits([...cur, b])) { cur.push(b); continue; }
+      if (b.t !== 'p') { if (cur.length) push(); cur.push(b); continue; }
+      let units = b.text.split(/(?<=\s)/);   // words, each with its trailing space
+      while (units.length) {
+        let k = fitPrefix(cur, units, '');
+        if (k === 0 && cur.length) { push(); continue; }
+        k = Math.max(1, k);
+        cur.push({ t: 'p', text: units.slice(0, k).join('').trim(), cont: true });
+        units = units.slice(k); if (units.length) push();
+      }
+    }
+    if (cur.length) push();
+  } finally { m.remove(); }
+  return pages.length ? pages : [[]];
+}
+const pageWordCount = page => page.filter(b => b.t === 'p' || b.t === 'h').reduce((n, b) => n + countWords(b.text), 0);
+const wordOffset = (pages, page) => pages.slice(0, page).reduce((n, p) => n + pageWordCount(p), 0);
+function pageForOffset(pages, offset) { let n = 0; for (let i = 0; i < pages.length; i++) { n += pageWordCount(pages[i]); if (n > offset) return i; } return pages.length - 1; }
 
 // The book is a StPageFlip book (vendor/page-flip, MIT). Every story page is a paper page
 // element; pages near the current one are filled in, and the current page's inner element
@@ -2070,23 +2176,31 @@ function loadPageFlip() {
   });
 }
 async function buildBook() {
-  const s = B.story, holder = $('#flipbook'), board = $('#board');
+  const src = B.source || B.story, holder = $('#flipbook'), board = $('#board');
   try { Flip.book?.destroy(); } catch {}
   Flip.book = null;
   // StPageFlip's destroy() removes its root element; recreate the holder if needed.
   let host = $('#flipbook');
   if (!host) { host = document.createElement('div'); host.id = 'flipbook'; host.className = 'flipbook'; board.appendChild(host); }
   host.innerHTML = ''; host.className = 'flipbook';
-  board.style.setProperty('--lv', levelOf(s.level).color);
+  board.style.setProperty('--lv', levelOf(src.level).color);
+  const r = board.getBoundingClientRect(), cs = getComputedStyle(board);
+  const w = Math.max(200, Math.floor(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
+  const h = Math.max(260, Math.floor(r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
+  // Chapter books fill each page; other levels keep their authored page breaks.
+  if (src.level === 8) {
+    const offset = B.flowOffset ?? 0;
+    const pages = flowPages(src, w, h, pageFontSize(src));
+    B.story = { ...src, pages, flowed: true };
+    B.page = pageForOffset(pages, offset);
+  } else B.story = src;
+  const s = B.story;
   Flip.pages = s.pages.map((_, j) => {
-    const el = document.createElement('div'); el.className = 'sp-page'; el.dataset.page = j;
+    const el = document.createElement('div'); el.className = 'sp-page' + (s.flowed ? ' flow' : ''); el.dataset.page = j;
     el.innerHTML = '<div class="page-inner reading"></div>'; host.appendChild(el); return el;
   });
   Flip.storyId = s.id; Flip.filled = new Set();
   await loadPageFlip();
-  const r = board.getBoundingClientRect(), cs = getComputedStyle(board);
-  const w = Math.max(200, Math.floor(r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
-  const h = Math.max(260, Math.floor(r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
   if (window.St?.PageFlip) {
     const book = new St.PageFlip(host, {
       width: w, height: h, size: 'stretch', minWidth: Math.ceil(w / 2) + 1, maxWidth: w, minHeight: 100, maxHeight: h,  // width < 2 × minWidth keeps it a single-page (portrait) book
@@ -2126,12 +2240,13 @@ function onBookFlip(index) {
 let flipResizeTimer = null;
 addEventListener('resize', () => {
   if (document.body.dataset.screen !== 'book' || !B.story) return;
-  clearTimeout(flipResizeTimer); flipResizeTimer = setTimeout(async () => { await buildBook(); renderPage(); }, 250);
+  clearTimeout(flipResizeTimer); flipResizeTimer = setTimeout(async () => { B.flowOffset = B.story.flowed ? wordOffset(B.story.pages, B.page) : undefined; await buildBook(); renderPage(); }, 250);
 });
 
+const pageFontSize = s => [44, 44, 38, 38, 32, 28, 26, 24][(s.level || 5) - 1] || 28;
 function renderPage(dir) {
   const s = B.story;
-  const fs = [44, 44, 38, 38, 32, 28, 26, 24][(s.level || 5) - 1] || 28;
+  const fs = pageFontSize(s);
   if (!Flip.pages.length || Flip.storyId !== s.id) return;
   // Fill neighbors first (each build overwrites the word state), then the current page last.
   for (const j of [B.page - 1, B.page + 1, B.page + 2]) {
@@ -2173,27 +2288,45 @@ function pageSpeech(story, page) {
     return sentences;
   });
 }
+// Voice preparation stays invisible unless it takes more than 2 seconds; then a pair of
+// headphones fills up as the page's words get ready.
 function prepareBookAudio(reading = false) {
   const s = B.story, page = B.page, prep = $('#voicePrep');
   const next = (s.pages[page + 1] || []).filter(b => ['p', 'h'].includes(b.t)).flatMap(b => b.text.match(WORD_RE) || []);
   const nextSentences = pageSpeech(s, page + 1);
   const currentSentence = +($$('#pageInner .w[data-i]')[ReadAlong.cursor]?.dataset.s || 0);
-  prep.classList.toggle('hidden', !TTS.engine());
+  const here = () => B.story === s && B.page === page && document.body.dataset.screen === 'book';
+  const icon = prep.querySelector('.prep-hp');
+  if (!icon.firstElementChild.innerHTML) { icon.firstElementChild.innerHTML = HP_OUTLINE; icon.lastElementChild.innerHTML = HP_ICON.replace('class="hp-ico" ', ''); }
+  let frac = 0, done = false;
+  const set = f => { frac = f; icon.style.setProperty('--p', Math.round(f * 100) + '%'); prep.setAttribute('aria-label', `Preparing the voice: ${Math.round(f * 100)}%`); };
+  clearTimeout(prep._timer); prep.classList.add('hidden'); set(0);
+  if (!TTS.engine()) return;
+  prep._timer = setTimeout(() => { if (!done && here()) prep.classList.remove('hidden'); }, 2000);
   TTS.prewarm([...B.pageWords, String(page + 1)], [`The end! Great reading, ${READER.name}!`, `Wonderful reading, ${READER.name}!`, 'Great reading!', 'Good reading! Keep going!'], {
     priorityPhrases: reading ? [...B.sentences.slice(currentSentence), ...nextSentences] : B.sentences.slice(0, 1),
     afterWords: next, afterPhrases: [...B.sentences, ...nextSentences],
-    onProgress: (ready, total, error) => { if (B.story === s && B.page === page && document.body.dataset.screen === 'book') prep.textContent = error ? 'Voice preparation paused. Tap a word to retry.' : ready === total ? 'Page words ready · preparing ahead' : reading ? 'Preparing read-along and page words…' : `Preparing page words: ${ready} of ${total}`; },
-    onComplete: () => { if (B.story === s && B.page === page && document.body.dataset.screen === 'book') prep.textContent = reading ? 'Read-along and page words ready' : 'Page words ready'; },
+    onProgress: (ready, total, error) => {
+      if (!here()) return;
+      if (error) { done = true; clearTimeout(prep._timer); prep.classList.add('hidden'); return; }
+      set(total ? ready / total : 0);
+      if (total && ready === total) finish();
+    },
+    onComplete: () => finish(),
   });
+  function finish() {
+    if (done || !here()) return; done = true; clearTimeout(prep._timer); set(1);
+    if (!prep.classList.contains('hidden')) setTimeout(() => { if (here()) prep.classList.add('hidden'); }, 600);
+  }
 }
 
 async function saveProgress() {
   const key = 'progress:' + READER.id, prog = (await KV.get(key)) || {};
   const prev = prog[B.story.id] || {};
   const done = prev.done || B.page === B.story.pages.length - 1;
-  prog[B.story.id] = { page: B.page, ts: Date.now(), done, maxPage: Math.max(prev.maxPage || 0, B.page) };
+  prog[B.story.id] = { page: B.page, ts: Date.now(), done, maxPage: Math.max(prev.maxPage || 0, B.page), ...(B.story.flowed ? { word: wordOffset(B.story.pages, B.page) } : {}) };
   await KV.set(key, prog);
-  logEvent({ type: 'page', storyId: B.story.id, page: B.page });
+  logEvent({ type: 'page', storyId: B.story.id, page: B.page, words: pageWordCount(B.story.pages[B.page] || []) });
 }
 function turn(d) {
   const n = B.page + d, last = B.story.pages.length - 1;
@@ -2325,16 +2458,24 @@ function endGame(msg) {
   $('#again').onclick = () => startGame(GAME.kind); $('#toGames').onclick = renderGames;
 }
 
+// Shrink text until it fits on one line in its box (long words in game buttons and cards).
+function fitText(el, min = 12) {
+  el.style.fontSize = ''; el.style.whiteSpace = 'nowrap';
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  while (el.scrollWidth > el.clientWidth + 1 && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
+}
+const pipsHTML = (done, total) => `<div class="pips" role="img" aria-label="Word ${done + 1} of ${total}">${Array.from({ length: total }, (_, k) => `<i class="${k < done ? 'done' : k === done ? 'now' : ''}"></i>`).join('')}</div>`;
 // ---- Listen & Find ----
 function findRound() {
   const g = GAME; if (!g.alive) return;
   if (g.i >= g.words.length) return endGame(`Great listening, ${READER.name}!`);
   const target = g.words[g.i]; g.firstTry = true;
   const opts = shuffle([target.display, ...distractors(target.word, g.pool, 3)]);
-  $('#gameArea').innerHTML = `<button class="speaker" id="hear" title="Hear it again">🔊</button>
+  $('#gameArea').innerHTML = `<button class="speaker hp-btn" id="hear" title="Hear it again" aria-label="Hear the word again">${HP_ICON}</button>
     <div class="feedback" id="fb">Which word did you hear?</div>
     <div class="choices">${opts.map(o => `<button class="choice" data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div>
-    <div class="muted">${g.i + 1} of ${g.words.length}</div>`;
+    ${pipsHTML(g.i, g.words.length)}`;
+  $$('.choice').forEach(b => fitText(b, 16));
   TTS.prewarm([target.display, ...opts], [...PRAISE, `Great listening, ${READER.name}!`], { append: true });
   const hear = () => { if (g === GAME && g.alive) return TTS.say(target.display, { word: true }); };
   $('#hear').onclick = hear; setTimeout(hear, 350);
@@ -2357,23 +2498,34 @@ function findRound() {
   });
 }
 
-// ---- Memory Match: a word card and a speaker card for each word ----
+// ---- Memory Match: printed words on one side, their sounds on the other ----
+// Words and sounds are two separate groups with different card backs; each turn is one
+// card from each group. Tapping a second card from the same group switches to it.
 function matchGame() {
   const g = GAME, words = g.words.slice(0, innerWidth < 500 ? 4 : 6);
-  const cards = shuffle(words.flatMap((w, k) => [{ k, w, type: 'word' }, { k, w, type: 'sound' }]));
-  const cols = cards.length <= 8 ? 4 : innerWidth < 500 ? 3 : 4;
+  const wordCards = shuffle(words.map((w, k) => ({ k, w, type: 'word' })));
+  const soundCards = shuffle(words.map((w, k) => ({ k, w, type: 'sound' })));
+  const cards = [...wordCards, ...soundCards];
+  const cols = innerWidth >= 760 ? words.length : words.length <= 4 ? words.length : 3;   // one row per group when there's room
+  const card = (c, i) => c.type === 'word'
+    ? `<button class="mem word" data-i="${i}" aria-label="Word card"><span class="b"></span><span class="f">${esc(c.w.display)}</span></button>`
+    : `<button class="mem sound" data-i="${i}" aria-label="Sound card"><span class="b">${HP_ICON}</span><span class="f">${HP_ICON}</span></button>`;
   $('#gameArea').innerHTML = `<div class="feedback" id="fb">Find the word that matches the sound!</div>
-    <div class="mem-grid" style="--cols:${cols}">${cards.map((c, i) => `<button class="mem" data-i="${i}"><span class="b">?</span><span class="f">${c.type === 'word' ? esc(c.w.display) : '🔊'}</span></button>`).join('')}</div>`;
-  let up = [], lock = false, found = 0, tries = {};
+    <div class="mem-groups"><div class="mem-group" style="--cols:${cols}" aria-label="Words">${wordCards.map((c, i) => card(c, i)).join('')}</div>
+    <div class="mem-group" style="--cols:${cols}" aria-label="Sounds">${soundCards.map((c, i) => card(c, i + wordCards.length)).join('')}</div></div>`;
+  $$('.mem.word .f').forEach(f => fitText(f, 12));
+  let up = null, lock = false, found = 0, tries = {};
   $$('.mem').forEach(el => el.onclick = async () => {
-    if (lock || el.classList.contains('up') || el.classList.contains('done') || !g.alive) return;
-    const c = cards[+el.dataset.i]; el.classList.add('up'); chime('flip');
+    if (lock || el.classList.contains('done') || !g.alive) return;
+    const c = cards[+el.dataset.i];
     if (c.type === 'sound') TTS.say(c.w.display, { word: true });
-    up.push([el, c]);
-    if (up.length < 2) return;
+    if (up && up[0] === el) return;
+    if (up && up[1].type === c.type) { up[0].classList.remove('up', 'picked'); up = null; }   // switch within a group
+    el.classList.add('up'); chime('flip');
+    if (!up) { up = [el, c]; el.classList.add('picked'); return; }
     lock = true;
-    const [[e1, c1], [e2, c2]] = up; up = [];
-    if (c1.k === c2.k && c1.type !== c2.type) {
+    const [e1, c1] = up, e2 = el, c2 = c; up = null; e1.classList.remove('picked');
+    if (c1.k === c2.k) {
       await sleep(400); e1.classList.add('done'); e2.classList.add('done'); chime('good'); addStar(); found++;
       const r = e2.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2, 8);
       await TTS.say(c1.w.display, { word: true });
@@ -2398,8 +2550,8 @@ async function sayRound() {
   $('#gameArea').innerHTML = `<div class="prompt-word">${esc(target.display)}</div>
     <div class="feedback" id="fb" aria-live="polite">Say this word.</div>
     <button class="mic" id="mic" title="Say the word">🎤</button><div class="meter"><i id="lvl"></i></div>
-    <div class="row"><button class="btn small hidden" id="hearPractice">🔊 Hear it again</button><button class="btn small ghost" id="skip">Next ›</button></div>
-    <div class="muted">${g.i + 1} of ${g.words.length}</div>`;
+    <div class="row"><button class="hp-btn hidden" id="hearPractice">${HP_ICON}Hear it again</button><button class="btn small ghost" id="skip">Next ›</button></div>
+    ${pipsHTML(g.i, g.words.length)}`;
   const mic = $('#mic'), fb = $('#fb'), hear = $('#hearPractice');
   const next = () => {
     if (!active()) return;
@@ -3091,7 +3243,7 @@ async function renderOverview(body, reader) {
       <div class="card"><div class="n">${acc}</div><div class="l">game answers right</div></div>
     </div>
     <div class="panel"><h3>Reading time, last 14 days</h3>
-      <div class="bars">${mins.map((m, i) => `<div style="height:${Math.max(2, m / maxM * 100)}%" title="${Math.round(m)} min"><span>${new Date(days[i]).getDate()}</span></div>`).join('')}</div><div style="height:16px"></div></div>
+      <div class="bars">${mins.map((m, i) => `<div style="height:${Math.max(2, m / maxM * 100)}%" title="${Math.round(m)} min"><b>${m >= 1 ? Math.round(m) + 'm' : m > 0 ? '<1m' : ''}</b><span>${new Date(days[i]).getDate()}</span></div>`).join('')}</div><div style="height:16px"></div></div>
     <div class="panel"><h3>Words to practice</h3>
       ${toPractice.length ? `<div class="wordcloud">${toPractice.map(w => `<span title="tapped ${w.taps}×">${esc(w.proper ? w.display : w.word)} <small class="muted">${w.taps ? w.taps + "×" : "read-aloud"}</small></span>`).join('')}</div>` : '<p class="muted">Nothing yet — words show up here when they’re tapped while reading.</p>'}
       ${mastered.length ? `<h4>Recently mastered</h4><div class="wordcloud">${mastered.map(w => `<span style="background:var(--teal-2)">${esc(w.word)}</span>`).join('')}</div>` : ''}</div>
@@ -3114,12 +3266,29 @@ async function renderWordsTab(body, reader) {
       <th data-s="word">Word</th><th data-s="taps">Taps</th><th data-s="last">Last tapped</th><th data-s="game">Games ✓/✗</th><th>Said ✓/✗</th><th>Read-aloud</th><th data-s="box">Progress</th><th></th></tr></thead>
     <tbody>${words.map(w => `<tr><td class="wd">${esc(w.proper ? w.display : w.word)}</td><td>${w.taps}</td><td>${fmtDate(w.last)}</td><td>${w.correct}/${w.wrong}</td><td>${w.sayRight || 0}/${w.sayWrong || 0}</td>
       <td>${w.readMiss || w.readHes ? `${w.readMiss || 0} missed, ${w.readHes || 0} paused` : ''}</td><td>${boxes(w.box)}</td>
-      <td><button class="btn small ghost" data-say="${esc(w.word)}">🔊</button><button class="btn small ghost" data-del="${esc(w.key)}" title="Remove">✕</button></td></tr>`).join('')}</tbody></table></div></div>`;
+      <td><button class="hp-btn small icon" data-say="${esc(w.word)}" aria-label="Hear ${esc(w.word)}">${HP_ICON}</button><button class="btn small ghost" data-del="${esc(w.key)}" title="Remove">✕</button></td></tr>`).join('')}</tbody></table></div></div>`;
   $$('th[data-s]', body).forEach(th => th.onclick = () => { PARENT.sort = th.dataset.s; renderParent(); });
   $$('[data-say]', body).forEach(b => b.onclick = () => TTS.say(b.dataset.say, { word: true }));
   $$('[data-del]', body).forEach(b => b.onclick = async () => { await DB.del('words', b.dataset.del); renderParent(); });
 }
 
+// ---- Story source: the plain-text format stories are written in (# Title, @pic, --- page breaks) ----
+function storySource(st) {
+  const lines = [`# ${st.title}`];
+  if (st.author) lines.push(`@author ${st.author}`);
+  if (st.level) lines.push(`@level ${st.level}`);
+  if (st.names?.length) lines.push(`@names ${st.names.join(', ')}`);
+  const pages = st.pages.map(blocks => blocks.map(b => b.t === 'pic' ? `@pic ${b.text}` : b.t === 'h' ? `## ${b.text}` : b.t === 'p' ? b.text : b.t === 'img' ? `@img ${b.alt || 'picture'}` : '').filter(Boolean).join('\n\n'));
+  return lines.join('\n') + '\n' + pages.join('\n---\n') + '\n';
+}
+const STORY_SEPARATOR = '=== next story ===';
+function downloadText(name, text) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+async function copyText(text, what) {
+  try { await navigator.clipboard.writeText(text); toast(`Copied ${what}`); }
+  catch { downloadText('story.txt', text); toast('Copy isn’t allowed here, so it was downloaded instead'); }
+}
 async function renderStoriesTab(body) {
   const stories = await allStories();
   body.innerHTML = `<div class="panel"><h3>Add a story</h3>
@@ -3129,9 +3298,15 @@ async function renderStoriesTab(body) {
       <div class="row"><input class="field" id="impTitle" placeholder="Title" style="flex:1"></div>
       <textarea class="field" id="impText" placeholder="# The Frog Who Sang&#10;@pic 🐸&#10;A frog sat on a log.&#10;---&#10;He liked to sing."></textarea>
       <div class="row"><button class="btn teal" id="impSave">Add story</button></div></div>
-    <div class="panel"><h3>Library</h3><table>${stories.map(s => `<tr><td style="font-size:22px">${s.coverImg ? '🖼️' : esc(s.cover)}</td><td><b>${esc(s.title)}</b><div class="muted" style="font-size:13px">${[s.author ? esc(s.author) : '', `${s.pages.length} pages`, s.levelSource === 'auto' && s.levelInfo ? `${Math.round(s.levelInfo.known * 100)}% of words at level${s.levelInfo.tricky.length ? `, tap words: ${esc(s.levelInfo.tricky.slice(0, 6).join(', '))}${s.levelInfo.tricky.length > 6 ? '…' : ''}` : ''}` : ''].filter(Boolean).join(' · ')}</div></td>
+    <div class="panel"><h3>Library</h3>
+      <div class="row"><button class="btn small" id="expAll">⬇️ Download all stories</button><button class="btn small" id="copyAll">📋 Copy all</button><span class="note">Plain text, the same format as “paste a story”. Paste it back to add the stories again.</span></div>
+      <table>${stories.map(s => `<tr><td style="font-size:22px">${s.coverImg ? '🖼️' : esc(s.cover)}</td><td><b>${esc(s.title)}</b><div class="muted" style="font-size:13px">${[s.author ? esc(s.author) : '', `${s.pages.length} pages`, s.levelSource === 'auto' && s.levelInfo ? `${Math.round(s.levelInfo.known * 100)}% of words at level${s.levelInfo.tricky.length ? `, tap words: ${esc(s.levelInfo.tricky.slice(0, 6).join(', '))}${s.levelInfo.tricky.length > 6 ? '…' : ''}` : ''}` : ''].filter(Boolean).join(' · ')}</div></td>
       <td><select class="field" data-lvl="${s.id}" ${s.builtin ? 'disabled' : ''}>${LEVELS.map(L => `<option value="${L.level}" ${s.level === L.level ? 'selected' : ''}>Level ${L.level}${s.levelSource === 'manual' && s.level === L.level ? ' (set by you)' : ''}</option>`).join('')}</select></td>
-      <td>${s.builtin ? '<span class="muted">built in</span>' : `<button class="btn small" data-rm="${s.id}">Delete</button>`}</td></tr>`).join('')}</table></div>`;
+      <td><button class="btn small ghost" data-src="${s.id}" title="Copy this story's text">📋 Copy</button> ${s.builtin ? '<span class="muted">built in</span>' : `<button class="btn small" data-rm="${s.id}">Delete</button>`}</td></tr>`).join('')}</table></div>`;
+  const allSource = () => stories.map(storySource).join(`\n${STORY_SEPARATOR}\n\n`);
+  $('#expAll').onclick = () => downloadText(`tapread-stories-${new Date().toISOString().slice(0, 10)}.txt`, allSource());
+  $('#copyAll').onclick = () => copyText(allSource(), 'all stories');
+  $$('[data-src]', body).forEach(b => b.onclick = () => { const st = stories.find(x => x.id === b.dataset.src); copyText(storySource(st), `“${st.title}”`); });
   $('#impPick').onclick = () => $('#impFile').click();
   $('#impFile').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
@@ -3141,8 +3316,9 @@ async function renderStoriesTab(body) {
   };
   $('#impSave').onclick = async () => {
     const t = $('#impText').value.trim(); if (!t) return;
-    const st = storyFromScript({ text: t, title: $('#impTitle').value.trim() });
-    await saveImported(st); toast(`Added “${st.title}”`); renderStoriesTab(body);
+    const parts = t.split(/^\s*=== next story ===\s*$/m).map(x => x.trim()).filter(Boolean);
+    for (const part of parts) await saveImported(storyFromScript({ text: part, title: parts.length > 1 ? '' : $('#impTitle').value.trim() }));
+    toast(parts.length > 1 ? `Added ${parts.length} stories` : 'Added the story'); renderStoriesTab(body);
   };
   $$('[data-rm]', body).forEach(b => b.onclick = async () => { if (!confirm('Delete this story? Reading progress stays in the stats.')) return; await DB.del('stories', b.dataset.rm); STORY_CACHE = null; renderStoriesTab(body); });
   $$('[data-lvl]', body).forEach(sel => sel.onchange = async () => { const s = await DB.get('stories', sel.dataset.lvl); s.level = +sel.value; s.levelSource = 'manual'; s.levelScheme = 2; await DB.put('stories', s); STORY_CACHE = null; renderStoriesTab(body); });
@@ -3268,13 +3444,13 @@ async function renderSettingsTab(body, reader, readers) {
       <div class="row"><button class="btn small" id="pAddVoice">🎤 Add parent voice</button><button class="btn small ghost" id="pClear">Clear PocketTTS audio</button></div>
       ${profiles.length ? `<div>${profiles.map(v => `<div class="row"><span>${esc(v.name)}</span><button class="btn small ghost" data-delete-voice="${esc(v.id)}" ${S.pocketVoice === 'parent:' + v.id ? 'disabled title="Choose another voice before deleting this one"' : ''}>Delete voice</button></div>`).join('')}</div>` : ''}
     </div>
-    <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="btn small" id="sTryBtn">🔊</button></div>
+    <div class="row"><label>Try it</label><input class="field" id="sTry" value="The Wonderful Wizard of Oz" style="flex:1"><button class="hp-btn icon" id="sTryBtn" aria-label="Hear it">${HP_ICON}</button></div>
     <div class="row"><label>Compare same text</label><button class="btn small" id="compareKokoro">Hear Kokoro</button><button class="btn small" id="comparePocket">Hear PocketTTS</button><button class="btn small ghost" id="voiceStop">Stop</button></div>
     <p class="note" id="comparisonResult" role="status">${esc(VoiceCompare.status)}</p>
   </div>
   <div class="panel"><h3>Pronunciation fixes</h3>
     <p class="note">For names and tricky words. Type the word, then how it should be said (respell it if needed, like “oz-muh” for Ozma).</p>
-    <table>${ov.map(([w, s]) => `<tr><td class="wd">${esc(w)}</td><td>→ ${esc(s)}</td><td><button class="btn small ghost" data-ovsay="${esc(w)}">🔊</button><button class="btn small ghost" data-ovrm="${esc(w)}">✕</button></td></tr>`).join('') || '<tr><td class="muted">None yet</td></tr>'}</table>
+    <table>${ov.map(([w, s]) => `<tr><td class="wd">${esc(w)}</td><td>→ ${esc(s)}</td><td><button class="hp-btn small icon" data-ovsay="${esc(w)}" aria-label="Hear ${esc(w)}">${HP_ICON}</button><button class="btn small ghost" data-ovrm="${esc(w)}">✕</button></td></tr>`).join('') || '<tr><td class="muted">None yet</td></tr>'}</table>
     <div class="row"><input class="field" id="ovW" placeholder="word"><input class="field" id="ovS" placeholder="say it like"><button class="btn small teal" id="ovAdd">Add</button></div></div>
   <div class="panel"><h3>Reading</h3>
     <div class="row"><label>Text size</label><input type="range" id="sScale" min="0.8" max="1.5" step="0.05" value="${S.scale}"><span id="sScaleV">${Math.round(S.scale * 100)}%</span></div>
@@ -3415,7 +3591,7 @@ async function renderLab(body, reader) {
     ${Recog.ready ? '' : `<div class="row"><button class="btn teal" id="labLoad">Load speech recognition (17 MB)</button></div>`}
     <div class="${Recog.ready ? '' : 'hidden'}" style="text-align:center">
       <div class="prompt-word" style="display:inline-block;margin:10px 0">${esc(LAB.word)}</div>
-      <div class="row" style="justify-content:center"><button class="btn small" id="labNext">↻ Different word</button><button class="btn small" id="labHear">🔊</button></div>
+      <div class="row" style="justify-content:center"><button class="btn small" id="labNext">↻ Different word</button><button class="hp-btn icon" id="labHear" aria-label="Hear the word">${HP_ICON}</button></div>
       <div class="row" style="justify-content:center;margin-top:14px">
         <button class="btn teal" data-intent="correct">🎤 Say it correctly</button>
         <button class="btn primary" data-intent="wrong">🎤 Say it wrong on purpose</button></div>
