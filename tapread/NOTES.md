@@ -57,16 +57,9 @@ Notes for picking up development. User-facing docs are in README.md.
 1. **Story library:** the target is 5–10 per level. There are 7 built-ins now.
    - Someone wrote an alternative "Bug Gets on the Bus." It scores Level 5, not 3. The Level 3 requirements and critique are in a Claude doc: https://claude.ai/artifact/ER5CPcCCTP3QCjryG9kYnB
    - Option: keep it as a Level 5 book and have a Level 3 version of the same story written.
-2. **Focus labels for parents:** proposed but not built. Kids' screens keep the plain numbers; parent screens show "Level 3 · All short vowels". Proposed labels:
-   1. First sounds
-   2. Short a and i
-   3. All short vowels
-   4. Blends and digraphs
-   5. Long vowels
-   6. More vowel sounds
-   7. Big words
-   8. Chapter books
-   - The parent copy says "focuses on," not "teaches."
+2. **Focus labels for parents:** built Oct 26. `focus` is in `LEVELS` (index.html and scope.js), and `levelLabel(n)` returns "Level 3 · All short vowels". It's used on the Progress pill, the next-level line, the Starting level dropdown and the Library level dropdowns. Kids' screens (bookends, book labels) still show only the number. The `about` copy says "Focuses on…", not "teaches".
+   - The `levelNotes` headline uses `levelPhrase(n)`, "Level 4 (blends and digraphs)". The per-book notes still use bare numbers.
+5. **Library shelves:** a "📖 Recent books" shelf sits above "Picked for you". It holds every book in progress (latest first), then the last three finished. It replaced the "Keep reading" button. Picked for you now shows only books not started yet.
 3. **Chapter books:** present Level 8 as "Chapter books," not as another rung on the ladder.
    - Plan: a bundled shelf of 10–20 public-domain American books, cleaned up and checked by hand (Baum's Oz, Thornton Burgess, Uncle Wiggily).
    - Plus a search-and-import in the parent area. To check: whether Gutendex allows browser fetches.

@@ -322,7 +322,6 @@ textarea.field{width:100%;min-height:160px;font-family:var(--read)}
   <div class="wrap">
     <div class="big-actions">
       <button class="big-action lvl2" data-act="games"><span class="e">🎲</span><span><b>Word games</b><span id="practiceCount" class="muted">Practice your words</span></span></button>
-      <button class="big-action lvl1 hidden" id="continueBtn"><span class="e">📖</span><span><b>Keep reading</b><span id="continueTitle" class="muted"></span></span></button>
     </div>
     <div id="shelves"></div>
   </div>
@@ -954,16 +953,20 @@ function storyFromScript(meta) {
 // small budget of them per page. A reader's level comes from how much they tap.
 // Levels are guidance, not gates: every book stays open.
 const LEVELS = [
-  { level: 1, color: '#e5533d', about: 'First sounds: m, s, t, p, n, c and short a, plus a few sight words. Short pattern books.', limits: [10, 8], floor: 0.80, tricky: 1 },
-  { level: 2, color: '#e8812c', about: 'Short a and i with most single consonants, and -s endings (cat, sit, pigs).', limits: [18, 7], floor: 0.80, tricky: 1.5 },
-  { level: 3, color: '#d9a400', about: 'All short vowels and consonants, plus ff, ll, ss, zz (hot, bug, bed, hill).', limits: [25, 8], floor: 0.80, tricky: 2 },
-  { level: 4, color: '#4a9d3a', about: 'Digraphs and blends: sh, ch, th, wh, ck, ng; st-, fl-, -nd, -mp (ship, frog, jump).', limits: [35, 9], floor: 0.80, tricky: 2.5 },
-  { level: 5, color: '#2a9d8f', about: 'Long vowels: silent e (cake), ee, ea, ai, ay, oa, ow, igh; endings -ed, -ing, -er.', limits: [55, 11], floor: 0.80, tricky: 3 },
-  { level: 6, color: '#3d7fd9', about: 'More vowel sounds: ar, or, er, ir, ur; oi, oy, ou, ow; oo; soft c and g; two-syllable words.', limits: [85, 13], floor: 0.80, tricky: 4 },
-  { level: 7, color: '#5b5fc7', about: 'Longer words: prefixes and suffixes (un-, re-, -ful, -tion), kn, wr, ph. Short chapters.', limits: [160, 17], floor: 0.75, tricky: 6 },
-  { level: 8, color: '#8a5fbf', about: 'Chapter books, no limits.', limits: [Infinity, Infinity], floor: 0, tricky: Infinity },
+  { level: 1, color: '#e5533d', focus: 'First sounds', about: 'Focuses on m, s, t, p, n, c and short a, plus a few sight words, in short pattern books.', limits: [10, 8], floor: 0.80, tricky: 1 },
+  { level: 2, color: '#e8812c', focus: 'Short a and i', about: 'Focuses on short a and i with most single consonants, and -s endings (cat, sit, pigs).', limits: [18, 7], floor: 0.80, tricky: 1.5 },
+  { level: 3, color: '#d9a400', focus: 'All short vowels', about: 'Focuses on all five short vowels and the single consonants, plus ff, ll, ss, zz (hot, bug, bed, hill).', limits: [25, 8], floor: 0.80, tricky: 2 },
+  { level: 4, color: '#4a9d3a', focus: 'Blends and digraphs', about: 'Focuses on sh, ch, th, wh, ck, ng and blends like st-, fl-, -nd, -mp (ship, frog, jump).', limits: [35, 9], floor: 0.80, tricky: 2.5 },
+  { level: 5, color: '#2a9d8f', focus: 'Long vowels', about: 'Focuses on silent e (cake), ee, ea, ai, ay, oa, ow, igh, and the endings -ed, -ing, -er.', limits: [55, 11], floor: 0.80, tricky: 3 },
+  { level: 6, color: '#3d7fd9', focus: 'More vowel sounds', about: 'Focuses on ar, or, er, ir, ur; oi, oy, ou, ow; oo; soft c and g; and two-syllable words.', limits: [85, 13], floor: 0.80, tricky: 4 },
+  { level: 7, color: '#5b5fc7', focus: 'Big words', about: 'Focuses on prefixes and suffixes (un-, re-, -ful, -tion) and kn, wr, ph, in short chapters.', limits: [160, 17], floor: 0.75, tricky: 6 },
+  { level: 8, color: '#8a5fbf', focus: 'Chapter books', about: 'Full-length books, with no limits on words or page length.', limits: [Infinity, Infinity], floor: 0, tricky: Infinity },
 ];
 const levelOf = n => LEVELS[Math.min(8, Math.max(1, n || 1)) - 1];
+// Parent-facing name: "Level 3 · All short vowels". Kids' screens show just the number.
+const levelLabel = n => { const L = levelOf(n); return `Level ${L.level} · ${L.focus}`; };
+// In a sentence: "Level 3 (all short vowels)".
+const levelPhrase = n => { const L = levelOf(n); return `Level ${L.level} (${L.focus.toLowerCase()})`; };
 
 // Level of every dictionary word, precomputed from the CMU Pronouncing Dictionary and the
 // phonics scope (tools are in the leveling folder). Loaded only when a book needs scoring.
@@ -1124,10 +1127,10 @@ function levelNotes(reader, lv) {
     if (now < before) notes.push(`At Level ${lv.comfortable}, taps are down from ${before} to ${now} per 100 words.`);
   }
   let headline;
-  if (!lv.readings.length) headline = `${name} hasn’t read enough yet for a level estimate. Starting at Level ${lv.start}.`;
+  if (!lv.readings.length) headline = `${name} hasn’t read enough yet for a level estimate. Starting at ${levelPhrase(lv.start)}.`;
   else if (lv.comfortable >= 8) headline = `${name} reads chapter books comfortably.`;
-  else if (lv.tough) headline = `${name} is finding Level ${lv.comfortable + 1} hard right now. Level ${lv.comfortable} books are the sweet spot.`;
-  else headline = `${name} reads Level ${lv.comfortable} books comfortably and is ready to try Level ${lv.next}.`;
+  else if (lv.tough) headline = `${name} is finding ${levelPhrase(lv.comfortable + 1)} hard right now. ${levelPhrase(lv.comfortable)} books are the sweet spot.`;
+  else headline = `${name} reads ${levelPhrase(lv.comfortable)} books comfortably and is ready to try ${levelPhrase(lv.next)}.`;
   return { headline, notes };
 }
 
@@ -1895,23 +1898,22 @@ async function renderLibrary() {
       + (state === 'started' ? '<span class="bk-ribbon" aria-hidden="true"></span>' : '')
       + (state === 'read' ? '<span class="bk-seal" aria-hidden="true">✓</span>' : '') + `</button>`;
   };
-  // Picked for you: unfinished books at the comfortable and next-step levels, books in progress first.
-  const picks = stories.filter(s => !prog[s.id]?.done && (s.level === lv.comfortable || s.level === lv.next))
-    .sort((a, b) => (prog[b.id] ? 1 : 0) - (prog[a.id] ? 1 : 0) || (b.level === lv.next) - (a.level === lv.next)).slice(0, 6);
+  // Recents: every book in progress (latest first), then the last three finished.
+  const byRecent = f => stories.filter(s => prog[s.id] && f(prog[s.id])).sort((a, b) => (prog[b.id].ts || 0) - (prog[a.id].ts || 0));
+  const recents = [...byRecent(p => !p.done), ...byRecent(p => p.done).slice(0, 3)];
+  // Picked for you: books not started yet at the comfortable and next-step levels (books in progress are in Recents).
+  const picks = stories.filter(s => !prog[s.id] && (s.level === lv.comfortable || s.level === lv.next))
+    .sort((a, b) => (b.level === lv.next) - (a.level === lv.next)).slice(0, 6);
   const levels = [...new Set(stories.map(s => s.level))].sort((a, b) => a - b);
   const addBook = `<button class="bk add" data-act="add-story" aria-label="Add a story (grown-ups)"><span class="bk-cover"><b>+</b>Add a story</span></button>`;
   $('#shelves').innerHTML =
+    (recents.length ? `<section class="case" aria-label="Recent books"><div class="case-sign">📖 Recent books</div><div class="row-books">${recents.map(card).join('')}</div></section>` : '') +
     (picks.length ? `<section class="case featured" aria-label="Picked for you"><div class="case-sign">⭐ Picked for you</div><div class="row-books">${picks.map(card).join('')}</div></section>` : '') +
     `<section class="case" aria-label="All books by level"><div class="case-sign">📚 All books</div><div class="row-books">` +
     levels.map(l => { const [first, ...rest] = stories.filter(s => s.level === l).map(card);   // a bookend never gets separated from its first book
       return `<span class="bookend-pair"><span class="bookend" style="--lv:${levelOf(l).color}" role="heading" aria-level="3" aria-label="Level ${l}">Level<b>${l}</b></span>${first}</span>${rest.join('')}`; }).join('') +
     addBook + `</div></section>`;
   $$('#shelves .bk[data-id]').forEach(b => b.onclick = () => openStory(b.dataset.id));
-  // continue reading
-  const last = Object.entries(prog).filter(([id, p]) => !p.done && stories.find(s => s.id === id)).sort((a, b) => b[1].ts - a[1].ts)[0];
-  const cb = $('#continueBtn');
-  if (last) { const s = stories.find(s => s.id === last[0]); cb.classList.remove('hidden'); $('#continueTitle').textContent = `${s.title} — page ${last[1].page + 1}`; cb.onclick = () => openStory(s.id); }
-  else cb.classList.add('hidden');
   const pw = await practiceWords(50);
   $('#practiceCount').textContent = pw.length ? `${pw.length} word${pw.length > 1 ? 's' : ''} to practice` : 'Practice your words';
   show('library');
@@ -3229,10 +3231,10 @@ async function renderOverview(body, reader) {
   const lv = readerLevels(reader, ev, stories), ln = levelNotes(reader, lv), cur = levelOf(lv.comfortable);
   body.innerHTML = `
     <div class="panel" style="--lv:${cur.color}"><h3>Reading level</h3>
-      <div class="level-head"><span class="level-pill">Level ${lv.comfortable}</span><span>${esc(ln.headline)}</span></div>
+      <div class="level-head"><span class="level-pill">${esc(levelLabel(lv.comfortable))}</span><span>${esc(ln.headline)}</span></div>
       ${ln.notes.length ? `<ul class="level-notes">${ln.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
-      <p class="note" style="margin-top:12px"><b>Level ${lv.comfortable}:</b> ${esc(cur.about)}${lv.next !== lv.comfortable ? `<br><b>Level ${lv.next}:</b> ${esc(levelOf(lv.next).about)}` : ''}</p>
-      <div class="row"><label for="startLevel">Starting level</label><select class="field" id="startLevel">${LEVELS.map(L => `<option value="${L.level}" ${lv.start === L.level ? 'selected' : ''}>Level ${L.level}</option>`).join('')}</select>
+      <p class="note" style="margin-top:12px">${esc(cur.about)}${lv.next !== lv.comfortable ? `<br><b>Next, ${esc(levelLabel(lv.next))}.</b> ${esc(levelOf(lv.next).about)}` : ''}</p>
+      <div class="row"><label for="startLevel">Starting level</label><select class="field" id="startLevel">${LEVELS.map(L => `<option value="${L.level}" ${lv.start === L.level ? 'selected' : ''}>${esc(levelLabel(L.level))}</option>`).join('')}</select>
         <span class="note">Used until there’s enough reading to estimate. Every book stays open whatever the level.</span></div></div>
     <div class="cards">
       <div class="card"><div class="n">${Math.round(readingMinutes(week))}</div><div class="l">minutes this week</div></div>
@@ -3301,7 +3303,7 @@ async function renderStoriesTab(body) {
     <div class="panel"><h3>Library</h3>
       <div class="row"><button class="btn small" id="expAll">⬇️ Download all stories</button><button class="btn small" id="copyAll">📋 Copy all</button><span class="note">Plain text, the same format as “paste a story”. Paste it back to add the stories again.</span></div>
       <table>${stories.map(s => `<tr><td style="font-size:22px">${s.coverImg ? '🖼️' : esc(s.cover)}</td><td><b>${esc(s.title)}</b><div class="muted" style="font-size:13px">${[s.author ? esc(s.author) : '', `${s.pages.length} pages`, s.levelSource === 'auto' && s.levelInfo ? `${Math.round(s.levelInfo.known * 100)}% of words at level${s.levelInfo.tricky.length ? `, tap words: ${esc(s.levelInfo.tricky.slice(0, 6).join(', '))}${s.levelInfo.tricky.length > 6 ? '…' : ''}` : ''}` : ''].filter(Boolean).join(' · ')}</div></td>
-      <td><select class="field" data-lvl="${s.id}" ${s.builtin ? 'disabled' : ''}>${LEVELS.map(L => `<option value="${L.level}" ${s.level === L.level ? 'selected' : ''}>Level ${L.level}${s.levelSource === 'manual' && s.level === L.level ? ' (set by you)' : ''}</option>`).join('')}</select></td>
+      <td><select class="field" data-lvl="${s.id}" ${s.builtin ? 'disabled' : ''}>${LEVELS.map(L => `<option value="${L.level}" ${s.level === L.level ? 'selected' : ''}>${esc(levelLabel(L.level))}${s.levelSource === 'manual' && s.level === L.level ? ' (set by you)' : ''}</option>`).join('')}</select></td>
       <td><button class="btn small ghost" data-src="${s.id}" title="Copy this story's text">📋 Copy</button> ${s.builtin ? '<span class="muted">built in</span>' : `<button class="btn small" data-rm="${s.id}">Delete</button>`}</td></tr>`).join('')}</table></div>`;
   const allSource = () => stories.map(storySource).join(`\n${STORY_SEPARATOR}\n\n`);
   $('#expAll').onclick = () => downloadText(`tapread-stories-${new Date().toISOString().slice(0, 10)}.txt`, allSource());
@@ -3701,7 +3703,7 @@ document.addEventListener('click', e => {
 });
 
 // Handy for debugging from the console.
-window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords , LEVELS, WordLevels, scoreLevel, storyPageTexts, levelStory, readerLevels, levelNotes, allStories, currentReaderLevels , Flip };
+window.tapread = { readingPlan, pageSpeech, Player, SystemVoice, ReadAlong, B, renderPage, openStory, AudioCache, recordPracticeAttempt, gameWords, startGame, sayRound, get GAME() { return GAME; }, get READER() { return READER; }, DB, get S() { return S; }, TTS, Kokoro, Pocket, openParentVoice, validatePocketEmbedding, renderSettingsTab, Recog, alignReading, scoreReading, judgeWord, paginate, parseScript, importFile, practiceWords , LEVELS, levelLabel, WordLevels, scoreLevel, storyPageTexts, levelStory, readerLevels, levelNotes, allStories, currentReaderLevels , Flip };
 </script>
 </body>
 </html>

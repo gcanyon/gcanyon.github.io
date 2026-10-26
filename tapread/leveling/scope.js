@@ -8,21 +8,21 @@
 // from the band where they are taught, even when they aren't decodable yet.
 
 const LEVELS = [
-  { band: 0, level: 1, color: 'red',    note: 'First sounds: m, s, t, p, n, c and short a, plus a few sight words. Pattern books with one repeated sentence.',
+  { band: 0, level: 1, color: 'red',    focus: 'First sounds', note: 'First sounds: m, s, t, p, n, c and short a, plus a few sight words. Pattern books with one repeated sentence.',
     limits: { wordsPerPage: 10,  wordsPerSentence: 8 },  floor: 0.80, newTrickyPerPage: 1 },
-  { band: 1, level: 2, color: 'orange', note: 'Short a and i with most single consonants, and -s endings (cat, sit, pigs, digs).',
+  { band: 1, level: 2, color: 'orange', focus: 'Short a and i', note: 'Short a and i with most single consonants, and -s endings (cat, sit, pigs, digs).',
     limits: { wordsPerPage: 18,  wordsPerSentence: 7 },  floor: 0.80, newTrickyPerPage: 1.5 },
-  { band: 2, level: 3, color: 'yellow', note: 'All short vowels and consonants, plus ff, ll, ss, zz (hot, bug, bed, hill, quiz).',
+  { band: 2, level: 3, color: 'yellow', focus: 'All short vowels', note: 'All short vowels and consonants, plus ff, ll, ss, zz (hot, bug, bed, hill, quiz).',
     limits: { wordsPerPage: 25,  wordsPerSentence: 8 },  floor: 0.80, newTrickyPerPage: 2 },
-  { band: 3, level: 4, color: 'green',  note: 'Digraphs and blends: sh, ch, th, wh, ck, ng, nk; st-, fl-, -nd, -mp (ship, frog, jump, sing).',
+  { band: 3, level: 4, color: 'green',  focus: 'Blends and digraphs', note: 'Digraphs and blends: sh, ch, th, wh, ck, ng, nk; st-, fl-, -nd, -mp (ship, frog, jump, sing).',
     limits: { wordsPerPage: 35,  wordsPerSentence: 9 },  floor: 0.80, newTrickyPerPage: 2.5 },
-  { band: 4, level: 5, color: 'teal',   note: 'Long vowels: silent e (cake), ee, ea, ai, ay, oa, ow, igh, y; endings -ed, -ing, -er.',
+  { band: 4, level: 5, color: 'teal',   focus: 'Long vowels', note: 'Long vowels: silent e (cake), ee, ea, ai, ay, oa, ow, igh, y; endings -ed, -ing, -er.',
     limits: { wordsPerPage: 55,  wordsPerSentence: 11 }, floor: 0.80, newTrickyPerPage: 3 },
-  { band: 5, level: 6, color: 'blue',   note: 'Vowel sounds: ar, or, er, ir, ur; oi, oy, ou, ow; oo; aw, au; soft c and g; -le; two-syllable words.',
+  { band: 5, level: 6, color: 'blue',   focus: 'More vowel sounds', note: 'Vowel sounds: ar, or, er, ir, ur; oi, oy, ou, ow; oo; aw, au; soft c and g; -le; two-syllable words.',
     limits: { wordsPerPage: 85,  wordsPerSentence: 13 }, floor: 0.80, newTrickyPerPage: 4 },
-  { band: 6, level: 7, color: 'indigo', note: 'Big words: prefixes and suffixes (un-, re-, -ful, -less, -ly, -tion), kn, wr, ph.',
+  { band: 6, level: 7, color: 'indigo', focus: 'Big words', note: 'Big words: prefixes and suffixes (un-, re-, -ful, -less, -ly, -tion), kn, wr, ph.',
     limits: { wordsPerPage: 160, wordsPerSentence: 17 }, floor: 0.75, newTrickyPerPage: 6 },
-  { band: 7, level: 8, color: 'violet', note: 'Chapter books: no limits.',
+  { band: 7, level: 8, color: 'violet', focus: 'Chapter books', note: 'Chapter books: no limits.',
     limits: { wordsPerPage: Infinity, wordsPerSentence: Infinity }, floor: 0, newTrickyPerPage: Infinity },
 ];
 
